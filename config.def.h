@@ -61,7 +61,7 @@ static const Layout layouts[] = {
 };
 
 /* key definitions */
-#define MODKEY Mod1Mask
+#define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
@@ -72,27 +72,31 @@ static const Layout layouts[] = {
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY,                       XK_b,      togglebar,      {0} },
-	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
-	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
+	{ MODKEY,                       XK_k,      focusstack,     {.i = +1 } },
+	{ MODKEY,                       XK_l,      focusstack,     {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_u,      focusurgent,    {0} },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
-	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
-	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
-	{ MODKEY,                       XK_Return, zoom,           {0} },
+	{ MODKEY,                       XK_u,      incnmaster,     {.i = -1 } },
+	{ MODKEY,                       XK_j,      setmfact,       {.f = -0.05} },
+	{ MODKEY,                    XK_semicolon, setmfact,       {.f = +0.05} },
+	{ MODKEY|ControlMask,           XK_j,      aspectresize,   {.i = -25} },
+	{ MODKEY|ControlMask,        XK_semicolon, aspectresize,   {.i = +25} },
+	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
-	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
+	{ MODKEY,                       XK_q,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY,                       XK_space,  setlayout,      {0} },
-	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
-	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
-	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
-	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
-	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
-	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
-	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_g,      setlayout,      {.v = &layouts[3]} },
+	{ MODKEY|ShiftMask,             XK_c,      setlayout,      {.v = &layouts[4]} },
+	{ MODKEY,                       XK_space,  togglefloating, {0} },
+	{ MODKEY,                   XK_apostrophe, view,           {.ui = ~0 } },
+	{ MODKEY|ShiftMask,         XK_apostrophe, tag,            {.ui = ~0 } },
+	{ MODKEY|ControlMask,           XK_k,      focusmon,       {.i = -1 } },
+	{ MODKEY|ControlMask,           XK_l,      focusmon,       {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_k,      tagmon,         {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_l,      tagmon,         {.i = +1 } },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
@@ -102,9 +106,11 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_7,                      6)
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
-	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
-	{ MODKEY,                       XK_o,      winview,        {0} },
+	{ MODKEY|ControlMask|ShiftMask, XK_q,      quit,           {.i = 0} },
+	{ MODKEY|ControlMask|ShiftMask, XK_r,      quit,           {.i = 1} },
+	{ MODKEY,                       XK_g,      winview,        {0}},
 	{ Mod1Mask,                     XK_Tab,    alttab,         {0} },
+	{ 0,                            XK_F11,    togglefullscr,  {0}},
 };
 
 /* button definitions */
