@@ -2020,7 +2020,12 @@ tagmon(const Arg *arg)
 {
 	if (!selmon->sel || !mons->next)
 		return;
-	sendmon(selmon->sel, dirtomon(arg->i));
+	Monitor *mon = dirtomon(arg->i);
+	if (selmon->sel->isfloating) {
+		selmon->sel->x += mon->mx - selmon->mx;
+		selmon->sel->y += mon->my - selmon->my;
+	}
+	sendmon(selmon->sel, mon);
 }
 
 void
