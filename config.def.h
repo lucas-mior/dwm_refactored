@@ -9,7 +9,11 @@ static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 #define ICONSIZE 18   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
-static const char *fonts[]          = { "monospace:size=10" };
+static const char *fonts[]          = {
+	"LiberationSans:size=14",
+	"Noto Color Emoji:size=11:antialias=true:autohint=true",
+	"LiterationMono Nerd Font:size=11:style=Regular",
+};
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
