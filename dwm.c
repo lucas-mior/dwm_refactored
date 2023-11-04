@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <X11/cursorfont.h>
@@ -95,6 +96,7 @@ struct Client {
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	Client *next;
 	Client *snext;
+	Client *allnext;
 	Monitor *mon;
 	Window win;
 };
@@ -142,6 +144,7 @@ typedef struct {
 } Rule;
 
 /* function declarations */
+static void alttab(const Arg *arg);
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
 static void arrange(Monitor *m);
@@ -168,6 +171,7 @@ static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
+static void focusnext(const Arg *arg);
 static void focusstack(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -269,6 +273,9 @@ static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
 
+static int alt_tab_direction = 0;
+static Client *allclients = NULL;
+
 /* configuration, allows nested code to access above variables */
 #include "config.def.h"
 
@@ -276,6 +283,82 @@ static Window root, wmcheckwin;
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 /* function implementations */
+
+void
+alttab(const Arg *arg) {
+	if (allclients == NULL)
+		return;
+
+	for (Monitor *m = mons; m; m = m->next)
+		view(&(Arg){ .ui = ~0 });
+	focusnext(&(Arg){ .i = alt_tab_direction });
+
+	int grabbed = 1;
+	int grabbed_keyboard = 1000;
+	for (int i = 0; i < 100; i += 1) {
+		struct timespec ts;
+		ts.tv_sec = 0;
+		ts.tv_nsec = 1000000;
+
+		if (grabbed_keyboard != GrabSuccess) {
+			grabbed_keyboard = XGrabKeyboard(dpy, DefaultRootWindow(dpy), True,
+											 GrabModeAsync, GrabModeAsync, CurrentTime);
+		}
+		if (grabbed_keyboard == GrabSuccess) {
+			XGrabButton(dpy, AnyButton, AnyModifier, None, False,
+						BUTTONMASK, GrabModeAsync, GrabModeAsync,
+						None, None);
+			break;
+		}
+		nanosleep(&ts, NULL);
+		if (i == 100 - 1)
+			grabbed = 0;
+	}
+
+	XEvent event;
+	Client *c;
+	Monitor *m;
+	XButtonPressedEvent *ev;
+
+	while (grabbed) {
+		XNextEvent(dpy, &event);
+		switch (event.type) {
+		case KeyPress:
+			if (event.xkey.keycode == tabCycleKey)
+				focusnext(&(Arg){ .i = alt_tab_direction });
+			break;
+		case KeyRelease:
+			if (event.xkey.keycode == tabModKey) {
+				XUngrabKeyboard(dpy, CurrentTime);
+				XUngrabButton(dpy, AnyButton, AnyModifier, None);
+				grabbed = 0;
+				alt_tab_direction = !alt_tab_direction;
+				winview(0);
+			}
+			break;
+	    case ButtonPress:
+			ev = &(event.xbutton);
+			if ((m = wintomon(ev->window)) && m != selmon) {
+				unfocus(selmon->sel, 1);
+				selmon = m;
+				focus(NULL);
+			}
+			if ((c = wintoclient(ev->window)))
+				focus(c);
+			XAllowEvents(dpy, AsyncBoth, CurrentTime);
+			break;
+		case ButtonRelease:
+			XUngrabKeyboard(dpy, CurrentTime);
+			XUngrabButton(dpy, AnyButton, AnyModifier, None);
+			grabbed = 0;
+			alt_tab_direction = !alt_tab_direction;
+			winview(0);
+			break;
+		}
+	}
+	return;
+}
+
 void
 applyrules(Client *c)
 {
@@ -406,7 +489,9 @@ void
 attach(Client *c)
 {
 	c->next = c->mon->clients;
+	c->allnext = allclients;
 	c->mon->clients = c;
+	allclients = c;
 }
 
 void
@@ -665,6 +750,8 @@ detach(Client *c)
 
 	for (tc = &c->mon->clients; *tc && *tc != c; tc = &(*tc)->next);
 	*tc = c->next;
+	for (tc = &allclients; *tc && *tc != c; tc = &(*tc)->allnext);
+	*tc = c->allnext;
 }
 
 void
@@ -834,6 +921,38 @@ focusmon(const Arg *arg)
 	unfocus(selmon->sel, 0);
 	selmon = m;
 	focus(NULL);
+}
+
+static void
+focusnext(const Arg *arg) {
+	Monitor *m;
+	Client *c;
+
+	m = selmon;
+	c = m->sel;
+	while (c == NULL && m->next) {
+		m = m->next;
+		unfocus(selmon->sel, 1);
+		selmon = m;
+		focus(NULL);
+		c = m->sel;
+	}
+	if (c == NULL)
+		return;
+
+	if (arg->i) {
+		if (c->allnext)
+			c = c->allnext;
+		else
+			c = allclients;
+	} else {
+		Client *last = c;
+		if (last == allclients)
+			last = NULL;
+		for (c = allclients; c->allnext != last; c = c->allnext);
+	}
+	focus(c);
+	return;
 }
 
 void
@@ -1914,6 +2033,7 @@ updategeom(void)
 			while ((c = m->clients)) {
 				dirty = 1;
 				m->clients = c->next;
+				allclients = c->allnext;
 				detachstack(c);
 				c->mon = mons;
 				attach(c);
