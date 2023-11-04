@@ -193,7 +193,7 @@ static Atom getatomprop(Client *c, Atom prop);
 static Picture geticonprop(Window w, unsigned int *icw, unsigned int *ich);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
-static pid_t getstatusbarpid();
+static pid_t getstatusbarpid(void);
 static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
@@ -260,7 +260,7 @@ static void winview(const Arg* arg);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
-static void xinitvisual();
+static void xinitvisual(void);
 static void zoom(const Arg *arg);
 
 /* variables */
@@ -1270,7 +1270,7 @@ getatomprop(Client *c, Atom prop)
 }
 
 pid_t
-getstatusbarpid()
+getstatusbarpid(void)
 {
 	char buf[32], *str = buf, *c;
 	FILE *fp;
@@ -1497,6 +1497,7 @@ keypress(XEvent *e)
 void
 killclient(const Arg *arg)
 {
+	(void) arg;
 	if (!selmon->sel)
 		return;
 	if (!sendevent(selmon->sel, wmatom[WMDelete])) {
@@ -1654,6 +1655,7 @@ motionnotify(XEvent *e)
 void
 movemouse(const Arg *arg)
 {
+	(void) arg;
 	int x, y, ocx, ocy, nx, ny;
 	Client *c;
 	Monitor *m;
@@ -1829,6 +1831,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 void
 resizemouse(const Arg *arg)
 {
+	(void) arg;
 	int ocx, ocy, nw, nh;
 	Client *c;
 	Monitor *m;
@@ -2335,6 +2338,7 @@ tile(Monitor *m)
 void
 togglebar(const Arg *arg)
 {
+	(void) arg;
 	selmon->showbar = selmon->pertag->showbars[selmon->pertag->curtag] = !selmon->showbar;
 	updatebarpos(selmon);
 	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
@@ -2344,6 +2348,7 @@ togglebar(const Arg *arg)
 void
 togglefloating(const Arg *arg)
 {
+	(void) arg;
 	if (!selmon->sel)
 		return;
 	if (selmon->sel->isfullscreen && !selmon->sel->isfakefullscreen) /* no support for fullscreen windows */
@@ -2369,6 +2374,7 @@ togglefloating(const Arg *arg)
 void
 togglefullscr(const Arg *arg)
 {
+	(void) arg;
 	if (selmon->sel)
 		setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
 }
@@ -2880,7 +2886,7 @@ xerrorstart(Display *dpy, XErrorEvent *ee)
 }
 
 void
-xinitvisual()
+xinitvisual(void)
 {
 	XVisualInfo *infos;
 	XRenderPictFormat *fmt;
@@ -2919,6 +2925,7 @@ xinitvisual()
 void
 zoom(const Arg *arg)
 {
+	(void) arg;
 	Client *c = selmon->sel;
 
 	if (!selmon->lt[selmon->sellt]->arrange || !c || c->isfloating)
