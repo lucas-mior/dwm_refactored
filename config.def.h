@@ -40,9 +40,19 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask     switchtotag, isfloating   isfakefullscreen monitor */
-	{ "Gimp",     NULL,       NULL,       0,            0,           1,           0, -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           0,           1, -1 },
+	/* class      instance    title       tags mask     switchtotag  isfloating   isfakefullscreen monitor */
+	{ "firefox",  NULL,       NULL,         1 << 0,     1,           0,           1,               -1 },
+	{ "LibreWolf",NULL,       NULL,         1 << 0,     1,           0,           1,               -1 },
+	{ "Brave",    NULL,       NULL,         1 << 0,     1,           0,           1,               -1 },
+	{ "KiCad",    NULL,       NULL,         1 << 6,     1,           0,           0,               -1 },
+	{ "OMEdit",   NULL,       NULL,         1 << 6,     1,           0,           0,               -1 },
+	{ NULL,       NULL,       " - mpv",     1 << 7,     1,           0,           0,               -1 },
+	{ NULL,       NULL,       "ncmpcpp",    1 << 8,     1,           0,           0,               -1 },
+	{ NULL,       NULL,       "python",     ~0,         0,           1,           0,               -1 },
+	{ NULL,       NULL,       "clip.sh",    0,          0,           1,           0,               -1 },
+	{ NULL,       NULL,       "clip1.sh",   0,          0,           1,           0,               -1 },
+	{ NULL,       NULL,       "arqs.zsh",   0,          0,           1,           0,               -1 },
+	{ NULL,       NULL,       "Figure 1",   0,          0,           1,           0,               -1 },
 };
 
 /* layout(s) */
