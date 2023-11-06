@@ -4,20 +4,16 @@
 include config.mk
 
 SRC = drw.c dwm.c util.c
-OBJ = ${SRC:.c=.o}
 
 all: dwm
 
-.c.o:
-	${CC} -c ${CFLAGS} $<
+dwm: ${SRC} config.mk config.def.h
+	ctags --kinds-C=+l *.h *.c
+	vtags.sed tags > .tags.vim
+	${CC} $(CFLAGS) -o $@ ${SRC} ${LDFLAGS}
 
-${OBJ}: config.mk
-
-dwm: ${OBJ}
-	${CC} -o $@ ${OBJ} ${LDFLAGS}
-
-clean:
-	rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz
+clean: ${SRC}
+	rm -f dwm dwm-${VERSION}.tar.gz
 
 dist: clean
 	mkdir -p dwm-${VERSION}
@@ -27,7 +23,7 @@ dist: clean
 	gzip dwm-${VERSION}.tar
 	rm -rf dwm-${VERSION}
 
-install: all
+install: dwm
 	mkdir -p ${DESTDIR}${PREFIX}/bin
 	cp -f dwm ${DESTDIR}${PREFIX}/bin
 	chmod 755 ${DESTDIR}${PREFIX}/bin/dwm
