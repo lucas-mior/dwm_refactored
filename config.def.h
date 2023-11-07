@@ -29,7 +29,7 @@ static const unsigned int alphas[][3] = {
 };
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *tags[] = { "Esc", "F1", "F2", "F3", "F4", "1", "2", "3", "4" };
 
 static const char tag_label_format[] = "%s: %s";	/* format of a tag label */
 static const char tag_empty_format[] = "%s";	/* format of an empty tag */
@@ -97,15 +97,15 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_l,      focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_k,      tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_l,      tagmon,         {.i = +1 } },
-	TAGKEYS(                        XK_1,                      0)
-	TAGKEYS(                        XK_2,                      1)
-	TAGKEYS(                        XK_3,                      2)
-	TAGKEYS(                        XK_4,                      3)
-	TAGKEYS(                        XK_5,                      4)
-	TAGKEYS(                        XK_6,                      5)
-	TAGKEYS(                        XK_7,                      6)
-	TAGKEYS(                        XK_8,                      7)
-	TAGKEYS(                        XK_9,                      8)
+	TAGKEYS(                        XK_Escape,                 0)
+	TAGKEYS(                        XK_F1,                     1)
+	TAGKEYS(                        XK_F2,                     2)
+	TAGKEYS(                        XK_F3,                     3)
+	TAGKEYS(                        XK_F4,                     4)
+	TAGKEYS(                        XK_1,                      5)
+	TAGKEYS(                        XK_2,                      6)
+	TAGKEYS(                        XK_3,                      7)
+	TAGKEYS(                        XK_4,                      8)
 	{ MODKEY|ControlMask|ShiftMask, XK_q,      quit,           {.i = 0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_r,      quit,           {.i = 1} },
 	{ MODKEY,                       XK_g,      winview,        {0}},
