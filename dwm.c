@@ -368,6 +368,14 @@ alttab(const Arg *arg) {
 		case KeyPress:
 			if (event.xkey.keycode == tabCycleKey)
 				focusnext(&(Arg){ .i = alt_tab_direction });
+			else if (event.xkey.keycode == key_j)
+				focusdir(&(Arg){ .i = 0 });
+			else if (event.xkey.keycode == key_semicolon)
+				focusdir(&(Arg){ .i = 1 });
+			else if (event.xkey.keycode == key_l)
+				focusdir(&(Arg){ .i = 2 });
+			else if (event.xkey.keycode == key_k)
+				focusdir(&(Arg){ .i = 3 });
 			break;
 		case KeyRelease:
 			if (event.xkey.keycode == tabModKey) {

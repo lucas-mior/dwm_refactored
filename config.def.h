@@ -4,6 +4,10 @@
 static const unsigned int borderpx  = 3;        /* border pixel of windows */
 static const unsigned int tabModKey = 0x40;
 static const unsigned int tabCycleKey = 0x17;
+static const unsigned int key_j = 44;
+static const unsigned int key_semicolon = 47;
+static const unsigned int key_l = 46;
+static const unsigned int key_k = 45;
 static const unsigned int superKey = 133;
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
