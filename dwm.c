@@ -173,6 +173,7 @@ static void configure(Client *c);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
 static Monitor *createmon(void);
+static void debug_dwm(char *message, ...);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
@@ -841,6 +842,38 @@ createmon(void)
 	}
 
 	return m;
+}
+
+void debug_dwm(char *message, ...) {
+	char buffer[256];
+	char *argv[4] = {
+		"dunstify",
+		"dwm",
+		NULL,
+		NULL,
+	};
+
+	va_list args;
+	va_start(args, message);
+	
+	vsnprintf(buffer, sizeof (buffer),
+			  message, args);
+	argv[2] = buffer;
+	va_end(args);
+
+	switch (fork()) {
+	case 0:
+		execvp(argv[0], argv);
+		fprintf(stderr, "Error running %s\n", argv[0]);
+		exit(EXIT_FAILURE);
+	case -1:
+		fprintf(stderr, "Error forking: %s\n", strerror(errno));
+		break;
+	default:
+	    break;
+	}
+
+	return;
 }
 
 void
