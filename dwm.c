@@ -61,7 +61,7 @@
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 
 #define OPAQUE                  0xffU
-#define TAGWIDTH                64
+#define TAGWIDTH                32
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
