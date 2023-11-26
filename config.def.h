@@ -34,7 +34,7 @@ static const unsigned int alphas[][3] = {
 };
 
 /* tagging */
-static const char *tags[] = { "Esc", "F1", "F2", "F3", "F4", "1", "2", "3", "4" };
+static const char *tags[] = { "F1", "F2", "F3", "1", "2", "3" };
 
 static const char tag_label_format[] = "%s: %s";	/* format of a tag label */
 static const char tag_empty_format[] = "%s";	/* format of an empty tag */
@@ -49,10 +49,10 @@ static const Rule rules[] = {
 	{ "firefox",  NULL,       NULL,         1 << 0,     1,           0,           1,               -1 },
 	{ "LibreWolf",NULL,       NULL,         1 << 0,     1,           0,           1,               -1 },
 	{ "Brave",    NULL,       NULL,         1 << 0,     1,           0,           1,               -1 },
-	{ "KiCad",    NULL,       NULL,         1 << 6,     1,           0,           0,               -1 },
-	{ "OMEdit",   NULL,       NULL,         1 << 6,     1,           0,           0,               -1 },
-	{ NULL,       NULL,       " - mpv",     1 << 7,     1,           0,           0,               -1 },
-	{ NULL,       NULL,       "ncmpcpp",    1 << 8,     1,           0,           0,               -1 },
+	{ "KiCad",    NULL,       NULL,         1 << 3,     1,           0,           0,               -1 },
+	{ "OMEdit",   NULL,       NULL,         1 << 3,     1,           0,           0,               -1 },
+	{ NULL,       NULL,       " - mpv",     1 << 4,     1,           0,           0,               -1 },
+	{ NULL,       NULL,       "ncmpcpp",    1 << 5,     1,           0,           0,               -1 },
 	{ NULL,       NULL,       "python",     ~0,         0,           1,           0,               -1 },
 	{ NULL,       NULL,       "clip.sh",    0,          0,           1,           0,               -1 },
 	{ NULL,       NULL,       "clip1.sh",   0,          0,           1,           0,               -1 },
@@ -112,15 +112,12 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_l,      focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_k,      tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_l,      tagmon,         {.i = +1 } },
-	TAGKEYS(                        XK_Escape,                 0)
-	TAGKEYS(                        XK_F1,                     1)
-	TAGKEYS(                        XK_F2,                     2)
-	TAGKEYS(                        XK_F3,                     3)
-	TAGKEYS(                        XK_F4,                     4)
-	TAGKEYS(                        XK_1,                      5)
-	TAGKEYS(                        XK_2,                      6)
-	TAGKEYS(                        XK_3,                      7)
-	TAGKEYS(                        XK_4,                      8)
+	TAGKEYS(                        XK_F1,                     0)
+	TAGKEYS(                        XK_F2,                     1)
+	TAGKEYS(                        XK_F3,                     2)
+	TAGKEYS(                        XK_1,                      3)
+	TAGKEYS(                        XK_2,                      4)
+	TAGKEYS(                        XK_3,                      5)
 	{ MODKEY|ControlMask|ShiftMask, XK_q,      quit,           {.i = 0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_r,      quit,           {.i = 1} },
 	{ MODKEY,                       XK_g,      winview,        {0}},
