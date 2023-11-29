@@ -164,7 +164,6 @@ static void aspectresize(const Arg *arg);
 static void attach(Client *c);
 static void attachstack(Client *c);
 static void buttonpress(XEvent *e);
-static void checkotherwm(void);
 static void cleanup(void);
 static void cleanupmon(Monitor *mon);
 static void clientmessage(XEvent *e);
@@ -650,18 +649,6 @@ buttonpress(XEvent *e)
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
 			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
 
-	return;
-}
-
-void
-checkotherwm(void)
-{
-	xerrorxlib = XSetErrorHandler(xerrorstart);
-	/* this causes an error if some other window manager is running */
-	XSelectInput(dpy, DefaultRootWindow(dpy), SubstructureRedirectMask);
-	XSync(dpy, False);
-	XSetErrorHandler(xerror);
-	XSync(dpy, False);
 	return;
 }
 
@@ -3092,7 +3079,14 @@ main(int argc, char *argv[])
 		fputs("warning: no locale support\n", stderr);
 	if (!(dpy = XOpenDisplay(NULL)))
 		die("dwm: cannot open display");
-	checkotherwm();
+	{
+		xerrorxlib = XSetErrorHandler(xerrorstart);
+		/* this causes an error if some other window manager is running */
+		XSelectInput(dpy, DefaultRootWindow(dpy), SubstructureRedirectMask);
+		XSync(dpy, False);
+		XSetErrorHandler(xerror);
+		XSync(dpy, False);
+	}
 	setup();
 #ifdef __OpenBSD__
 	if (pledge("stdio rpath proc exec", NULL) == -1)
