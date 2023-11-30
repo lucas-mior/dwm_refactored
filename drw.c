@@ -20,9 +20,10 @@ static const long utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF
 static long
 utf8decodebyte(const char c, size_t *i)
 {
-	for (*i = 0; *i < (UTF_SIZ + 1); ++(*i))
+	for (*i = 0; *i < (UTF_SIZ + 1); ++(*i)) {
 		if (((unsigned char)c & utfmask[*i]) == utfbyte[*i])
 			return (unsigned char)c & ~utfmask[*i];
+	}
 	return 0;
 }
 
@@ -31,8 +32,7 @@ utf8validate(long *u, size_t i)
 {
 	if (!BETWEEN(*u, utfmin[i], utfmax[i]) || BETWEEN(*u, 0xD800, 0xDFFF))
 		*u = UTF_INVALID;
-	for (i = 1; *u > utfmax[i]; ++i)
-		;
+	for (i = 1; *u > utfmax[i]; ++i);
 	return i;
 }
 
