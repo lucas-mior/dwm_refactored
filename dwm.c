@@ -319,7 +319,7 @@ struct Pertag {
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
 
-unsigned int tagw[LENGTH(tags)];
+static unsigned int tagw[LENGTH(tags)];
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
@@ -946,7 +946,6 @@ drawbar(Monitor *m)
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
-	Client *c;
 	char tagdisp[TAGWIDTH];
 	char *masterclientontag[LENGTH(tags)];
 
@@ -982,7 +981,7 @@ drawbar(Monitor *m)
 		icontagclient[i] = NULL;
 	}
 
-	for (c = m->clients; c; c = c->next) {
+	for (Client *c = m->clients; c; c = c->next) {
 		occ |= c->tags;
 		if (c->isurgent)
 			urg |= c->tags;
@@ -2987,8 +2986,9 @@ winview(const Arg* arg) {
  * ignored (especially on UnmapNotify's). Other types of errors call Xlibs
  * default error handler, which may call exit. */
 int
-xerror(Display *dpy, XErrorEvent *ee)
+xerror(Display *d, XErrorEvent *ee)
 {
+	(void) d;
 	if (ee->error_code == BadWindow
 	|| (ee->request_code == X_SetInputFocus && ee->error_code == BadMatch)
 	|| (ee->request_code == X_PolyText8 && ee->error_code == BadDrawable)
@@ -3005,16 +3005,20 @@ xerror(Display *dpy, XErrorEvent *ee)
 }
 
 int
-xerrordummy(Display *dpy, XErrorEvent *ee)
+xerrordummy(Display *d, XErrorEvent *ee)
 {
+	(void) d;
+	(void) ee;
 	return 0;
 }
 
 /* Startup Error handler to check if another window manager
  * is already running. */
 int
-xerrorstart(Display *dpy, XErrorEvent *ee)
+xerrorstart(Display *d, XErrorEvent *ee)
 {
+	(void) d;
+	(void) ee;
 	die("dwm: another window manager is already running");
 	return -1;
 }
