@@ -755,9 +755,10 @@ configurenotify(XEvent *e)
 			drw_resize(drw, sw, bh);
 			updatebars();
 			for (Monitor *m = mons; m; m = m->next) {
-				for (Client *c = m->clients; c; c = c->next)
+				for (Client *c = m->clients; c; c = c->next) {
 					if (c->isfullscreen && !c->isfakefullscreen)
 						resizeclient(c, m->mx, m->my, m->mw, m->mh);
+				}
 				XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, m->ww, bh);
 			}
 			focus(NULL);
