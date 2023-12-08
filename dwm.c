@@ -2283,6 +2283,9 @@ setup(void)
 	grabkeys();
 	focus(NULL);
 	for (Monitor *m = mons; m; m = m->next) {
+		unfocus(selmon->sel, 0);
+		selmon = m;
+		focus(NULL);
 		Arg lay_monocle = {.v = &layouts[2]};
 		Arg lay_grid = {.v = &layouts[3]};
 		Arg tag8 = {.ui = 1 << 5};
