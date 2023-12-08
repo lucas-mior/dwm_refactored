@@ -856,8 +856,10 @@ createmon(void)
 
 void debug_dwm(char *message, ...) {
 	char buffer[256];
-	char *argv[4] = {
+	char *argv[6] = {
 		"dunstify",
+		"-t",
+		"3000",
 		"dwm",
 		NULL,
 		NULL,
