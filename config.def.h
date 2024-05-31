@@ -33,6 +33,16 @@ static const unsigned int alphas[][3] = {
 	[SchemeUrg]  = { OPAQUE, 0xbb, OPAQUE },
 };
 
+typedef struct {
+	const char *name;
+	const void *cmd;
+} Sp;
+const char *spcmd1[] = {"st", "-n", "python", "-e", "python", NULL};
+static Sp scratchpads[] = {
+	/* name          cmd  */
+	{"python",      spcmd1},
+};
+
 /* tagging */
 static const char *tags[] = { "F1", "F2", "F3", "1", "2", "3" };
 
@@ -53,12 +63,12 @@ static const Rule rules[] = {
 	{ "OMEdit",   NULL,       NULL,         1 << 3,     1,           0,           0,               -1 },
 	{ NULL,       NULL,       " - mpv",     1 << 4,     1,           0,           0,               -1 },
 	{ NULL,       NULL,       "ncmpcpp",    1 << 5,     1,           0,           0,               -1 },
-	{ NULL,       NULL,       "python",     ~0,         0,           1,           0,               -1 },
+	/* { NULL,       NULL,       "python",     ~0,         0,           1,           0,               -1 }, */
 	{ NULL,       NULL,       "csv_plotter.py",~0,         0,           1,           0,               -1 },
 	{ NULL,       NULL,       "clip.sh",    0,          0,           1,           0,               -1 },
 	{ NULL,       NULL,       "clip1.sh",   0,          0,           1,           0,               -1 },
 	{ NULL,       NULL,       "arqs.zsh",   0,          0,           1,           0,               -1 },
-	{ NULL,       NULL,       "Figure 1",   0,          0,           1,           0,               -1 },
+	{ NULL,       "python",   NULL,   SPTAG(0),   0,           1,           0,               -1 },
 };
 
 /* layout(s) */
@@ -113,6 +123,7 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_l,      focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_k,      tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_l,      tagmon,         {.i = +1 } },
+	{ MODKEY,            			XK_equal,  togglescratch,  {.ui = 0 } },
 	TAGKEYS(                        XK_F1,                     0)
 	TAGKEYS(                        XK_F2,                     1)
 	TAGKEYS(                        XK_F3,                     2)
