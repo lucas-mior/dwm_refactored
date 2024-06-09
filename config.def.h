@@ -37,10 +37,13 @@ typedef struct {
 	const char *name;
 	const void *cmd;
 } Sp;
+
 const char *spcmd1[] = {"st", "-n", "python", "-e", "python", NULL};
+const char *spcmd2[] = {"st", "-n", "scratch"};
 static Sp scratchpads[] = {
 	/* name          cmd  */
 	{"python",      spcmd1},
+	{"scratch",     spcmd2},
 };
 
 /* tagging */
@@ -68,7 +71,8 @@ static const Rule rules[] = {
 	{ NULL,       NULL,       "clip.sh",    0,          0,           1,           0,               -1 },
 	{ NULL,       NULL,       "clip1.sh",   0,          0,           1,           0,               -1 },
 	{ NULL,       NULL,       "arqs.zsh",   0,          0,           1,           0,               -1 },
-	{ NULL,       "python",   NULL,   SPTAG(0),   0,           1,           0,               -1 },
+	{ NULL,       "python",   NULL,   SPTAG(0),   0,           0,           0,               -1 },
+	{ NULL,       "scratch",   NULL,   SPTAG(1),   0,           0,           0,               -1 },
 };
 
 /* layout(s) */
@@ -124,6 +128,7 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_k,      tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_l,      tagmon,         {.i = +1 } },
 	{ MODKEY,            			XK_equal,  togglescratch,  {.ui = 0 } },
+	{ MODKEY,            			XK_Return, togglescratch,  {.ui = 1 } },
 	TAGKEYS(                        XK_F1,                     0)
 	TAGKEYS(                        XK_F2,                     1)
 	TAGKEYS(                        XK_F3,                     2)
