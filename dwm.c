@@ -2538,7 +2538,14 @@ togglescratch(const Arg *arg)
 
 	for (c = selmon->clients; c && !(found = c->tags & scratchtag); c = c->next);
 	if (found) {
+		unsigned int this_tag = c->tags & selmon->tagset[selmon->seltags];
 		unsigned int newtagset = selmon->tagset[selmon->seltags] ^ scratchtag;
+
+		if (this_tag) {
+			c->tags = scratchtag;
+		} else {
+			c->tags |= selmon->tagset[selmon->seltags];
+		}
 		if (newtagset) {
 			selmon->tagset[selmon->seltags] = newtagset;
 			focus(NULL);
