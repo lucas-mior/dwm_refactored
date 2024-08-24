@@ -103,7 +103,7 @@ struct Client {
 	float min_a, max_a;
 	int x, y, w, h;
 	int stored_fx, stored_fy, stored_fw, stored_fh;
-	int oldx, oldy, oldw, oldh;
+	int old_x, old_y, old_w, old_h;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int border_width, oldbw;
 	uint tags;
@@ -238,7 +238,7 @@ static void setclientstate(Client *client, long state);
 static void setclienttagprop(Client *client);
 static void setfocus(Client *client);
 static void setfullscreen(Client *client, int fullscreen);
-static void setlayout(const Arg *arg);
+static void set_layout(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
 static void seturgent(Client *client, int urg);
@@ -823,19 +823,19 @@ configure_request(XEvent *e) {
 		} else if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
 			m = client->monitor;
 			if (ev->value_mask & CWX) {
-				client->oldx = client->x;
+				client->old_x = client->x;
 				client->x = m->mx + ev->x;
 			}
 			if (ev->value_mask & CWY) {
-				client->oldy = client->y;
+				client->old_y = client->y;
 				client->y = m->my + ev->y;
 			}
 			if (ev->value_mask & CWWidth) {
-				client->oldw = client->w;
+				client->old_w = client->w;
 				client->w = ev->width;
 			}
 			if (ev->value_mask & CWHeight) {
-				client->oldh = client->h;
+				client->old_h = client->h;
 				client->h = ev->height;
 			}
 			if ((client->x + client->w) > m->mx + m->mw && client->isfloating)
@@ -1647,10 +1647,10 @@ manage(Window w, XWindowAttributes *wa) {
 	client = ecalloc(1, sizeof(Client));
 	client->win = w;
 	/* geometry */
-	client->x = client->oldx = wa->x;
-	client->y = client->oldy = wa->y;
-	client->w = client->oldw = wa->width;
-	client->h = client->oldh = wa->height;
+	client->x = client->old_x = wa->x;
+	client->y = client->old_y = wa->y;
+	client->w = client->old_w = wa->width;
+	client->h = client->old_h = wa->height;
 	client->oldbw = wa->border_width;
 
 	updateicon(client);
@@ -1934,10 +1934,10 @@ resizeclient(Client *client, int x, int y, int w, int h) {
 	uint n;
 	Client *nbc;
 
-	client->oldx = client->x; client->x = wc.x = x;
-	client->oldy = client->y; client->y = wc.y = y;
-	client->oldw = client->w; client->w = wc.width = w;
-	client->oldh = client->h; client->h = wc.height = h;
+	client->old_x = client->x; client->x = wc.x = x;
+	client->old_y = client->y; client->y = wc.y = y;
+	client->old_w = client->w; client->w = wc.width = w;
+	client->old_h = client->h; client->h = wc.height = h;
 	wc.border_width = client->border_width;
 
 	for (n = 0, nbc = nexttiled(current_monitor->clients); nbc; nbc = nexttiled(nbc->next), n++);
@@ -2165,10 +2165,10 @@ setfullscreen(Client *client, int fullscreen) {
 		}
 		client->isfloating = client->oldstate;
 		client->border_width = client->oldbw;
-		client->x = client->oldx;
-		client->y = client->oldy;
-		client->w = client->oldw;
-		client->h = client->oldh;
+		client->x = client->old_x;
+		client->y = client->old_y;
+		client->w = client->old_w;
+		client->h = client->old_h;
 		resizeclient(client, client->x, client->y, client->w, client->h);
 		arrange(client->monitor);
 	}
@@ -2176,7 +2176,7 @@ setfullscreen(Client *client, int fullscreen) {
 }
 
 void
-setlayout(const Arg *arg) {
+set_layout(const Arg *arg) {
 	if (!arg || !arg->v || arg->v != current_monitor->layout[current_monitor->layout_index])
 		current_monitor->layout_index = current_monitor->pertag->sellts[current_monitor->pertag->current_tag] ^= 1;
 	if (arg && arg->v)
@@ -2292,10 +2292,10 @@ setup(void) {
 		Arg tag1 = {.ui = 1 << 0};
 		Arg tag0 = {.ui = ~0};
 		view(&tag8);
-		setlayout(&lay_monocle);
+		set_layout(&lay_monocle);
 		togglebar(0);
 		view(&tag0);
-		setlayout(&lay_grid);
+		set_layout(&lay_grid);
 		view(&tag1);
 	}
 	return;

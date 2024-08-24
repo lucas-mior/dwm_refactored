@@ -119,11 +119,11 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_q,      killclient,     {0} },
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY|ShiftMask,             XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY|ShiftMask,             XK_g,      setlayout,      {.v = &layouts[3]} },
-	{ MODKEY|ShiftMask,             XK_c,      setlayout,      {.v = &layouts[4]} },
+	{ MODKEY,                       XK_t,      set_layout,      {.v = &layouts[0]} },
+	{ MODKEY|ShiftMask,             XK_f,      set_layout,      {.v = &layouts[1]} },
+	{ MODKEY,                       XK_m,      set_layout,      {.v = &layouts[2]} },
+	{ MODKEY|ShiftMask,             XK_g,      set_layout,      {.v = &layouts[3]} },
+	{ MODKEY|ShiftMask,             XK_c,      set_layout,      {.v = &layouts[4]} },
 	{ MODKEY,                       XK_space,  togglefloating, {0} },
 	{ MODKEY,                   XK_apostrophe, view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,         XK_apostrophe, tag,            {.ui = ~0 } },
@@ -150,8 +150,8 @@ static const Key keys[] = {
 /* click can be ClickTagBar, ClickLayoutSymbol, ClickStatusText, ClickWinTitle, ClickClientWin, or ClickRootWin */
 static const Button buttons[] = {
 	/* click                event mask      button          function        argument */
-	{ ClickLayoutSymbol,          0,              Button1,        setlayout,      {0} },
-	{ ClickLayoutSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
+	{ ClickLayoutSymbol,          0,              Button1,        set_layout,      {0} },
+	{ ClickLayoutSymbol,          0,              Button3,        set_layout,      {.v = &layouts[2]} },
 	{ ClickWinTitle,          0,              Button2,        zoom,           {0} },
 	{ ClickClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClickClientWin,         MODKEY,         Button2,        togglefloating, {0} },
