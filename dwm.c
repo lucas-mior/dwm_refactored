@@ -200,8 +200,8 @@ static void focus(Client *client);
 static void focus_direction(const Arg *arg);
 static void focus_in(XEvent *e);
 static void focus_monitor(const Arg *arg);
-static void focusnext(const Arg *arg);
-static void focusstack(const Arg *arg);
+static void focus_next(const Arg *arg);
+static void focus_stack(const Arg *arg);
 static void focusurgent(const Arg *arg);
 static void gaplessgrid(Monitor *monitor);
 static Atom getatomprop(Client *client, Atom prop);
@@ -352,7 +352,7 @@ alttab(const Arg *arg) {
 
 	for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
 		view(&(Arg){ .ui = (uint) ~0 });
-	focusnext(&(Arg){ .i = alt_tab_direction });
+	focus_next(&(Arg){ .i = alt_tab_direction });
 
 	int grabbed = 1;
 	int grabbed_keyboard = 1000;
@@ -386,7 +386,7 @@ alttab(const Arg *arg) {
 		switch (event.type) {
 		case KeyPress:
 			if (event.xkey.keycode == tabCycleKey)
-				focusnext(&(Arg){ .i = alt_tab_direction });
+				focus_next(&(Arg){ .i = alt_tab_direction });
 			else if (event.xkey.keycode == key_j)
 				focus_direction(&(Arg){ .i = 0 });
 			else if (event.xkey.keycode == key_semicolon)
@@ -1240,7 +1240,7 @@ focus_monitor(const Arg *arg) {
 }
 
 static void
-focusnext(const Arg *arg) {
+focus_next(const Arg *arg) {
 	Monitor *m;
 	Client *client;
 
@@ -1272,7 +1272,7 @@ focusnext(const Arg *arg) {
 }
 
 void
-focusstack(const Arg *arg) {
+focus_stack(const Arg *arg) {
 	Client *client = NULL, *i;
 
 	if (!current_monitor->selected_client || (current_monitor->selected_client->isfullscreen && lockfullscreen))
@@ -3029,7 +3029,7 @@ winview(const Arg* arg) {
 	unsigned nc;
 	int unused;
 	Client* client;
-	Arg a;
+	Arg view_arg;
 
 	if (!XGetInputFocus(dpy, &win, &unused))
 		return;
@@ -3039,8 +3039,8 @@ winview(const Arg* arg) {
 	if (!(client = wintoclient(win)))
 		return;
 
-	a.ui = client->tags;
-	view(&a);
+	view_arg.ui = client->tags;
+	view(&view_arg);
 	return;
 }
 
