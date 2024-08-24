@@ -1669,7 +1669,7 @@ manage(Window w, XWindowAttributes *wa) {
 		client->y = client->monitor->wy + client->monitor->wh - HEIGHT(client);
 	client->x = MAX(client->x, client->monitor->wx);
 	client->y = MAX(client->y, client->monitor->wy);
-	client->border_width = borderpx;
+	client->border_width = border_pixels;
 
 	wc.border_width = client->border_width;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
@@ -1930,27 +1930,27 @@ resize(Client *client, int x, int y, int w, int h, int interact) {
 
 void
 resizeclient(Client *client, int x, int y, int w, int h) {
-	XWindowChanges wc;
+	XWindowChanges window_changes;
 	uint n;
 	Client *nbc;
 
-	client->old_x = client->x; client->x = wc.x = x;
-	client->old_y = client->y; client->y = wc.y = y;
-	client->old_w = client->w; client->w = wc.width = w;
-	client->old_h = client->h; client->h = wc.height = h;
-	wc.border_width = client->border_width;
+	client->old_x = client->x; client->x = window_changes.x = x;
+	client->old_y = client->y; client->y = window_changes.y = y;
+	client->old_w = client->w; client->w = window_changes.width = w;
+	client->old_h = client->h; client->h = window_changes.height = h;
+	window_changes.border_width = client->border_width;
 
 	for (n = 0, nbc = nexttiled(current_monitor->clients); nbc; nbc = nexttiled(nbc->next), n++);
 
 	if (!(client->isfloating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
 		if (current_monitor->layout[current_monitor->layout_index]->arrange == monocle || n == 1) {
-			wc.border_width = 0;
-			client->w = wc.width += client->border_width * 2;
-			client->h = wc.height += client->border_width * 2;
+			window_changes.border_width = 0;
+			client->w = window_changes.width += client->border_width * 2;
+			client->h = window_changes.height += client->border_width * 2;
 		}
 	}
 
-	XConfigureWindow(dpy, client->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
+	XConfigureWindow(dpy, client->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &window_changes);
 	configure(client);
 	XSync(dpy, False);
 	return;
