@@ -177,14 +177,14 @@ static void arrangemon(Monitor *monitor);
 static void aspectresize(const Arg *arg);
 static void attach(Client *client);
 static void attachstack(Client *client);
-static void buttonpress(XEvent *e);
+static void button_press(XEvent *e);
 static void cleanup(void);
 static void cleanupmon(Monitor *monitor);
-static void clientmessage(XEvent *e);
+static void client_message(XEvent *e);
 static void col(Monitor *);
 static void configure(Client *client);
-static void configurenotify(XEvent *e);
-static void configurerequest(XEvent *e);
+static void configure_notify(XEvent *e);
+static void configure_request(XEvent *e);
 static Monitor *createmon(void);
 static void debug_dwm(char *message, ...);
 static void destroynotify(XEvent *e);
@@ -292,10 +292,10 @@ static int lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
-	[ButtonPress] = buttonpress,
-	[ClientMessage] = clientmessage,
-	[ConfigureRequest] = configurerequest,
-	[ConfigureNotify] = configurenotify,
+	[ButtonPress] = button_press,
+	[ClientMessage] = client_message,
+	[ConfigureRequest] = configure_request,
+	[ConfigureNotify] = configure_notify,
 	[DestroyNotify] = destroynotify,
 	[EnterNotify] = enternotify,
 	[Expose] = expose,
@@ -612,7 +612,7 @@ attachstack(Client *client) {
 }
 
 void
-buttonpress(XEvent *e) {
+button_press(XEvent *e) {
 	uint click;
 	Arg arg = {0};
 	Client *client;
@@ -742,7 +742,7 @@ cleanupmon(Monitor *monitor) {
 }
 
 void
-clientmessage(XEvent *e) {
+client_message(XEvent *e) {
 	XClientMessageEvent *cme = &e->xclient;
 	Client *client = wintoclient(cme->window);
 
@@ -782,7 +782,7 @@ configure(Client *client) {
 }
 
 void
-configurenotify(XEvent *e) {
+configure_notify(XEvent *e) {
 	XConfigureEvent *ev = &e->xconfigure;
 	int dirty;
 
@@ -810,7 +810,7 @@ configurenotify(XEvent *e) {
 }
 
 void
-configurerequest(XEvent *e) {
+configure_request(XEvent *e) {
 	Client *client;
 	Monitor *m;
 	XConfigureRequestEvent *ev = &e->xconfigurerequest;
@@ -1094,15 +1094,15 @@ drawbars(void) {
 }
 
 void
-enternotify(XEvent *e) {
+enternotify(XEvent *event) {
 	Client *client;
 	Monitor *m;
-	XCrossingEvent *ev = &e->xcrossing;
+	XCrossingEvent *crossing_event = &event->xcrossing;
 
-	if ((ev->mode != NotifyNormal || ev->detail == NotifyInferior) && ev->window != root)
+	if ((crossing_event->mode != NotifyNormal || crossing_event->detail == NotifyInferior) && crossing_event->window != root)
 		return;
-	client = wintoclient(ev->window);
-	m = client ? client->monitor : wintomon(ev->window);
+	client = wintoclient(crossing_event->window);
+	m = client ? client->monitor : wintomon(crossing_event->window);
 	if (m != current_monitor) {
 		unfocus(current_monitor->sel, 1);
 		current_monitor = m;
