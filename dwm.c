@@ -74,7 +74,7 @@ enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
-       ClkExBarLeftStatus, ClkExBarMiddle, ClkExBarRightStatus,
+       ClkExtraBar,
        ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
 
 typedef union {
@@ -274,7 +274,7 @@ static void zoom(const Arg *arg);
 /* variables */
 static const char broken[] = "broken";
 static char stext[256];
-static char estextl[256];
+static char extra_status[256];
 static int statusw;
 static int statussig;
 static pid_t statuspid = -1;
@@ -655,16 +655,14 @@ buttonpress(XEvent *e)
 			click = ClkWinTitle;
 		}
 	} else if (ev->window == selmon->extrabarwin) {
-		if (ev->x < (int)TEXTW(estextl))
-			click = ClkExBarLeftStatus;
-		else
-			click = ClkExBarMiddle;
+		x = 0;
+		click = ClkExtraBar;
 		statussig = 0;
-		unsigned char *s = &estextl[0];
-		debug_dwm("extextl = %s\n", estextl);
+		char *s = &extra_status[0];
+		debug_dwm("extextl = %s, x=%d\n", extra_status, x);
 		sleep(1);
 		for (char *text = s; *s && x <= ev->x; s++) {
-			debug_dwm("s = %d\n", *s);
+			debug_dwm("s = %d, x = %d\n", *s, x);
 			if ((unsigned char)(*s) < ' ') {
 				char ch = *s;
 				*s = '\0';
@@ -677,7 +675,7 @@ buttonpress(XEvent *e)
 			    debug_dwm("final statussigs = %d\n", *s);
 			}
 		}
-		debug_dwm("outsides = %d\n", *s);
+		debug_dwm("outsides = %d = %c\n", *s, *s);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -1087,8 +1085,8 @@ drawbar(Monitor *m)
 		drw_setscheme(drw, scheme[SchemeNorm]);
 		/* clear default bar draw buffer by drawing a blank rectangle */
 		drw_rect(drw, 0, 0, m->ww, bh, 1, 1);
-		etwl = TEXTW(estextl);
-		drw_text(drw, 0, 0, etwl, bh, 0, estextl, 0);
+		etwl = TEXTW(extra_status);
+		drw_text(drw, 0, 0, etwl, bh, 0, extra_status, 0);
 		drw_map(drw, m->extrabarwin, 0, 0, m->ww, bh);
 	}
 	return;
@@ -2953,17 +2951,17 @@ updatestatus(void)
 	if (!gettextprop(root, XA_WM_NAME, text, sizeof(text))) {
 		strcpy(stext, "dwm-"VERSION);
 		statusw = TEXTW(stext) - lrpad + 2;
-		estextl[0] = '\0';
+		extra_status[0] = '\0';
 	} else {
 		char *l = strchr(text, statussep);
 		if (l) {
 			*l = '\0'; l++;
-			strncpy(estextl, l, sizeof(estextl) - 1);
+			strncpy(extra_status, l, sizeof(extra_status) - 1);
 		} else {
-			estextl[0] = '\0';
+			extra_status[0] = '\0';
 		}
-		strncpy(stext, text, sizeof(stext) - 1);
 
+		strncpy(stext, text, sizeof(stext) - 1);
 		char *s;
 		char *text2;
 		statusw  = 0;
