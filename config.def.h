@@ -10,8 +10,10 @@ static const unsigned int key_l = 46;
 static const unsigned int key_k = 45;
 static const unsigned int superKey = 133;
 static const unsigned int snap      = 32;       /* snap pixel */
-static const int showbar            = 1;        /* 0 means no bar */
-static const int topbar             = 1;        /* 0 means bottom bar */
+static const int showbar            = 1;        /* 0 means no standard bar */
+static const int topbar             = 1;        /* 0 means standard bar at bottom */
+static const int extrabar           = 1;        /* 0 means no extra bar */
+static const char statussep         = ';';      /* separator between statuses */
 #define ICONSIZE 18   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
@@ -104,6 +106,7 @@ static const Layout layouts[] = {
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
+	{ MODKEY|ControlMask,             XK_b,    toggleextrabar, {0} },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_l,      focusstack,     {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_u,      focusurgent,    {0} },
