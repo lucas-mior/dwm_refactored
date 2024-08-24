@@ -175,10 +175,10 @@ typedef struct {
 /* function declarations */
 static void alttab(const Arg *arg);
 static void applyrules(Client *client);
-static int applysizehints(Client *client, int *, int *, int *, int *, int);
+static int apply_size_hints(Client *client, int *, int *, int *, int *, int);
 static void arrange(Monitor *monitor);
 static void arrange_monitor(Monitor *monitor);
-static void aspectresize(const Arg *arg);
+static void aspect_resize(const Arg *arg);
 static void attach(Client *client);
 static void attach_stack(Client *client);
 static void button_press(XEvent *e);
@@ -479,7 +479,7 @@ applyrules(Client *client) {
 }
 
 int
-applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact) {
+apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
     int baseismin;
     Monitor *monitor = client->monitor;
 
@@ -575,7 +575,7 @@ arrange_monitor(Monitor *monitor) {
 }
 
 void
-aspectresize(const Arg *arg) {
+aspect_resize(const Arg *arg) {
     /* only floating windows can be moved */
     Client *client;
     client = current_monitor->selected_client;
@@ -1926,7 +1926,7 @@ recttomon(int x, int y, int w, int h) {
 
 void
 resize(Client *client, int x, int y, int w, int h, int interact) {
-    if (applysizehints(client, &x, &y, &w, &h, interact))
+    if (apply_size_hints(client, &x, &y, &w, &h, interact))
         resize_client(client, x, y, w, h);
     return;
 }
