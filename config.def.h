@@ -147,11 +147,11 @@ static const Key keys[] = {
 };
 
 /* button definitions */
-/* click can be ClickTagBar, ClickLtSymbol, ClickStatusText, ClickWinTitle, ClickClientWin, or ClickRootWin */
+/* click can be ClickTagBar, ClickLayoutSymbol, ClickStatusText, ClickWinTitle, ClickClientWin, or ClickRootWin */
 static const Button buttons[] = {
 	/* click                event mask      button          function        argument */
-	{ ClickLtSymbol,          0,              Button1,        setlayout,      {0} },
-	{ ClickLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
+	{ ClickLayoutSymbol,          0,              Button1,        setlayout,      {0} },
+	{ ClickLayoutSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
 	{ ClickWinTitle,          0,              Button2,        zoom,           {0} },
 	{ ClickClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClickClientWin,         MODKEY,         Button2,        togglefloating, {0} },

@@ -59,8 +59,8 @@ typedef unsigned char uchar;
 #define ISVISIBLE(C)            ((C->tags & C->monitor->tagset[C->monitor->seltags]))
 #define LENGTH(X)               (int) (sizeof X / sizeof X[0])
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
-#define WIDTH(X)                ((X)->w + 2 * (X)->bw)
-#define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
+#define WIDTH(X)                ((X)->w + 2 * (X)->border_width)
+#define HEIGHT(X)               ((X)->h + 2 * (X)->border_width)
 #define NUMTAGS					(LENGTH(tags) + LENGTH(scratchpads))
 #define TAGMASK     			((1 << NUMTAGS) - 1)
 #define SPTAG(i) 				((1 << LENGTH(tags)) << (i))
@@ -77,7 +77,7 @@ enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType, /* EWMH atoms */
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast };
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* atoms */
-enum { ClickTagBar, ClickLtSymbol, ClickStatusText, ClickWinTitle,
+enum { ClickTagBar, ClickLayoutSymbol, ClickStatusText, ClickWinTitle,
        ClickExtraBar, ClickClientWin, ClickRootWin, ClickLast };
 
 typedef union {
@@ -104,7 +104,7 @@ struct Client {
 	int stored_fx, stored_fy, stored_fw, stored_fh;
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
-	int bw, oldbw;
+	int border_width, oldbw;
 	uint tags;
 	int isfixed, isfloating, isurgent;
 	int neverfocus, oldstate, isfullscreen, isfakefullscreen;
@@ -132,7 +132,7 @@ typedef struct {
 
 typedef struct Pertag Pertag;
 struct Monitor {
-	char ltsymbol[16];
+	char layout_symbol[16];
 	float mfact;
 	int nmaster;
 	int num;
@@ -487,18 +487,18 @@ applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact) {
 			*x = sw - WIDTH(client);
 		if (*y > sh)
 			*y = sh - HEIGHT(client);
-		if (*x + *w + 2 * client->bw < 0)
+		if (*x + *w + 2 * client->border_width < 0)
 			*x = 0;
-		if (*y + *h + 2 * client->bw < 0)
+		if (*y + *h + 2 * client->border_width < 0)
 			*y = 0;
 	} else {
 		if (*x >= monitor->wx + monitor->ww)
 			*x = monitor->wx + monitor->ww - WIDTH(client);
 		if (*y >= monitor->wy + monitor->wh)
 			*y = monitor->wy + monitor->wh - HEIGHT(client);
-		if (*x + *w + 2 * client->bw <= monitor->wx)
+		if (*x + *w + 2 * client->border_width <= monitor->wx)
 			*x = monitor->wx;
-		if (*y + *h + 2 * client->bw <= monitor->wy)
+		if (*y + *h + 2 * client->border_width <= monitor->wy)
 			*y = monitor->wy;
 	}
 	if (*h < bh)
@@ -564,7 +564,7 @@ arrange(Monitor *monitor) {
 
 void
 arrangemon(Monitor *monitor) {
-	strncpy(monitor->ltsymbol, monitor->layout[monitor->layout_index]->symbol, sizeof monitor->ltsymbol);
+	strncpy(monitor->layout_symbol, monitor->layout[monitor->layout_index]->symbol, sizeof monitor->layout_symbol);
 	if (monitor->layout[monitor->layout_index]->arrange)
 		monitor->layout[monitor->layout_index]->arrange(monitor);
 	return;
@@ -636,8 +636,8 @@ buttonpress(XEvent *e) {
 		if (i < LENGTH(tags)) {
 			click = ClickTagBar;
 			arg.ui = 1 << i;
-		} else if (ev->x < x + TEXTW(current_monitor->ltsymbol)) {
-			click = ClickLtSymbol;
+		} else if (ev->x < x + TEXTW(current_monitor->layout_symbol)) {
+			click = ClickLayoutSymbol;
 		} else if (ev->x > current_monitor->ww - statusw) {
 			char *s;
 			x = current_monitor->ww - statusw;
@@ -773,7 +773,7 @@ configure(Client *client) {
 	conf_event.y = client->y;
 	conf_event.width = client->w;
 	conf_event.height = client->h;
-	conf_event.border_width = client->bw;
+	conf_event.border_width = client->border_width;
 	conf_event.above = None;
 	conf_event.override_redirect = False;
 	XSendEvent(dpy, client->win,
@@ -818,7 +818,7 @@ configurerequest(XEvent *e) {
 
 	if ((client = wintoclient(ev->window))) {
 		if (ev->value_mask & CWBorderWidth) {
-			client->bw = ev->border_width;
+			client->border_width = ev->border_width;
 		} else if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
 			m = client->monitor;
 			if (ev->value_mask & CWX) {
@@ -876,7 +876,7 @@ createmon(void) {
 	m->extrabar = extrabar;
 	m->layout[0] = &layouts[0];
 	m->layout[1] = &layouts[1 % LENGTH(layouts)];
-	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
+	strncpy(m->layout_symbol, layouts[0].symbol, sizeof m->layout_symbol);
 	m->pertag = ecalloc(1, sizeof(Pertag));
 	m->pertag->current_tag = m->pertag->previous_tag = 1;
 
@@ -1058,9 +1058,9 @@ drawbar(Monitor *m) {
 			tagw[i] += client->icon_width + lrpad/2;
 		}
 	}
-	w = TEXTW(m->ltsymbol);
+	w = TEXTW(m->layout_symbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
+	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->layout_symbol, 0);
 
 	if ((w = m->ww - tw - x) > bh) {
 		if (m->sel) {
@@ -1349,7 +1349,7 @@ gaplessgrid(Monitor *m) {
 		ch = rows ? m->wh / rows : m->wh;
 		cx = m->wx + cn*cw;
 		cy = m->wy + rn*ch;
-		resize(client, cx, cy, cw - 2 * client->bw, ch - 2 * client->bw, False);
+		resize(client, cx, cy, cw - 2 * client->border_width, ch - 2 * client->border_width, False);
 		rn++;
 		if (rn >= rows) {
 			rn = 0;
@@ -1668,9 +1668,9 @@ manage(Window w, XWindowAttributes *wa) {
 		client->y = client->monitor->wy + client->monitor->wh - HEIGHT(client);
 	client->x = MAX(client->x, client->monitor->wx);
 	client->y = MAX(client->y, client->monitor->wy);
-	client->bw = borderpx;
+	client->border_width = borderpx;
 
-	wc.border_width = client->bw;
+	wc.border_width = client->border_width;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	XSetWindowBorder(dpy, w, scheme[SchemeNorm][ColBorder].pixel);
 	configure(client); /* propagates border_width, if size doesn't change */
@@ -1756,9 +1756,9 @@ monocle(Monitor *m) {
 			n++;
 	}
 	if (n > 0) /* override layout symbol */
-		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
+		snprintf(m->layout_symbol, sizeof m->layout_symbol, "[%d]", n);
 	for (client = nexttiled(m->clients); client; client = nexttiled(client->next))
-		resize(client, m->wx, m->wy, m->ww - 2 * client->bw, m->wh - 2 * client->bw, 0);
+		resize(client, m->wx, m->wy, m->ww - 2 * client->border_width, m->wh - 2 * client->border_width, 0);
 	return;
 }
 
@@ -1937,15 +1937,15 @@ resizeclient(Client *client, int x, int y, int w, int h) {
 	client->oldy = client->y; client->y = wc.y = y;
 	client->oldw = client->w; client->w = wc.width = w;
 	client->oldh = client->h; client->h = wc.height = h;
-	wc.border_width = client->bw;
+	wc.border_width = client->border_width;
 
 	for (n = 0, nbc = nexttiled(current_monitor->clients); nbc; nbc = nexttiled(nbc->next), n++);
 
 	if (!(client->isfloating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
 		if (current_monitor->layout[current_monitor->layout_index]->arrange == monocle || n == 1) {
 			wc.border_width = 0;
-			client->w = wc.width += client->bw * 2;
-			client->h = wc.height += client->bw * 2;
+			client->w = wc.width += client->border_width * 2;
+			client->h = wc.height += client->border_width * 2;
 		}
 	}
 
@@ -1974,7 +1974,7 @@ resizemouse(const Arg *arg) {
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 					 None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess)
 		return;
-	XWarpPointer(dpy, None, client->win, 0, 0, 0, 0, client->w + client->bw - 1, client->h + client->bw - 1);
+	XWarpPointer(dpy, None, client->win, 0, 0, 0, 0, client->w + client->border_width - 1, client->h + client->border_width - 1);
 	do {
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
 		switch (ev.type) {
@@ -1988,8 +1988,8 @@ resizemouse(const Arg *arg) {
 				continue;
 			lasttime = ev.xmotion.time;
 
-			nw = MAX(ev.xmotion.x - ocx - 2 * client->bw + 1, 1);
-			nh = MAX(ev.xmotion.y - ocy - 2 * client->bw + 1, 1);
+			nw = MAX(ev.xmotion.x - ocx - 2 * client->border_width + 1, 1);
+			nh = MAX(ev.xmotion.y - ocy - 2 * client->border_width + 1, 1);
 			if (client->monitor->wx + nw >= current_monitor->wx && client->monitor->wx + nw <= current_monitor->wx + current_monitor->ww
 			&& client->monitor->wy + nh >= current_monitor->wy && client->monitor->wy + nh <= current_monitor->wy + current_monitor->wh) {
 				if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
@@ -2001,7 +2001,7 @@ resizemouse(const Arg *arg) {
 			break;
 		}
 	} while (ev.type != ButtonRelease);
-	XWarpPointer(dpy, None, client->win, 0, 0, 0, 0, client->w + client->bw - 1, client->h + client->bw - 1);
+	XWarpPointer(dpy, None, client->win, 0, 0, 0, 0, client->w + client->border_width - 1, client->h + client->border_width - 1);
 	XUngrabPointer(dpy, CurrentTime);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	if ((m = recttomon(client->x, client->y, client->w, client->h)) != current_monitor) {
@@ -2149,8 +2149,8 @@ setfullscreen(Client *client, int fullscreen) {
 			return;
 		}
 		client->oldstate = client->isfloating;
-		client->oldbw = client->bw;
-		client->bw = 0;
+		client->oldbw = client->border_width;
+		client->border_width = 0;
 		client->isfloating = 1;
 		resizeclient(client, client->monitor->mx, client->monitor->my, client->monitor->mw, client->monitor->mh);
 		XRaiseWindow(dpy, client->win);
@@ -2163,7 +2163,7 @@ setfullscreen(Client *client, int fullscreen) {
 			return;
 		}
 		client->isfloating = client->oldstate;
-		client->bw = client->oldbw;
+		client->border_width = client->oldbw;
 		client->x = client->oldx;
 		client->y = client->oldy;
 		client->w = client->oldw;
@@ -2180,7 +2180,7 @@ setlayout(const Arg *arg) {
 		current_monitor->layout_index = current_monitor->pertag->sellts[current_monitor->pertag->current_tag] ^= 1;
 	if (arg && arg->v)
 		current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index] = (Layout *)arg->v;
-	strncpy(current_monitor->ltsymbol, current_monitor->layout[current_monitor->layout_index]->symbol, sizeof current_monitor->ltsymbol);
+	strncpy(current_monitor->layout_symbol, current_monitor->layout[current_monitor->layout_index]->symbol, sizeof current_monitor->layout_symbol);
 	if (current_monitor->sel)
 		arrange(current_monitor);
 	else
@@ -2405,11 +2405,11 @@ col(Monitor *m) {
 	for (i = x = y = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++) {
 		if (i < m->nmaster) {
 			w = (mw - x) / (MIN(n, m->nmaster) - i);
-			resize(client, x + m->wx, m->wy, w - (2 * client->bw), m->wh - (2 * client->bw), 0);
+			resize(client, x + m->wx, m->wy, w - (2 * client->border_width), m->wh - (2 * client->border_width), 0);
 			x += WIDTH(client);
 		} else {
 			h = (m->wh - y) / (n - i);
-			resize(client, x + m->wx, m->wy + y, m->ww - x - (2 * client->bw), h - (2 * client->bw), 0);
+			resize(client, x + m->wx, m->wy + y, m->ww - x - (2 * client->border_width), h - (2 * client->border_width), 0);
 			y += HEIGHT(client);
 		}
 	}
@@ -2432,12 +2432,12 @@ tile(Monitor *m) {
 	for (i = my = ty = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++)
 		if (i < m->nmaster) {
 			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(client, m->wx, m->wy + my, mw - (2*client->bw), h - (2*client->bw), 0);
+			resize(client, m->wx, m->wy + my, mw - (2*client->border_width), h - (2*client->border_width), 0);
 			if (my + HEIGHT(client) < m->wh)
 				my += HEIGHT(client);
 		} else {
 			h = (m->wh - ty) / (n - i);
-			resize(client, m->wx + mw, m->wy + ty, m->ww - mw - (2*client->bw), h - (2*client->bw), 0);
+			resize(client, m->wx + mw, m->wy + ty, m->ww - mw - (2*client->border_width), h - (2*client->border_width), 0);
 			if (ty + HEIGHT(client) < m->wh)
 				ty += HEIGHT(client);
 		}
