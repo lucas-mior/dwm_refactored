@@ -2995,11 +2995,8 @@ view(const Arg *arg) {
 
 Client *
 wintoclient(Window w) {
-	Client *client;
-	Monitor *m;
-
-	for (m = monitors; m; m = m->next) {
-		for (client = m->clients; client; client = client->next) {
+	for (Monitor *m = monitors; m; m = m->next) {
+		for (Client *client = m->clients; client; client = client->next) {
 			if (client->win == w)
 				return client;
 		}
@@ -3008,17 +3005,17 @@ wintoclient(Window w) {
 }
 
 Monitor *
-wintomon(Window w) {
+wintomon(Window window) {
 	int x, y;
 	Client *client;
-	Monitor *m;
+	Monitor *monitor;
 
-	if (w == root && getrootptr(&x, &y))
+	if (window == root && getrootptr(&x, &y))
 		return recttomon(x, y, 1, 1);
-	for (m = monitors; m; m = m->next)
-		if (w == m->barwin || w == m->extrabarwin)
-			return m;
-	if ((client = wintoclient(w)))
+	for (monitor = monitors; monitor; monitor = monitor->next)
+		if (window == monitor->barwin || window == monitor->extrabarwin)
+			return monitor;
+	if ((client = wintoclient(window)))
 		return client->monitor;
 	return current_monitor;
 }
