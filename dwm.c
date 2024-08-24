@@ -980,7 +980,7 @@ dirtomon(int dir) {
 
 void
 drawbar(Monitor *m) {
-	int x, w, tw = 0, etwl = 0, etwr = 0;
+	int x, w, tw = 0, extra_status_width = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	uint i, occ = 0, urg = 0;
@@ -1079,8 +1079,8 @@ drawbar(Monitor *m) {
 		drw_setscheme(drw, scheme[SchemeNorm]);
 		/* clear default bar draw buffer by drawing a blank rectangle */
 		drw_rect(drw, 0, 0, m->ww, bh, 1, 1);
-		etwl = TEXTW(extra_status);
-		drw_text(drw, 0, 0, etwl, bh, 0, extra_status, 0);
+		extra_status_width = TEXTW(extra_status);
+		drw_text(drw, 0, 0, extra_status_width, bh, 0, extra_status, 0);
 		drw_map(drw, m->extrabarwin, 0, 0, m->ww, bh);
 	}
 	return;
@@ -1088,8 +1088,8 @@ drawbar(Monitor *m) {
 
 void
 drawbars(void) {
-	for (Monitor *m = monitors; m; m = m->next)
-		drawbar(m);
+	for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
+		drawbar(monitor);
 	return;
 }
 
