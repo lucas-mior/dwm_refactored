@@ -172,7 +172,8 @@ typedef struct {
 /* function declarations */
 static void alttab(const Arg *arg);
 static void applyrules(Client *client);
-static int applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact);
+static int applysizehints(Client *client,
+		                  int *x, int *y, int *w, int *h, int interact);
 static void arrange(Monitor *monitor);
 static void arrange_monitor(Monitor *monitor);
 static void aspectresize(const Arg *arg);
@@ -329,10 +330,10 @@ static Colormap cmap;
 #include "config.def.h"
 
 struct Pertag {
-	uint current_tag, previous_tag; /* current and previous tag */
+	uint current_tag, previous_tag;
 	int nmasters[LENGTH(tags) + 1]; /* number of windows in master area */
 	float mfacts[LENGTH(tags) + 1]; /* mfacts per tag */
-	uint sellts[LENGTH(tags) + 1]; /* selected layouts */
+	uint selected_layouts[LENGTH(tags) + 1]; /* selected layouts */
 	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
@@ -887,7 +888,7 @@ createmon(void) {
 
 		m->pertag->ltidxs[i][0] = m->layout[0];
 		m->pertag->ltidxs[i][1] = m->layout[1];
-		m->pertag->sellts[i] = m->layout_index;
+		m->pertag->selected_layouts[i] = m->layout_index;
 
 		m->pertag->showbars[i] = m->showbar;
 	}
@@ -2178,7 +2179,7 @@ setfullscreen(Client *client, int fullscreen) {
 void
 set_layout(const Arg *arg) {
 	if (!arg || !arg->v || arg->v != current_monitor->layout[current_monitor->layout_index])
-		current_monitor->layout_index = current_monitor->pertag->sellts[current_monitor->pertag->current_tag] ^= 1;
+		current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag] ^= 1;
 	if (arg && arg->v)
 		current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index] = (Layout *)arg->v;
 	strncpy(current_monitor->layout_symbol, current_monitor->layout[current_monitor->layout_index]->symbol, sizeof current_monitor->layout_symbol);
@@ -2587,7 +2588,7 @@ toggleview(const Arg *arg) {
 		/* apply settings for this view */
 		current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag];
 		current_monitor->mfact = current_monitor->pertag->mfacts[current_monitor->pertag->current_tag];
-		current_monitor->layout_index = current_monitor->pertag->sellts[current_monitor->pertag->current_tag];
+		current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag];
 		current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index];
 		current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index^1];
 
@@ -2981,7 +2982,7 @@ view(const Arg *arg) {
 
 	current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag];
 	current_monitor->mfact = current_monitor->pertag->mfacts[current_monitor->pertag->current_tag];
-	current_monitor->layout_index = current_monitor->pertag->sellts[current_monitor->pertag->current_tag];
+	current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag];
 	current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index];
 	current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index^1];
 
