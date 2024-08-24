@@ -49,6 +49,7 @@
 
 typedef uint32_t uint32;
 typedef unsigned int uint;
+typedef unsigned long ulong;
 typedef unsigned char uchar;
 
 /* macros */
@@ -90,7 +91,7 @@ typedef union {
 typedef struct {
 	uint click;
 	uint mask;
-	unsigned long button;
+	ulong button;
 	void (*func)(const Arg *arg);
 	const Arg arg;
 } Button;
@@ -119,7 +120,7 @@ struct Client {
 };
 
 typedef struct {
-	unsigned long mod;
+	ulong mod;
 	KeySym keysym;
 	void (*func)(const Arg *);
 	const Arg arg;
@@ -176,7 +177,7 @@ static void arrange(Monitor *monitor);
 static void arrangemon(Monitor *monitor);
 static void aspectresize(const Arg *arg);
 static void attach(Client *client);
-static void attachstack(Client *client);
+static void attach_stack(Client *client);
 static void button_press(XEvent *e);
 static void cleanup(void);
 static void cleanupmon(Monitor *monitor);
@@ -189,7 +190,7 @@ static Monitor *createmon(void);
 static void debug_dwm(char *message, ...);
 static void destroy_notify(XEvent *e);
 static void detach(Client *client);
-static void detachstack(Client *client);
+static void detach_stack(Client *client);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *monitor);
 static void drawbars(void);
@@ -605,7 +606,7 @@ attach(Client *client) {
 }
 
 void
-attachstack(Client *client) {
+attach_stack(Client *client) {
 	client->snext = client->monitor->stack;
 	client->monitor->stack = client;
 	return;
@@ -950,7 +951,7 @@ detach(Client *client) {
 }
 
 void
-detachstack(Client *client) {
+detach_stack(Client *client) {
 	Client **tc, *t;
 
 	for (tc = &client->monitor->stack; *tc && *tc != client; tc = &(*tc)->snext);
@@ -1134,8 +1135,8 @@ focus(Client *client) {
 			current_monitor = client->monitor;
 		if (client->isurgent)
 			seturgent(client, 0);
-		detachstack(client);
-		attachstack(client);
+		detach_stack(client);
+		attach_stack(client);
 		grabbuttons(client, 1);
 		XSetWindowBorder(dpy, client->win, scheme[SchemeSel][ColBorder].pixel);
 		setfocus(client);
@@ -1362,7 +1363,7 @@ gaplessgrid(Monitor *m) {
 Atom
 getatomprop(Client *client, Atom prop) {
 	int di;
-	unsigned long dl;
+	ulong dl;
 	uchar *p = NULL;
 	Atom da, atom = None;
 
@@ -1407,7 +1408,7 @@ static uint32 prealpha(uint32 p) {
 Picture
 geticonprop(Window win, uint *picw, uint *pich) {
 	int format;
-	unsigned long n, extra, *p = NULL;
+	ulong n, extra, *p = NULL;
 	Atom real;
 
 	if (XGetWindowProperty(dpy, win, netatom[NetWMIcon], 0L, LONG_MAX, False, AnyPropertyType, 
@@ -1418,10 +1419,10 @@ geticonprop(Window win, uint *picw, uint *pich) {
 		return None;
 	}
 
-	unsigned long *bstp = NULL;
+	ulong *bstp = NULL;
 	uint32 w, h, sz;
 	{
-		unsigned long *i; const unsigned long *end = p + n;
+		ulong *i; const ulong *end = p + n;
 		uint32 bstd = UINT32_MAX, d, m;
 		for (i = p; i < end - 1; i += sz) {
 			if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
@@ -1496,7 +1497,7 @@ getstate(Window w) {
 	int format;
 	long result = -1;
 	uchar *p = NULL;
-	unsigned long n, extra;
+	ulong n, extra;
 	Atom real;
 
 	if (XGetWindowProperty(dpy, w, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
@@ -1679,7 +1680,7 @@ manage(Window w, XWindowAttributes *wa) {
 	updatewmhints(client);
 	{
 		int format;
-		unsigned long *data, n, extra;
+		ulong *data, n, extra;
 		Monitor *m;
 		Atom atom;
 		if (XGetWindowProperty(dpy, client->win, netatom[NetClientInfo], 0L, 2L, False, XA_CARDINAL,
@@ -1710,7 +1711,7 @@ manage(Window w, XWindowAttributes *wa) {
 	if (client->isfloating)
 		XRaiseWindow(dpy, client->win);
 	attach(client);
-	attachstack(client);
+	attach_stack(client);
 	XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
 		(uchar *) &(client->win), 1);
 	XMoveResizeWindow(dpy, client->win, client->x + 2 * sw, client->y, client->w, client->h); /* some windows require this */
@@ -2082,11 +2083,11 @@ sendmon(Client *client, Monitor *m) {
 		return;
 	unfocus(client, 1);
 	detach(client);
-	detachstack(client);
+	detach_stack(client);
 	client->monitor = m;
 	client->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
 	attach(client);
-	attachstack(client);
+	attach_stack(client);
 	setclienttagprop(client);
 	focus(NULL);
 	arrange(NULL);
@@ -2627,7 +2628,7 @@ unmanage(Client *client, int destroyed) {
 	XWindowChanges wc;
 
 	detach(client);
-	detachstack(client);
+	detach_stack(client);
 	freeicon(client);
 	if (!destroyed) {
 		wc.border_width = client->oldbw;
@@ -2777,10 +2778,10 @@ updategeom(void) {
 				dirty = 1;
 				m->clients = client->next;
 				allclients = client->allnext;
-				detachstack(client);
+				detach_stack(client);
 				client->monitor = monitors;
 				attach(client);
-				attachstack(client);
+				attach_stack(client);
 			}
 			if (m == current_monitor)
 				current_monitor = monitors;
