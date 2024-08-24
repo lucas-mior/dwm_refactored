@@ -860,6 +860,7 @@ createmon(void)
 	m->nmaster = nmaster;
 	m->showbar = showbar;
 	m->topbar = topbar;
+	m->extrabar = extrabar;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -971,7 +972,7 @@ dirtomon(int dir)
 void
 drawbar(Monitor *m)
 {
-	int x, w, tw = 0;
+	int x, w, tw = 0, etwl = 0, etwr = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
@@ -1065,6 +1066,17 @@ drawbar(Monitor *m)
 		}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
+
+	if (m == selmon) { /* extra status is only drawn on selected monitor */
+		drw_setscheme(drw, scheme[SchemeNorm]);
+		/* clear default bar draw buffer by drawing a blank rectangle */
+		drw_rect(drw, 0, 0, m->ww, bh, 1, 1);
+		etwr = TEXTW(estextr) - lrpad + 2; /* 2px right padding */
+		drw_text(drw, m->ww - etwr, 0, etwr, bh, 0, estextr, 0);
+		etwl = TEXTW(estextl);
+		drw_text(drw, 0, 0, etwl, bh, 0, estextl, 0);
+		drw_map(drw, m->extrabarwin, 0, 0, m->ww, bh);
+	}
 	return;
 }
 
