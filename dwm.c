@@ -619,7 +619,7 @@ attachstack(Client *client)
 void
 buttonpress(XEvent *e)
 {
-	uint i, x, click;
+	uint click;
 	Arg arg = {0};
 	Client *client;
 	Monitor *monitor;
@@ -633,7 +633,9 @@ buttonpress(XEvent *e)
 		focus(NULL);
 	}
 	if (ev->window == current_monitor->barwin) {
-		i = x = 0;
+		uint i = 0;
+		uint x = 0;
+
 		do
 			x += tagw[i];
 		while (ev->x >= x && ++i < LENGTH(tags));
@@ -663,7 +665,7 @@ buttonpress(XEvent *e)
 			click = ClickWinTitle;
 		}
 	} else if (ev->window == current_monitor->extrabarwin) {
-		x = 0;
+		uint x = 0;
 		click = ClickExtraBar;
 		statussig = 0;
 		char *s = &extra_status[0];
@@ -690,10 +692,11 @@ buttonpress(XEvent *e)
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		click = ClickClientWin;
 	}
-	for (i = 0; i < LENGTH(buttons); i++)
+	for (uint i = 0; i < LENGTH(buttons); i++) {
 		if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
 			buttons[i].func(click == ClickTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+	}
 
 	return;
 }
