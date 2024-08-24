@@ -87,7 +87,7 @@ typedef union {
 typedef struct {
 	unsigned int click;
 	unsigned int mask;
-	unsigned int button;
+	unsigned long button;
 	void (*func)(const Arg *arg);
 	const Arg arg;
 } Button;
@@ -104,7 +104,9 @@ struct Client {
 	int bw, oldbw;
 	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isfakefullscreen;
-	unsigned int icw, ich; Picture icon;
+	unsigned int icw, ich;
+	int unused;
+	Picture icon;
 	Client *next;
 	Client *snext;
 	Client *allnext;
@@ -113,7 +115,7 @@ struct Client {
 };
 
 typedef struct {
-	unsigned int mod;
+	unsigned long mod;
 	KeySym keysym;
 	void (*func)(const Arg *);
 	const Arg arg;
@@ -159,6 +161,7 @@ typedef struct {
 	int isfloating;
 	int isfakefullscreen;
 	int monitor;
+	int unused;
 } Rule;
 
 /* function declarations */
@@ -343,7 +346,7 @@ alttab(const Arg *arg) {
 		return;
 
 	for (Monitor *m = mons; m; m = m->next)
-		view(&(Arg){ .ui = ~0 });
+		view(&(Arg){ .ui = (uint) ~0 });
 	focusnext(&(Arg){ .i = alt_tab_direction });
 
 	int grabbed = 1;
