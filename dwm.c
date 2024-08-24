@@ -67,7 +67,7 @@
 #define TAGWIDTH                32
 
 /* enums */
-enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
+enum { CursorNormal, CursorResize, CursorMove, CursorLast }; /* cursor */
 enum { SchemeNorm, SchemeInv, SchemeSel, SchemeUrg }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
@@ -306,7 +306,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 static Atom wmatom[WMLast], netatom[NetLast];
 static int restart = 0;
 static int running = 1;
-static Cur *cursor[CurLast];
+static Cur *cursor[CursorLast];
 static Clr **scheme;
 static Display *dpy;
 static Drw *drw;
@@ -418,6 +418,8 @@ alttab(const Arg *arg) {
 			alt_tab_direction = !alt_tab_direction;
 			winview(0);
 			break;
+		default:
+			break;
 		}
 	}
 	return;
@@ -465,7 +467,7 @@ applyrules(Client *c)
 		XFree(ch.res_class);
 	if (ch.res_name)
 		XFree(ch.res_name);
-	c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : (c->mon->tagset[c->mon->seltags] & ~SPTAGMASK);
+	c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : (c->mon->tagset[c->mon->seltags] & (uint) ~SPTAGMASK);
 	return;
 }
 
@@ -709,7 +711,7 @@ cleanup(void)
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
 	while (mons)
 		cleanupmon(mons);
-	for (i = 0; i < CurLast; i++)
+	for (i = 0; i < CursorLast; i++)
 		drw_cur_free(drw, cursor[i]);
 	for (i = 0; i < LENGTH(colors); i++)
 		free(scheme[i]);
@@ -1831,7 +1833,7 @@ movemouse(const Arg *arg)
 	ocx = c->x;
 	ocy = c->y;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-		None, cursor[CurMove]->cursor, CurrentTime) != GrabSuccess)
+		None, cursor[CursorMove]->cursor, CurrentTime) != GrabSuccess)
 		return;
 	if (!getrootptr(&x, &y))
 		return;
@@ -2015,7 +2017,7 @@ resizemouse(const Arg *arg)
 	ocx = c->x;
 	ocy = c->y;
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-					 None, cursor[CurResize]->cursor, CurrentTime) != GrabSuccess)
+					 None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess)
 		return;
 	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
 	do {
@@ -2303,9 +2305,9 @@ setup(void)
 	netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
 	netatom[NetClientInfo] = XInternAtom(dpy, "_NET_CLIENT_INFO", False);
 	/* init cursors */
-	cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
-	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
-	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
+	cursor[CursorNormal] = drw_cur_create(drw, XC_left_ptr);
+	cursor[CursorResize] = drw_cur_create(drw, XC_sizing);
+	cursor[CursorMove] = drw_cur_create(drw, XC_fleur);
 	/* init appearance */
 	scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
 	for (i = 0; i < LENGTH(colors); i++)
@@ -2327,7 +2329,7 @@ setup(void)
 	XDeleteProperty(dpy, root, netatom[NetClientList]);
 	XDeleteProperty(dpy, root, netatom[NetClientInfo]);
 	/* select events */
-	wa.cursor = cursor[CurNormal]->cursor;
+	wa.cursor = cursor[CursorNormal]->cursor;
 	wa.event_mask = SubstructureRedirectMask|SubstructureNotifyMask
 		|ButtonPressMask|PointerMotionMask|EnterWindowMask
 		|LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
@@ -2753,7 +2755,7 @@ updatebars(void)
 			m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bh, 0, depth,
 					InputOutput, visual,
 					CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
-			XDefineCursor(dpy, m->barwin, cursor[CurNormal]->cursor);
+			XDefineCursor(dpy, m->barwin, cursor[CursorNormal]->cursor);
 			XMapRaised(dpy, m->barwin);
 			XSetClassHint(dpy, m->barwin, &ch);
 		}
@@ -2761,7 +2763,7 @@ updatebars(void)
 			m->extrabarwin = XCreateWindow(dpy, root, m->wx, m->eby, m->ww, bh, 0, depth,
 					InputOutput, visual,
 					CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
-			XDefineCursor(dpy, m->extrabarwin, cursor[CurNormal]->cursor);
+			XDefineCursor(dpy, m->extrabarwin, cursor[CursorNormal]->cursor);
 			XMapRaised(dpy, m->extrabarwin);
 			XSetClassHint(dpy, m->extrabarwin, &ch);
 		}
