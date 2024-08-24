@@ -2935,10 +2935,26 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
-	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
+	char text[768];
+	if (!gettextprop(root, XA_WM_NAME, text, sizeof(text))) {
 		strcpy(stext, "dwm-"VERSION);
 		statusw = TEXTW(stext) - lrpad + 2;
+		estextl[0] = '\0';
+		estextr[0] = '\0';
 	} else {
+		char *l = strchr(text, statussep);
+		if (l) {
+			*l = '\0'; l++;
+			strncpy(estextl, l, sizeof(estextl) - 1);
+		} else
+			estextl[0] = '\0';
+		char *r = strchr(estextl, statussep);
+		if (r) {
+			*r = '\0'; r++;
+			strncpy(estextr, r, sizeof(estextr) - 1);
+		} else
+			estextr[0] = '\0';
+		strncpy(stext, text, sizeof(stext) - 1);
 		char *text, *s, ch;
 
 		statusw  = 0;
@@ -3076,7 +3092,7 @@ wintomon(Window w)
 	if (w == root && getrootptr(&x, &y))
 		return recttomon(x, y, 1, 1);
 	for (m = mons; m; m = m->next)
-		if (w == m->barwin)
+		if (w == m->barwin || w == m->extrabarwin)
 			return m;
 	if ((c = wintoclient(w)))
 		return c->mon;
