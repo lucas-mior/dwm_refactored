@@ -137,7 +137,7 @@ typedef struct {
 typedef struct Pertag Pertag;
 struct Monitor {
     char layout_symbol[16];
-    float mfact;
+    float master_fact;
     int nmaster;
     int num;
     int bar_y;               /* bar geometry */
@@ -242,7 +242,7 @@ static void setclienttagprop(Client *client);
 static void setfocus(Client *client);
 static void setfullscreen(Client *client, int fullscreen);
 static void set_layout(const Arg *arg);
-static void setmfact(const Arg *arg);
+static void setmaster_fact(const Arg *arg);
 static void setup(void);
 static void seturgent(Client *client, int urg);
 static void showhide(Client *client);
@@ -271,7 +271,7 @@ static void updatestatus(void);
 static void updatetitle(Client *client);
 static void updateicon(Client *client);
 static void updatewindowtype(Client *client);
-static void updatewmhints(Client *client);
+static void updatewm_hintsints(Client *client);
 static void view(const Arg *arg);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
@@ -334,7 +334,7 @@ static Colormap cmap;
 struct Pertag {
     uint current_tag, previous_tag;
     int nmasters[LENGTH(tags) + 1]; /* number of windows in master area */
-    float mfacts[LENGTH(tags) + 1]; /* mfacts per tag */
+    float master_facts[LENGTH(tags) + 1]; /* master_facts per tag */
     uint selected_layouts[LENGTH(tags) + 1]; /* selected layouts */
     const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
     int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
@@ -868,7 +868,7 @@ createmon(void) {
 
     m = ecalloc(1, sizeof(Monitor));
     m->tagset[0] = m->tagset[1] = 1;
-    m->mfact = mfact;
+    m->master_fact = master_fact;
     m->nmaster = nmaster;
     m->showbar = showbar;
     m->topbar = topbar;
@@ -881,7 +881,7 @@ createmon(void) {
 
     for (i = 0; i <= LENGTH(tags); i++) {
         m->pertag->nmasters[i] = m->nmaster;
-        m->pertag->mfacts[i] = m->mfact;
+        m->pertag->master_facts[i] = m->master_fact;
 
         m->pertag->ltidxs[i][0] = m->layout[0];
         m->pertag->ltidxs[i][1] = m->layout[1];
@@ -1674,7 +1674,7 @@ manage(Window w, XWindowAttributes *wa) {
     configure(client); /* propagates border_width, if size doesn't change */
     updatewindowtype(client);
     updatesizehints(client);
-    updatewmhints(client);
+    updatewm_hintsints(client);
     {
         int format;
         ulong *data, n, extra;
@@ -1876,7 +1876,7 @@ property_notify(XEvent *e) {
             client->hintsvalid = 0;
             break;
         case XA_WM_HINTS:
-            updatewmhints(client);
+            updatewm_hintsints(client);
             drawbars();
             break;
         }
@@ -2186,17 +2186,17 @@ set_layout(const Arg *arg) {
     return;
 }
 
-/* arg > 1.0 will set mfact absolutely */
+/* arg > 1.0 will set master_fact absolutely */
 void
-setmfact(const Arg *arg) {
+setmaster_fact(const Arg *arg) {
     float f;
 
     if (!arg || !current_monitor->layout[current_monitor->layout_index]->arrange)
         return;
-    f = arg->f < 1.0 ? arg->f + current_monitor->mfact : arg->f - 1.0;
+    f = arg->f < 1.0 ? arg->f + current_monitor->master_fact : arg->f - 1.0;
     if (f < 0.05 || f > 0.95)
         return;
-    current_monitor->mfact = current_monitor->pertag->mfacts[current_monitor->pertag->current_tag] = f;
+    current_monitor->master_fact = current_monitor->pertag->master_facts[current_monitor->pertag->current_tag] = f;
     arrange(current_monitor);
     return;
 }
@@ -2300,14 +2300,14 @@ setup(void) {
 
 void
 seturgent(Client *client, int urg) {
-    XWMHints *wmh;
+    XWMHints *wm_hints;
 
     client->isurgent = urg;
-    if (!(wmh = XGetWMHints(display, client->win)))
+    if (!(wm_hints = XGetWMHints(display, client->win)))
         return;
-    wmh->flags = urg ? (wmh->flags | XUrgencyHint) : (wmh->flags & ~XUrgencyHint);
-    XSetWMHints(display, client->win, wmh);
-    XFree(wmh);
+    wm_hints->flags = urg ? (wm_hints->flags | XUrgencyHint) : (wm_hints->flags & ~XUrgencyHint);
+    XSetWMHints(display, client->win, wm_hints);
+    XFree(wm_hints);
     return;
 }
 
@@ -2397,7 +2397,7 @@ col(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mw = m->nmaster ? m->ww * m->mfact : 0;
+        mw = m->nmaster ? m->ww * m->master_fact : 0;
     else
         mw = m->ww;
     for (i = x = y = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++) {
@@ -2424,7 +2424,7 @@ tile(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mw = m->nmaster ? m->ww * m->mfact : 0;
+        mw = m->nmaster ? m->ww * m->master_fact : 0;
     else
         mw = m->ww;
     for (i = my = ty = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++)
@@ -2583,7 +2583,7 @@ toggleview(const Arg *arg) {
 
         /* apply settings for this view */
         current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag];
-        current_monitor->mfact = current_monitor->pertag->mfacts[current_monitor->pertag->current_tag];
+        current_monitor->master_fact = current_monitor->pertag->master_facts[current_monitor->pertag->current_tag];
         current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag];
         current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index];
         current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index^1];
@@ -2931,23 +2931,23 @@ updatewindowtype(Client *client) {
 }
 
 void
-updatewmhints(Client *client) {
-    XWMHints *wmh;
+updatewm_hintsints(Client *client) {
+    XWMHints *wm_hints;
 
-    if ((wmh = XGetWMHints(display, client->win))) {
-        if (client == current_monitor->selected_client && wmh->flags & XUrgencyHint) {
-            wmh->flags &= ~XUrgencyHint;
-            XSetWMHints(display, client->win, wmh);
+    if ((wm_hints = XGetWMHints(display, client->win))) {
+        if (client == current_monitor->selected_client && wm_hints->flags & XUrgencyHint) {
+            wm_hints->flags &= ~XUrgencyHint;
+            XSetWMHints(display, client->win, wm_hints);
         } else {
-            client->isurgent = (wmh->flags & XUrgencyHint) ? 1 : 0;
+            client->isurgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
             if (client->isurgent)
                 XSetWindowBorder(display, client->win, scheme[SchemeUrg][ColBorder].pixel);
         }
-        if (wmh->flags & InputHint)
-            client->neverfocus = !wmh->input;
+        if (wm_hints->flags & InputHint)
+            client->neverfocus = !wm_hints->input;
         else
             client->neverfocus = 0;
-        XFree(wmh);
+        XFree(wm_hints);
     }
     return;
 }
@@ -2977,7 +2977,7 @@ view(const Arg *arg) {
     }
 
     current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag];
-    current_monitor->mfact = current_monitor->pertag->mfacts[current_monitor->pertag->current_tag];
+    current_monitor->master_fact = current_monitor->pertag->master_facts[current_monitor->pertag->current_tag];
     current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag];
     current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index];
     current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index^1];

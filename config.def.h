@@ -79,7 +79,7 @@ static const Rule rules[] = {
 };
 
 /* layout(s) */
-static const float mfact     = 0.50; /* factor of master area size [0.05..0.95] */
+static const float master_fact     = 0.50; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 0; /* 1 will force focus on the fullscreen window */
@@ -112,8 +112,8 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_u,      focusurgent,    {0} },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_u,      incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_j,      setmfact,       {.f = -0.05} },
-	{ MODKEY,                    XK_semicolon, setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_j,      setmaster_fact,       {.f = -0.05} },
+	{ MODKEY,                    XK_semicolon, setmaster_fact,       {.f = +0.05} },
 	{ MODKEY|ControlMask,           XK_j,      aspect_resize,   {.i = -25} },
 	{ MODKEY|ControlMask,        XK_semicolon, aspect_resize,   {.i = +25} },
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
