@@ -49,6 +49,7 @@
 
 typedef uint32_t uint32;
 typedef unsigned int uint;
+typedef unsigned char uchar;
 
 /* macros */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
@@ -431,14 +432,14 @@ alttab(const Arg *arg) {
 void
 applyrules(Client *client) {
 	const char *class, *instance;
-	XClassHint ch = { NULL, NULL };
+	XClassHint class_hint = { NULL, NULL };
 
 	/* rule matching */
 	client->isfloating = 0;
 	client->tags = 0;
-	XGetClassHint(dpy, client->win, &ch);
-	class    = ch.res_class ? ch.res_class : broken;
-	instance = ch.res_name  ? ch.res_name  : broken;
+	XGetClassHint(dpy, client->win, &class_hint);
+	class    = class_hint.res_class ? class_hint.res_class : broken;
+	instance = class_hint.res_name  ? class_hint.res_name  : broken;
 
 	for (int i = 0; i < LENGTH(rules); i++) {
 		const Rule *r = &rules[i];
@@ -465,10 +466,10 @@ applyrules(Client *client) {
 			}
 		}
 	}
-	if (ch.res_class)
-		XFree(ch.res_class);
-	if (ch.res_name)
-		XFree(ch.res_name);
+	if (class_hint.res_class)
+		XFree(class_hint.res_class);
+	if (class_hint.res_name)
+		XFree(class_hint.res_name);
 	client->tags = client->tags & TAGMASK ? client->tags & TAGMASK : (client->monitor->tagset[client->monitor->seltags] & (uint) ~SPTAGMASK);
 	return;
 }
@@ -643,7 +644,7 @@ buttonpress(XEvent *e) {
 			click = ClickStatusText;
 			statussig = 0;
 			for (char *text = s = stext; *s && x <= ev->x; s++) {
-				if ((unsigned char)(*s) < ' ') {
+				if ((uchar)(*s) < ' ') {
 					char ch = *s;
 					*s = '\0';
 					x += TEXTW(text) - lrpad;
@@ -666,7 +667,7 @@ buttonpress(XEvent *e) {
 		sleep(1);
 		for (char *text = s; *s && x <= ev->x; s++) {
 			debug_dwm("s = %d, x = %d\n", *s, x);
-			if ((unsigned char)(*s) < ' ') {
+			if ((uchar)(*s) < ' ') {
 				char ch = *s;
 				*s = '\0';
 				x += TEXTW(text) - lrpad;
@@ -996,7 +997,7 @@ drawbar(Monitor *m) {
 
 		x = 0;
 		for (text = s = stext; *s; s++) {
-			if ((unsigned char)(*s) < ' ') {
+			if ((uchar)(*s) < ' ') {
 				ch = *s;
 				*s = '\0';
 				tw = TEXTW(text) - lrpad;
@@ -1362,7 +1363,7 @@ Atom
 getatomprop(Client *client, Atom prop) {
 	int di;
 	unsigned long dl;
-	unsigned char *p = NULL;
+	uchar *p = NULL;
 	Atom da, atom = None;
 
 	if (XGetWindowProperty(dpy, client->win, prop, 0L, sizeof atom, False, XA_ATOM,
@@ -1410,7 +1411,7 @@ geticonprop(Window win, uint *picw, uint *pich) {
 	Atom real;
 
 	if (XGetWindowProperty(dpy, win, netatom[NetWMIcon], 0L, LONG_MAX, False, AnyPropertyType, 
-						   &real, &format, &n, &extra, (unsigned char **)&p) != Success)
+						   &real, &format, &n, &extra, (uchar **)&p) != Success)
 		return None; 
 	if (n == 0 || format != 32) {
 		XFree(p);
@@ -1494,12 +1495,12 @@ long
 getstate(Window w) {
 	int format;
 	long result = -1;
-	unsigned char *p = NULL;
+	uchar *p = NULL;
 	unsigned long n, extra;
 	Atom real;
 
 	if (XGetWindowProperty(dpy, w, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
-		&real, &format, &n, &extra, (unsigned char **)&p) != Success)
+		&real, &format, &n, &extra, (uchar **)&p) != Success)
 		return -1;
 	if (n != 0)
 		result = *p;
@@ -1682,7 +1683,7 @@ manage(Window w, XWindowAttributes *wa) {
 		Monitor *m;
 		Atom atom;
 		if (XGetWindowProperty(dpy, client->win, netatom[NetClientInfo], 0L, 2L, False, XA_CARDINAL,
-				&atom, &format, &n, &extra, (unsigned char **)&data) == Success && n == 2) {
+				&atom, &format, &n, &extra, (uchar **)&data) == Success && n == 2) {
 			client->tags = *data;
 			for (m = monitors; m; m = m->next) {
 				if (m->num == *(data+1)) {
@@ -1711,7 +1712,7 @@ manage(Window w, XWindowAttributes *wa) {
 	attach(client);
 	attachstack(client);
 	XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
-		(unsigned char *) &(client->win), 1);
+		(uchar *) &(client->win), 1);
 	XMoveResizeWindow(dpy, client->win, client->x + 2 * sw, client->y, client->w, client->h); /* some windows require this */
 	setclientstate(client, NormalState);
 	if (client->monitor == current_monitor)
@@ -2097,7 +2098,7 @@ setclientstate(Client *client, long state) {
 	long data[] = { state, None };
 
 	XChangeProperty(dpy, client->win, wmatom[WMState], wmatom[WMState], 32,
-		            PropModeReplace, (unsigned char *)data, 2);
+		            PropModeReplace, (uchar *)data, 2);
 	return;
 }
 
@@ -2131,7 +2132,7 @@ setfocus(Client *client) {
 		XSetInputFocus(dpy, client->win, RevertToPointerRoot, CurrentTime);
 		XChangeProperty(dpy, root, netatom[NetActiveWindow],
 			XA_WINDOW, 32, PropModeReplace,
-			(unsigned char *) &(client->win), 1);
+			(uchar *) &(client->win), 1);
 	}
 	sendevent(client, wmatom[WMTakeFocus]);
 	return;
@@ -2141,7 +2142,7 @@ void
 setfullscreen(Client *client, int fullscreen) {
 	if (fullscreen && !client->isfullscreen) {
 		XChangeProperty(dpy, client->win, netatom[NetWMState], XA_ATOM, 32,
-			PropModeReplace, (unsigned char*)&netatom[NetWMFullscreen], 1);
+			PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
 		client->isfullscreen = 1;
 		if (client->isfakefullscreen) {
 			resizeclient(client, client->x, client->y, client->w, client->h);
@@ -2155,7 +2156,7 @@ setfullscreen(Client *client, int fullscreen) {
 		XRaiseWindow(dpy, client->win);
 	} else if (!fullscreen && client->isfullscreen) {
 		XChangeProperty(dpy, client->win, netatom[NetWMState], XA_ATOM, 32,
-			PropModeReplace, (unsigned char*)0, 0);
+			PropModeReplace, (uchar*)0, 0);
 		client->isfullscreen = 0;
 		if (client->isfakefullscreen) {
 			resizeclient(client, client->x, client->y, client->w, client->h);
@@ -2261,14 +2262,14 @@ setup(void) {
 	/* supporting window for NetWMCheck */
 	wmcheckwin = XCreateSimpleWindow(dpy, root, 0, 0, 1, 1, 0, 0, 0);
 	XChangeProperty(dpy, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32,
-		PropModeReplace, (unsigned char *) &wmcheckwin, 1);
+		PropModeReplace, (uchar *) &wmcheckwin, 1);
 	XChangeProperty(dpy, wmcheckwin, netatom[NetWMName], utf8string, 8,
-		PropModeReplace, (unsigned char *) "dwm", 3);
+		PropModeReplace, (uchar *) "dwm", 3);
 	XChangeProperty(dpy, root, netatom[NetWMCheck], XA_WINDOW, 32,
-		PropModeReplace, (unsigned char *) &wmcheckwin, 1);
+		PropModeReplace, (uchar *) &wmcheckwin, 1);
 	/* EWMH support per view */
 	XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
-		PropModeReplace, (unsigned char *) netatom, NetLast);
+		PropModeReplace, (uchar *) netatom, NetLast);
 	XDeleteProperty(dpy, root, netatom[NetClientList]);
 	XDeleteProperty(dpy, root, netatom[NetClientInfo]);
 	/* select events */
@@ -2353,7 +2354,7 @@ void
 setclienttagprop(Client *client) {
 	long data[] = { (long) client->tags, (long) client->monitor->num };
 	XChangeProperty(dpy, client->win, netatom[NetClientInfo], XA_CARDINAL, 32,
-			        PropModeReplace, (unsigned char *) data, 2);
+			        PropModeReplace, (uchar *) data, 2);
 	return;
 }
 
@@ -2723,7 +2724,7 @@ updateclientlist(void) {
 		for (client = m->clients; client; client = client->next)
 			XChangeProperty(dpy, root, netatom[NetClientList],
 							XA_WINDOW, 32, PropModeAppend,
-							(unsigned char *) &(client->win), 1);
+							(uchar *) &(client->win), 1);
 	}
 	return;
 }
@@ -2888,7 +2889,7 @@ updatestatus(void) {
 		statusw  = 0;
 		for (text2 = s = stext; *s; s++) {
 			char ch;
-			if ((unsigned char)(*s) < ' ') {
+			if ((uchar)(*s) < ' ') {
 				ch = *s;
 				*s = '\0';
 				statusw += TEXTW(text2) - lrpad;
