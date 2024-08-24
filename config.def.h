@@ -13,7 +13,7 @@ static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no standard bar */
 static const int topbar             = 1;        /* 0 means standard bar at bottom */
 static const int extrabar           = 1;        /* 0 means no extra bar */
-static const char statussep         = ';';      /* separator between statuses */
+static const char statussep         = '!';      /* separator between statuses */
 #define ICONSIZE 18   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
@@ -163,6 +163,27 @@ static const Button buttons[] = {
 	{ ClkStatusText,        0,              Button5,        sigstatusbar,   {.i = 5} },
 	{ ClkStatusText,        ShiftMask,      Button1,        sigstatusbar,   {.i = 6} },
 	{ ClkStatusText,        ControlMask,    Button1,        sigstatusbar,   {.i = 7} },
+	{ ClkExBarLeftStatus,        0,              Button1,        sigstatusbar,   {.i = 1} },
+	{ ClkExBarLeftStatus,        0,              Button2,        sigstatusbar,   {.i = 2} },
+	{ ClkExBarLeftStatus,        0,              Button3,        sigstatusbar,   {.i = 3} },
+	{ ClkExBarLeftStatus,        0,              Button4,        sigstatusbar,   {.i = 4} },
+	{ ClkExBarLeftStatus,        0,              Button5,        sigstatusbar,   {.i = 5} },
+	{ ClkExBarLeftStatus,        ShiftMask,      Button1,        sigstatusbar,   {.i = 6} },
+	{ ClkExBarLeftStatus,        ControlMask,    Button1,        sigstatusbar,   {.i = 7} },
+	{ ClkExBarMiddle,        0,              Button1,        sigstatusbar,   {.i = 1} },
+	{ ClkExBarMiddle,        0,              Button2,        sigstatusbar,   {.i = 2} },
+	{ ClkExBarMiddle,        0,              Button3,        sigstatusbar,   {.i = 3} },
+	{ ClkExBarMiddle,        0,              Button4,        sigstatusbar,   {.i = 4} },
+	{ ClkExBarMiddle,        0,              Button5,        sigstatusbar,   {.i = 5} },
+	{ ClkExBarMiddle,        ShiftMask,      Button1,        sigstatusbar,   {.i = 6} },
+	{ ClkExBarMiddle,        ControlMask,    Button1,        sigstatusbar,   {.i = 7} },
+	{ ClkExBarRightStatus,        0,              Button1,        sigstatusbar,   {.i = 1} },
+	{ ClkExBarRightStatus,        0,              Button2,        sigstatusbar,   {.i = 2} },
+	{ ClkExBarRightStatus,        0,              Button3,        sigstatusbar,   {.i = 3} },
+	{ ClkExBarRightStatus,        0,              Button4,        sigstatusbar,   {.i = 4} },
+	{ ClkExBarRightStatus,        0,              Button5,        sigstatusbar,   {.i = 5} },
+	{ ClkExBarRightStatus,        ShiftMask,      Button1,        sigstatusbar,   {.i = 6} },
+	{ ClkExBarRightStatus,        ControlMask,    Button1,        sigstatusbar,   {.i = 7} },
 	{ ClkTagBar,            0,              Button1,        view,           {0} },
 	{ ClkTagBar,            0,              Button3,        toggleview,     {0} },
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },

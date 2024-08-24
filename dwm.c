@@ -617,7 +617,6 @@ buttonpress(XEvent *e)
 	Client *c;
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
-	char *text, *s, ch;
 
 	click = ClkRootWin;
 	/* focus monitor if necessary */
@@ -637,12 +636,13 @@ buttonpress(XEvent *e)
 		} else if (ev->x < x + TEXTW(selmon->ltsymbol)) {
 			click = ClkLtSymbol;
 		} else if (ev->x > selmon->ww - statusw) {
+			char *s;
 			x = selmon->ww - statusw;
 			click = ClkStatusText;
 			statussig = 0;
-			for (text = s = stext; *s && x <= ev->x; s++) {
+			for (char *text = s = stext; *s && x <= ev->x; s++) {
 				if ((unsigned char)(*s) < ' ') {
-					ch = *s;
+					char ch = *s;
 					*s = '\0';
 					x += TEXTW(text) - lrpad;
 					*s = ch;
@@ -662,6 +662,25 @@ buttonpress(XEvent *e)
 			click = ClkExBarRightStatus;
 		else
 			click = ClkExBarMiddle;
+		statussig = 0;
+		char *s = &stext[
+		debug_dwm("first s = %c\n", *s);
+		sleep(1);
+		for (char *text = s; *s && x <= ev->x; s++) {
+			debug_dwm("s = %c\n", *s);
+			if ((unsigned char)(*s) < ' ') {
+				char ch = *s;
+				*s = '\0';
+				x += TEXTW(text) - lrpad;
+				*s = ch;
+				text = s + 1;
+				if (x >= ev->x)
+					break;
+				statussig = ch;
+			    debug_dwm("final statussigs = %d\n", *s);
+			}
+		}
+		debug_dwm("outsides = %c\n", *s);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -897,7 +916,7 @@ void debug_dwm(char *message, ...) {
 	
 	vsnprintf(buffer, sizeof (buffer),
 			  message, args);
-	argv[2] = buffer;
+	argv[4] = buffer;
 	va_end(args);
 
 	switch (fork()) {
@@ -2955,19 +2974,20 @@ updatestatus(void)
 		} else
 			estextr[0] = '\0';
 		strncpy(stext, text, sizeof(stext) - 1);
-		char *text, *s, ch;
 
+		char *s;
 		statusw  = 0;
-		for (text = s = stext; *s; s++) {
+		for (char *text2 = s = stext; *s; s++) {
+			char ch;
 			if ((unsigned char)(*s) < ' ') {
 				ch = *s;
 				*s = '\0';
-				statusw += TEXTW(text) - lrpad;
+				statusw += TEXTW(text2) - lrpad;
 				*s = ch;
-				text = s + 1;
+				text2 = s + 1;
 			}
 		}
-		statusw += TEXTW(text) - lrpad + 2;
+		statusw += TEXTW(text2) - lrpad + 2;
 
 	}
 	drawbar(selmon);
