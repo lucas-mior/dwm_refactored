@@ -98,12 +98,13 @@ struct Client {
 	char name[256];
 	float mina, maxa;
 	int x, y, w, h;
-	int stored_fx, stored_fy, stored_fw, stored_fh; /* stored float geometry, used on mode revert */
+	int stored_fx, stored_fy, stored_fw, stored_fh;
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int bw, oldbw;
 	unsigned int tags;
-	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isfakefullscreen;
+	int isfixed, isfloating, isurgent;
+	int neverfocus, oldstate, isfullscreen, isfakefullscreen;
 	unsigned int icw, ich;
 	int unused;
 	Picture icon;
