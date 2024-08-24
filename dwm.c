@@ -73,9 +73,9 @@ enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
-       ClkExtraBar,
-       ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
+enum { ClickTagBar, ClickLtSymbol, ClickStatusText, ClickWinTitle,
+       ClickExtraBar,
+       ClickClientWin, ClickRootWin, ClickLast }; /* clicks */
 
 typedef union {
 	int i;
@@ -98,7 +98,7 @@ struct Client {
 	char name[256];
 	float mina, maxa;
 	int x, y, w, h;
-	int sfx, sfy, sfw, sfh; /* stored float geometry, used on mode revert */
+	int stored_fx, stored_fy, stored_fw, stored_fh; /* stored float geometry, used on mode revert */
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int bw, oldbw;
@@ -622,7 +622,7 @@ buttonpress(XEvent *e)
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
 
-	click = ClkRootWin;
+	click = ClickRootWin;
 	/* focus monitor if necessary */
 	if ((m = wintomon(ev->window)) && m != selmon) {
 		unfocus(selmon->sel, 1);
@@ -635,14 +635,14 @@ buttonpress(XEvent *e)
 			x += tagw[i];
 		while (ev->x >= x && ++i < LENGTH(tags));
 		if (i < LENGTH(tags)) {
-			click = ClkTagBar;
+			click = ClickTagBar;
 			arg.ui = 1 << i;
 		} else if (ev->x < x + TEXTW(selmon->ltsymbol)) {
-			click = ClkLtSymbol;
+			click = ClickLtSymbol;
 		} else if (ev->x > selmon->ww - statusw) {
 			char *s;
 			x = selmon->ww - statusw;
-			click = ClkStatusText;
+			click = ClickStatusText;
 			statussig = 0;
 			for (char *text = s = stext; *s && x <= ev->x; s++) {
 				if ((unsigned char)(*s) < ' ') {
@@ -657,11 +657,11 @@ buttonpress(XEvent *e)
 				}
 			}
 		} else {
-			click = ClkWinTitle;
+			click = ClickWinTitle;
 		}
 	} else if (ev->window == selmon->extrabarwin) {
 		x = 0;
-		click = ClkExtraBar;
+		click = ClickExtraBar;
 		statussig = 0;
 		char *s = &extra_status[0];
 		debug_dwm("extextl = %s, x=%d\n", extra_status, x);
@@ -685,12 +685,12 @@ buttonpress(XEvent *e)
 		focus(c);
 		restack(selmon);
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		click = ClkClientWin;
+		click = ClickClientWin;
 	}
 	for (i = 0; i < LENGTH(buttons); i++)
 		if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
-			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+			buttons[i].func(click == ClickTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
 
 	return;
 }
@@ -1567,7 +1567,7 @@ grabbuttons(Client *c, int focused)
 		XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
 			        BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
 	for (i = 0; i < LENGTH(buttons); i++) {
-		if (buttons[i].click == ClkClientWin) {
+		if (buttons[i].click == ClickClientWin) {
 			for (j = 0; j < LENGTH(modifiers); j++)
 				XGrabButton(dpy, buttons[i].button,
 							buttons[i].mask | modifiers[j],
@@ -1729,10 +1729,10 @@ manage(Window w, XWindowAttributes *wa)
 	}
 	setclienttagprop(c);
 
-	c->sfx = c->x;
-	c->sfy = c->y;
-	c->sfw = c->w;
-	c->sfh = c->h;
+	c->stored_fx = c->x;
+	c->stored_fy = c->y;
+	c->stored_fw = c->w;
+	c->stored_fh = c->h;
 	c->x = c->mon->mx + (c->mon->mw - WIDTH(c)) / 2;
 	c->y = c->mon->my + (c->mon->mh - HEIGHT(c)) / 2;
 	XSelectInput(dpy, w, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
@@ -2539,14 +2539,14 @@ togglefloating(const Arg *arg)
 		return;
 	selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
 	if (selmon->sel->isfloating) {
-		resize(selmon->sel, selmon->sel->sfx, selmon->sel->sfy,
-		       selmon->sel->sfw, selmon->sel->sfh, False);
+		resize(selmon->sel, selmon->sel->stored_fx, selmon->sel->stored_fy,
+		       selmon->sel->stored_fw, selmon->sel->stored_fh, False);
 	} else {
 		/*save last known float dimensions*/
-		selmon->sel->sfx = selmon->sel->x;
-		selmon->sel->sfy = selmon->sel->y;
-		selmon->sel->sfw = selmon->sel->w;
-		selmon->sel->sfh = selmon->sel->h;
+		selmon->sel->stored_fx = selmon->sel->x;
+		selmon->sel->stored_fy = selmon->sel->y;
+		selmon->sel->stored_fw = selmon->sel->w;
+		selmon->sel->stored_fh = selmon->sel->h;
 	}
 
     selmon->sel->x = selmon->sel->mon->mx + (selmon->sel->mon->mw - WIDTH(selmon->sel)) / 2;
