@@ -2766,6 +2766,12 @@ updatebarpos(Monitor *m)
 	} else {
 		m->by = -bh;
 	}
+	if (m->extrabar) {
+		m->wh -= bh;
+		m->eby = !m->topbar ? m->wy : m->wy + m->wh;
+		m->wy = !m->topbar ? m->wy + bh : m->wy;
+	} else
+		m->eby = -bh;
 	return;
 }
 
