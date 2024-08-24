@@ -10,7 +10,7 @@ all: dwm
 dwm: ${SRC} config.mk config.def.h
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
-	${CC} -g $(CFLAGS) -o $@ ${SRC} ${LDFLAGS}
+	${CC} $(CFLAGS) -o $@ ${SRC} ${LDFLAGS}
 
 clean: ${SRC}
 	rm -f dwm dwm-${VERSION}.tar.gz
