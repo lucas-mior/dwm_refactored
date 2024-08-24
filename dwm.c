@@ -174,7 +174,7 @@ static void alttab(const Arg *arg);
 static void applyrules(Client *client);
 static int applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact);
 static void arrange(Monitor *monitor);
-static void arrangemon(Monitor *monitor);
+static void arrange_monitor(Monitor *monitor);
 static void aspectresize(const Arg *arg);
 static void attach(Client *client);
 static void attach_stack(Client *client);
@@ -199,7 +199,7 @@ static void expose(XEvent *e);
 static void focus(Client *client);
 static void focusdir(const Arg *arg);
 static void focus_in(XEvent *e);
-static void focusmon(const Arg *arg);
+static void focus_monitor(const Arg *arg);
 static void focusnext(const Arg *arg);
 static void focusstack(const Arg *arg);
 static void focusurgent(const Arg *arg);
@@ -552,11 +552,11 @@ arrange(Monitor *monitor) {
 			showhide(monitor->stack);
 	}
 	if (monitor) {
-		arrangemon(monitor);
+		arrange_monitor(monitor);
 		restack(monitor);
 	} else {
 		for (monitor = monitors; monitor; monitor = monitor->next)
-			arrangemon(monitor);
+			arrange_monitor(monitor);
 		XSync(dpy, False);
 		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	}
@@ -564,7 +564,7 @@ arrange(Monitor *monitor) {
 }
 
 void
-arrangemon(Monitor *monitor) {
+arrange_monitor(Monitor *monitor) {
 	strncpy(monitor->layout_symbol, monitor->layout[monitor->layout_index]->symbol, sizeof monitor->layout_symbol);
 	if (monitor->layout[monitor->layout_index]->arrange)
 		monitor->layout[monitor->layout_index]->arrange(monitor);
@@ -1226,7 +1226,7 @@ focus_in(XEvent *e) {
 }
 
 void
-focusmon(const Arg *arg) {
+focus_monitor(const Arg *arg) {
 	Monitor *m;
 
 	if (!monitors->next)
@@ -2384,7 +2384,7 @@ tagmon(const Arg *arg) {
 	usleep(50);
 	focus(NULL);
 	usleep(50);
-	focusmon(arg);
+	focus_monitor(arg);
 	togglefloating(NULL);
 	togglefloating(NULL);
 	return;
