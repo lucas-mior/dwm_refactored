@@ -171,8 +171,8 @@ typedef struct {
 static void alttab(const Arg *arg);
 static void applyrules(Client *client);
 static int applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact);
-static void arrange(Monitor *m);
-static void arrangemon(Monitor *m);
+static void arrange(Monitor *monitor);
+static void arrangemon(Monitor *monitor);
 static void aspectresize(const Arg *arg);
 static void attach(Client *client);
 static void attachstack(Client *client);
@@ -190,7 +190,7 @@ static void destroynotify(XEvent *e);
 static void detach(Client *client);
 static void detachstack(Client *client);
 static Monitor *dirtomon(int dir);
-static void drawbar(Monitor *m);
+static void drawbar(Monitor *monitor);
 static void drawbars(void);
 static void enternotify(XEvent *e);
 static void expose(XEvent *e);
@@ -201,7 +201,7 @@ static void focusmon(const Arg *arg);
 static void focusnext(const Arg *arg);
 static void focusstack(const Arg *arg);
 static void focusurgent(const Arg *arg);
-static void gaplessgrid(Monitor *m);
+static void gaplessgrid(Monitor *monitor);
 static Atom getatomprop(Client *client, Atom prop);
 static Picture geticonprop(Window w, uint *icon_width, uint *icon_height);
 static int getrootptr(int *x, int *y);
@@ -216,7 +216,7 @@ static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
-static void monocle(Monitor *m);
+static void monocle(Monitor *monitor);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
 static Client *nexttiled(Client *client);
@@ -227,11 +227,11 @@ static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *client, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *client, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
-static void restack(Monitor *m);
+static void restack(Monitor *monitor);
 static void run(void);
 static void scan(void);
 static int sendevent(Client *client, Atom proto);
-static void sendmon(Client *client, Monitor *m);
+static void sendmon(Client *client, Monitor *monitor);
 static void setclientstate(Client *client, long state);
 static void setclienttagprop(Client *client);
 static void setfocus(Client *client);
@@ -244,7 +244,7 @@ static void showhide(Client *client);
 static void sigstatusbar(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
-static void tile(Monitor *m);
+static void tile(Monitor *monitor);
 static void togglebar(const Arg *arg);
 static void toggleextrabar(const Arg *arg);
 static void togglefloating(const Arg *arg);
@@ -256,7 +256,7 @@ static void freeicon(Client *client);
 static void unfocus(Client *client, int setfocus);
 static void unmanage(Client *client, int destroyed);
 static void unmapnotify(XEvent *e);
-static void updatebarpos(Monitor *m);
+static void updatebarpos(Monitor *monitor);
 static void updatebars(void);
 static void updateclientlist(void);
 static int updategeom(void);
@@ -348,7 +348,7 @@ alttab(const Arg *arg) {
 	if (allclients == NULL)
 		return;
 
-	for (Monitor *m = monitors; m; m = m->next)
+	for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
 		view(&(Arg){ .ui = (uint) ~0 });
 	focusnext(&(Arg){ .i = alt_tab_direction });
 
@@ -376,8 +376,8 @@ alttab(const Arg *arg) {
 
 	XEvent event;
 	Client *client;
-	Monitor *m;
-	XButtonPressedEvent *ev;
+	Monitor *monitor;
+	XButtonPressedEvent *button_event;
 
 	while (grabbed) {
 		XNextEvent(dpy, &event);
@@ -404,13 +404,13 @@ alttab(const Arg *arg) {
 			}
 			break;
 	    case ButtonPress:
-			ev = &(event.xbutton);
-			if ((m = wintomon(ev->window)) && m != selmon) {
+			button_event = &(event.xbutton);
+			if ((monitor = wintomon(button_event->window)) && monitor != selmon) {
 				unfocus(selmon->sel, 1);
-				selmon = m;
+				selmon = monitor;
 				focus(NULL);
 			}
-			if ((client = wintoclient(ev->window)))
+			if ((client = wintoclient(button_event->window)))
 				focus(client);
 			XAllowEvents(dpy, AsyncBoth, CurrentTime);
 			break;
@@ -443,7 +443,7 @@ applyrules(Client *client)
 
 	for (int i = 0; i < LENGTH(rules); i++) {
 		const Rule *r = &rules[i];
-		Monitor *m;
+		Monitor *monitor;
 
 		if ((!r->title || strstr(client->name, r->title))
 		&& (!r->class || strstr(class, r->class))
@@ -457,9 +457,9 @@ applyrules(Client *client)
 				client->y = client->monitor->wy + (client->monitor->wh / 2 - HEIGHT(client) / 2);
 			}
 
-			for (m = monitors; m && m->num != r->monitor; m = m->next);
-			if (m)
-				client->monitor = m;
+			for (monitor = monitors; monitor && monitor->num != r->monitor; monitor = monitor->next);
+			if (monitor)
+				client->monitor = monitor;
 			if (r->switchtotag) {
 				Arg a = { .ui = r->tags };
 				view(&a);
@@ -478,7 +478,7 @@ int
 applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact)
 {
 	int baseismin;
-	Monitor *m = client->monitor;
+	Monitor *monitor = client->monitor;
 
 	/* set minimum possible */
 	*w = MAX(1, *w);
@@ -493,14 +493,14 @@ applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact)
 		if (*y + *h + 2 * client->bw < 0)
 			*y = 0;
 	} else {
-		if (*x >= m->wx + m->ww)
-			*x = m->wx + m->ww - WIDTH(client);
-		if (*y >= m->wy + m->wh)
-			*y = m->wy + m->wh - HEIGHT(client);
-		if (*x + *w + 2 * client->bw <= m->wx)
-			*x = m->wx;
-		if (*y + *h + 2 * client->bw <= m->wy)
-			*y = m->wy;
+		if (*x >= monitor->wx + monitor->ww)
+			*x = monitor->wx + monitor->ww - WIDTH(client);
+		if (*y >= monitor->wy + monitor->wh)
+			*y = monitor->wy + monitor->wh - HEIGHT(client);
+		if (*x + *w + 2 * client->bw <= monitor->wx)
+			*x = monitor->wx;
+		if (*y + *h + 2 * client->bw <= monitor->wy)
+			*y = monitor->wy;
 	}
 	if (*h < bh)
 		*h = bh;
@@ -543,21 +543,21 @@ applysizehints(Client *client, int *x, int *y, int *w, int *h, int interact)
 }
 
 void
-arrange(Monitor *m)
+arrange(Monitor *monitor)
 {
 	XEvent ev;
-	if (m) {
-		showhide(m->stack);
+	if (monitor) {
+		showhide(monitor->stack);
 	} else {
-		for (m = monitors; m; m = m->next)
-			showhide(m->stack);
+		for (monitor = monitors; monitor; monitor = monitor->next)
+			showhide(monitor->stack);
 	}
-	if (m) {
-		arrangemon(m);
-		restack(m);
+	if (monitor) {
+		arrangemon(monitor);
+		restack(monitor);
 	} else {
-		for (m = monitors; m; m = m->next)
-			arrangemon(m);
+		for (monitor = monitors; monitor; monitor = monitor->next)
+			arrangemon(monitor);
 		XSync(dpy, False);
 		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	}
@@ -565,11 +565,11 @@ arrange(Monitor *m)
 }
 
 void
-arrangemon(Monitor *m)
+arrangemon(Monitor *monitor)
 {
-	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
-	if (m->lt[m->sellt]->arrange)
-		m->lt[m->sellt]->arrange(m);
+	strncpy(monitor->ltsymbol, monitor->lt[monitor->sellt]->symbol, sizeof monitor->ltsymbol);
+	if (monitor->lt[monitor->sellt]->arrange)
+		monitor->lt[monitor->sellt]->arrange(monitor);
 	return;
 }
 
@@ -622,14 +622,14 @@ buttonpress(XEvent *e)
 	uint i, x, click;
 	Arg arg = {0};
 	Client *client;
-	Monitor *m;
+	Monitor *monitor;
 	XButtonPressedEvent *ev = &e->xbutton;
 
 	click = ClickRootWin;
 	/* focus monitor if necessary */
-	if ((m = wintomon(ev->window)) && m != selmon) {
+	if ((monitor = wintomon(ev->window)) && monitor != selmon) {
 		unfocus(selmon->sel, 1);
-		selmon = m;
+		selmon = monitor;
 		focus(NULL);
 	}
 	if (ev->window == selmon->barwin) {
@@ -707,9 +707,9 @@ cleanup(void)
 
 	view(&a);
 	selmon->lt[selmon->sellt] = &foo;
-	for (Monitor *m = monitors; m; m = m->next) {
-		while (m->stack)
-			unmanage(m->stack, 0);
+	for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+		while (monitor->stack)
+			unmanage(monitor->stack, 0);
 	}
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
 	while (monitors)
@@ -770,20 +770,21 @@ clientmessage(XEvent *e)
 void
 configure(Client *client)
 {
-	XConfigureEvent ce;
+	XConfigureEvent conf_event;
 
-	ce.type = ConfigureNotify;
-	ce.display = dpy;
-	ce.event = client->win;
-	ce.window = client->win;
-	ce.x = client->x;
-	ce.y = client->y;
-	ce.width = client->w;
-	ce.height = client->h;
-	ce.border_width = client->bw;
-	ce.above = None;
-	ce.override_redirect = False;
-	XSendEvent(dpy, client->win, False, StructureNotifyMask, (XEvent *)&ce);
+	conf_event.type = ConfigureNotify;
+	conf_event.display = dpy;
+	conf_event.event = client->win;
+	conf_event.window = client->win;
+	conf_event.x = client->x;
+	conf_event.y = client->y;
+	conf_event.width = client->w;
+	conf_event.height = client->h;
+	conf_event.border_width = client->bw;
+	conf_event.above = None;
+	conf_event.override_redirect = False;
+	XSendEvent(dpy, client->win,
+			   False, StructureNotifyMask, (XEvent *)&conf_event);
 	return;
 }
 
