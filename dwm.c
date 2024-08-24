@@ -20,6 +20,7 @@
  *
  * To understand everything else, start reading main().
  */
+#define _DEFAULT_SOURCE
 #include <errno.h>
 #include <locale.h>
 #include <signal.h>
@@ -1530,7 +1531,6 @@ gettextprop(Window w, Atom atom, char *text, uint size) {
 
 void
 grabbuttons(Client *client, int focused) {
-    uint i, j;
     uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 
     updatenumlockmask();
@@ -1538,13 +1538,14 @@ grabbuttons(Client *client, int focused) {
     if (!focused)
         XGrabButton(display, AnyButton, AnyModifier, client->win, False,
                     BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
-    for (i = 0; i < LENGTH(buttons); i++) {
+    for (int i = 0; i < LENGTH(buttons); i++) {
         if (buttons[i].click == ClickClientWin) {
-            for (j = 0; j < LENGTH(modifiers); j++)
+            for (int j = 0; j < LENGTH(modifiers); j++) {
                 XGrabButton(display, buttons[i].button,
                             buttons[i].mask | modifiers[j],
                             client->win, False, BUTTONMASK,
                             GrabModeAsync, GrabModeSync, None, None);
+			}
         }
     }
     return;

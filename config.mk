@@ -28,7 +28,8 @@ LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS} -lXrender -lImlib2
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
 #CFLAGS   = -g -std=c99 -pedantic -Wall -O0 ${INCS} ${CPPFLAGS}
-CFLAGS   = -std=c99 -Wall -Wextra -Wfatal-errors -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
+CFLAGS   = -std=c99 -Weverything -Wfatal-errors -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
+CFLAGS += -Wno-unsafe-buffer-usage -Wno-padded -Wno-format-nonliteral
 LDFLAGS  = ${LIBS}
 
 # Solaris
@@ -36,4 +37,4 @@ LDFLAGS  = ${LIBS}
 #LDFLAGS = ${LIBS}
 
 # compiler and linker
-CC = cc
+CC = clang
