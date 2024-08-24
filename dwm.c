@@ -868,7 +868,6 @@ configure_request(XEvent *e) {
 Monitor *
 createmon(void) {
     Monitor *m;
-    uint i;
 
     m = ecalloc(1, sizeof(*m));
     m->tagset[0] = m->tagset[1] = 1;
@@ -883,7 +882,7 @@ createmon(void) {
     m->pertag = ecalloc(1, sizeof(*(m->pertag)));
     m->pertag->current_tag = m->pertag->previous_tag = 1;
 
-    for (i = 0; i <= LENGTH(tags); i++) {
+    for (int i = 0; i <= LENGTH(tags); i++) {
         m->pertag->nmasters[i] = m->nmaster;
         m->pertag->master_facts[i] = m->master_fact;
 
@@ -1274,7 +1273,8 @@ focus_next(const Arg *arg) {
 
 void
 focus_stack(const Arg *arg) {
-    Client *client = NULL, *i;
+    Client *client = NULL;
+	Client *client_i;
 
     if (!current_monitor->selected_client || (current_monitor->selected_client->isfullscreen && lockfullscreen))
         return;
@@ -1283,14 +1283,14 @@ focus_stack(const Arg *arg) {
         if (!client)
             for (client = current_monitor->clients; client && !ISVISIBLE(client); client = client->next);
     } else {
-        for (i = current_monitor->clients; i != current_monitor->selected_client; i = i->next) {
-            if (ISVISIBLE(i))
-                client = i;
+        for (client_i = current_monitor->clients; client_i != current_monitor->selected_client; client_i = client_i->next) {
+            if (ISVISIBLE(client_i))
+                client = client_i;
         }
         if (!client) {
-            for (; i; i = i->next) {
-                if (ISVISIBLE(i))
-                    client = i;
+            for (; client_i; client_i = client_i->next) {
+                if (ISVISIBLE(client_i))
+                    client = client_i;
             }
         }
     }
@@ -2810,13 +2810,12 @@ update_geometry(void) {
 
 void
 update_numlock_mask(void) {
-    uint i, j;
     XModifierKeymap *modmap;
 
     numlockmask = 0;
     modmap = XGetModifierMapping(display);
-    for (i = 0; i < 8; i++) {
-        for (j = 0; j < modmap->max_keypermod; j++) {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < modmap->max_keypermod; j++) {
             if (modmap->modifiermap[i * modmap->max_keypermod + j]
                 == XKeysymToKeycode(display, XK_Num_Lock))
                 numlockmask = (1 << i);
