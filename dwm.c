@@ -227,7 +227,7 @@ static void property_notify(XEvent *e);
 static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *client, int x, int y, int w, int h, int interact);
-static void resizeclient(Client *client, int x, int y, int w, int h);
+static void resize_client(Client *client, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
 static void restack(Monitor *monitor);
 static void run(void);
@@ -798,7 +798,7 @@ configure_notify(XEvent *e) {
 			for (Monitor *m = monitors; m; m = m->next) {
 				for (Client *client = m->clients; client; client = client->next) {
 					if (client->isfullscreen && !client->isfakefullscreen)
-						resizeclient(client, m->mx, m->my, m->mw, m->mh);
+						resize_client(client, m->mx, m->my, m->mw, m->mh);
 				}
 				XMoveResizeWindow(dpy, m->barwin, m->wx, m->bar_y, m->ww, bh);
 				XMoveResizeWindow(dpy, m->extrabarwin, m->wx, m->extra_bar_y, m->ww, bh);
@@ -1924,12 +1924,12 @@ recttomon(int x, int y, int w, int h) {
 void
 resize(Client *client, int x, int y, int w, int h, int interact) {
 	if (applysizehints(client, &x, &y, &w, &h, interact))
-		resizeclient(client, x, y, w, h);
+		resize_client(client, x, y, w, h);
 	return;
 }
 
 void
-resizeclient(Client *client, int x, int y, int w, int h) {
+resize_client(Client *client, int x, int y, int w, int h) {
 	XWindowChanges window_changes;
 	uint n;
 	Client *nbc;
@@ -2146,21 +2146,21 @@ setfullscreen(Client *client, int fullscreen) {
 			PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
 		client->isfullscreen = 1;
 		if (client->isfakefullscreen) {
-			resizeclient(client, client->x, client->y, client->w, client->h);
+			resize_client(client, client->x, client->y, client->w, client->h);
 			return;
 		}
 		client->oldstate = client->isfloating;
 		client->oldbw = client->border_width;
 		client->border_width = 0;
 		client->isfloating = 1;
-		resizeclient(client, client->monitor->mx, client->monitor->my, client->monitor->mw, client->monitor->mh);
+		resize_client(client, client->monitor->mx, client->monitor->my, client->monitor->mw, client->monitor->mh);
 		XRaiseWindow(dpy, client->win);
 	} else if (!fullscreen && client->isfullscreen) {
 		XChangeProperty(dpy, client->win, netatom[NetWMState], XA_ATOM, 32,
 			PropModeReplace, (uchar*)0, 0);
 		client->isfullscreen = 0;
 		if (client->isfakefullscreen) {
-			resizeclient(client, client->x, client->y, client->w, client->h);
+			resize_client(client, client->x, client->y, client->w, client->h);
 			return;
 		}
 		client->isfloating = client->oldstate;
@@ -2169,7 +2169,7 @@ setfullscreen(Client *client, int fullscreen) {
 		client->y = client->old_y;
 		client->w = client->old_w;
 		client->h = client->old_h;
-		resizeclient(client, client->x, client->y, client->w, client->h);
+		resize_client(client, client->x, client->y, client->w, client->h);
 		arrange(client->monitor);
 	}
 	return;
@@ -2738,11 +2738,11 @@ updategeom(void) {
 	if (XineramaIsActive(dpy)) {
 		int i, j, n, nn;
 		Client *client;
-		Monitor *m;
+		Monitor *monitor;
 		XineramaScreenInfo *info = XineramaQueryScreens(dpy, &nn);
 		XineramaScreenInfo *unique = NULL;
 
-		for (n = 0, m = monitors; m; m = m->next, n++);
+		for (n = 0, monitor = monitors; monitor; monitor = monitor->next, n++);
 		/* only consider unique geometries as separate screens */
 		unique = ecalloc(nn, sizeof(XineramaScreenInfo));
 		for (i = 0, j = 0; i < nn; i++)
@@ -2753,39 +2753,39 @@ updategeom(void) {
 
 		/* new monitors if nn > n */
 		for (i = n; i < nn; i++) {
-			for (m = monitors; m && m->next; m = m->next);
-			if (m)
-				m->next = createmon();
+			for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
+			if (monitor)
+				monitor->next = createmon();
 			else
 				monitors = createmon();
 		}
-		for (i = 0, m = monitors; i < nn && m; m = m->next, i++)
+		for (i = 0, monitor = monitors; i < nn && monitor; monitor = monitor->next, i++)
 			if (i >= n
-			|| unique[i].x_org != m->mx || unique[i].y_org != m->my
-			|| unique[i].width != m->mw || unique[i].height != m->mh) {
+			|| unique[i].x_org != monitor->mx || unique[i].y_org != monitor->my
+			|| unique[i].width != monitor->mw || unique[i].height != monitor->mh) {
 				dirty = 1;
-				m->num = i;
-				m->mx = m->wx = unique[i].x_org;
-				m->my = m->wy = unique[i].y_org;
-				m->mw = m->ww = unique[i].width;
-				m->mh = m->wh = unique[i].height;
-				updatebarpos(m);
+				monitor->num = i;
+				monitor->mx = monitor->wx = unique[i].x_org;
+				monitor->my = monitor->wy = unique[i].y_org;
+				monitor->mw = monitor->ww = unique[i].width;
+				monitor->mh = monitor->wh = unique[i].height;
+				updatebarpos(monitor);
 			}
 		/* removed monitors if n > nn */
 		for (i = nn; i < n; i++) {
-			for (m = monitors; m && m->next; m = m->next);
-			while ((client = m->clients)) {
+			for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
+			while ((client = monitor->clients)) {
 				dirty = 1;
-				m->clients = client->next;
+				monitor->clients = client->next;
 				allclients = client->allnext;
 				detach_stack(client);
 				client->monitor = monitors;
 				attach(client);
 				attach_stack(client);
 			}
-			if (m == current_monitor)
+			if (monitor == current_monitor)
 				current_monitor = monitors;
-			cleanupmon(m);
+			cleanupmon(monitor);
 		}
 		free(unique);
 	} else
