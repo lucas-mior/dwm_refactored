@@ -61,7 +61,7 @@ typedef unsigned char uchar;
     (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
      * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->seltags]))
-#define LENGTH(X) (int) (sizeof (X) / sizeof (*X))
+#define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)  ((X)->w + 2 * (X)->border_width)
 #define HEIGHT(X) ((X)->h + 2 * (X)->border_width)
@@ -231,22 +231,22 @@ static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *client, int x, int y, int w, int h, int interact);
 static void resize_client(Client *client, int x, int y, int w, int h);
-static void resizemouse(const Arg *arg);
+static void resize_mouse(const Arg *arg);
 static void restack(Monitor *monitor);
 static void run(void);
 static void scan(void);
 static int sendevent(Client *client, Atom proto);
 static void sendmon(Client *client, Monitor *monitor);
-static void setclientstate(Client *client, long state);
-static void setclienttagprop(Client *client);
-static void setfocus(Client *client);
+static void set_client_state(Client *client, long state);
+static void set_client_tag_prop(Client *client);
+static void set_focus(Client *client);
 static void setfullscreen(Client *client, int fullscreen);
 static void set_layout(const Arg *arg);
 static void setmaster_fact(const Arg *arg);
 static void setup(void);
 static void seturgent(Client *client, int urg);
 static void showhide(Client *client);
-static void sigstatusbar(const Arg *arg);
+static void signal_status_bar(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *monitor);
@@ -258,7 +258,7 @@ static void togglescratch(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void freeicon(Client *client);
-static void unfocus(Client *client, int setfocus);
+static void unfocus(Client *client, int set_focus);
 static void unmanage(Client *client, int destroyed);
 static void unmap_notify(XEvent *e);
 static void updatebarpos(Monitor *monitor);
@@ -1136,7 +1136,7 @@ focus(Client *client) {
         attach_stack(client);
         grabbuttons(client, 1);
         XSetWindowBorder(display, client->win, scheme[SchemeSel][ColBorder].pixel);
-        setfocus(client);
+        set_focus(client);
     } else {
         XSetInputFocus(display, current_monitor->barwin, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
@@ -1218,7 +1218,7 @@ focus_in(XEvent *e) {
     XFocusChangeEvent *ev = &e->xfocus;
 
     if (current_monitor->selected_client && ev->window != current_monitor->selected_client->win)
-        setfocus(current_monitor->selected_client);
+        set_focus(current_monitor->selected_client);
     return;
 }
 
@@ -1641,7 +1641,7 @@ manage(Window w, XWindowAttributes *wa) {
     Window trans = None;
     XWindowChanges wc;
 
-    client = ecalloc(1, sizeof(Client));
+    client = ecalloc(1, sizeof(*client));
     client->win = w;
     /* geometry */
     client->x = client->old_x = wa->x;
@@ -1693,7 +1693,7 @@ manage(Window w, XWindowAttributes *wa) {
         if (n > 0)
             XFree(data);
     }
-    setclienttagprop(client);
+    set_client_tag_prop(client);
 
     client->stored_fx = client->x;
     client->stored_fy = client->y;
@@ -1712,7 +1712,7 @@ manage(Window w, XWindowAttributes *wa) {
     XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
         (uchar *) &(client->win), 1);
     XMoveResizeWindow(display, client->win, client->x + 2 * sw, client->y, client->w, client->h); /* some windows require this */
-    setclientstate(client, NormalState);
+    set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
         unfocus(current_monitor->selected_client, 0);
     client->monitor->selected_client = client;
@@ -1754,7 +1754,7 @@ monocle(Monitor *m) {
             n++;
     }
     if (n > 0) /* override layout symbol */
-        snprintf(m->layout_symbol, sizeof m->layout_symbol, "[%d]", n);
+        snprintf(m->layout_symbol, sizeof(m->layout_symbol), "[%d]", n);
     for (client = nexttiled(m->clients); client; client = nexttiled(client->next))
         resize(client, m->wx, m->wy, m->ww - 2 * client->border_width, m->wh - 2 * client->border_width, 0);
     return;
@@ -1954,7 +1954,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
 }
 
 void
-resizemouse(const Arg *arg) {
+resize_mouse(const Arg *arg) {
     (void) arg;
     int ocx, ocy, nw, nh;
     Client *client;
@@ -2085,14 +2085,14 @@ sendmon(Client *client, Monitor *m) {
     client->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
     attach(client);
     attach_stack(client);
-    setclienttagprop(client);
+    set_client_tag_prop(client);
     focus(NULL);
     arrange(NULL);
     return;
 }
 
 void
-setclientstate(Client *client, long state) {
+set_client_state(Client *client, long state) {
     long data[] = { state, None };
 
     XChangeProperty(display, client->win, wmatom[WMState], wmatom[WMState], 32,
@@ -2125,7 +2125,7 @@ sendevent(Client *client, Atom proto) {
 }
 
 void
-setfocus(Client *client) {
+set_focus(Client *client) {
     if (!client->neverfocus) {
         XSetInputFocus(display, client->win, RevertToPointerRoot, CurrentTime);
         XChangeProperty(display, root, netatom[NetActiveWindow],
@@ -2178,7 +2178,7 @@ set_layout(const Arg *arg) {
         current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag] ^= 1;
     if (arg && arg->v)
         current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index] = (Layout *)arg->v;
-    strncpy(current_monitor->layout_symbol, current_monitor->layout[current_monitor->layout_index]->symbol, sizeof current_monitor->layout_symbol);
+    strncpy(current_monitor->layout_symbol, current_monitor->layout[current_monitor->layout_index]->symbol, sizeof(current_monitor->layout_symbol));
     if (current_monitor->selected_client)
         arrange(current_monitor);
     else
@@ -2251,7 +2251,7 @@ setup(void) {
     cursor[CursorResize] = drw_cur_create(drw, XC_sizing);
     cursor[CursorMove] = drw_cur_create(drw, XC_fleur);
     /* init appearance */
-    scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
+    scheme = ecalloc(LENGTH(colors), sizeof(*scheme));
     for (i = 0; i < LENGTH(colors); i++)
         scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
     /* init bars */
@@ -2335,7 +2335,7 @@ showhide(Client *client) {
 }
 
 void
-sigstatusbar(const Arg *arg) {
+signal_status_bar(const Arg *arg) {
     union sigval sv;
 
     if (!statussig)
@@ -2349,7 +2349,7 @@ sigstatusbar(const Arg *arg) {
 }
 
 void
-setclienttagprop(Client *client) {
+set_client_tag_prop(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
     XChangeProperty(display, client->win, netatom[NetClientInfo], XA_CARDINAL, 32,
                     PropModeReplace, (uchar *) data, 2);
@@ -2362,7 +2362,7 @@ tag(const Arg *arg) {
     if (current_monitor->selected_client && arg->ui & TAGMASK) {
         client = current_monitor->selected_client;
         current_monitor->selected_client->tags = arg->ui & TAGMASK;
-        setclienttagprop(client);
+        set_client_tag_prop(client);
         focus(NULL);
         arrange(current_monitor);
     }
@@ -2554,7 +2554,7 @@ toggletag(const Arg *arg) {
     newtags = current_monitor->selected_client->tags ^ (arg->ui & TAGMASK);
     if (newtags) {
         current_monitor->selected_client->tags = newtags;
-        setclienttagprop(current_monitor->selected_client);
+        set_client_tag_prop(current_monitor->selected_client);
         focus(NULL);
         arrange(current_monitor);
     }
@@ -2607,12 +2607,12 @@ freeicon(Client *client) {
 }
 
 void
-unfocus(Client *client, int setfocus) {
+unfocus(Client *client, int set_focus) {
     if (!client)
         return;
     grabbuttons(client, 0);
     XSetWindowBorder(display, client->win, scheme[SchemeNorm][ColBorder].pixel);
-    if (setfocus) {
+    if (set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
@@ -2634,7 +2634,7 @@ unmanage(Client *client, int destroyed) {
         XSelectInput(display, client->win, NoEventMask);
         XConfigureWindow(display, client->win, CWBorderWidth, &wc); /* restore border */
         XUngrabButton(display, AnyButton, AnyModifier, client->win);
-        setclientstate(client, WithdrawnState);
+        set_client_state(client, WithdrawnState);
         XSync(display, False);
         XSetErrorHandler(xerror);
         XUngrabServer(display);
@@ -2653,7 +2653,7 @@ unmap_notify(XEvent *e) {
 
     if ((client = wintoclient(ev->window))) {
         if (ev->send_event)
-            setclientstate(client, WithdrawnState);
+            set_client_state(client, WithdrawnState);
         else
             unmanage(client, 0);
     }
@@ -2741,7 +2741,7 @@ updategeom(void) {
 
         for (n = 0, monitor = monitors; monitor; monitor = monitor->next, n++);
         /* only consider unique geometries as separate screens */
-        unique = ecalloc(nn, sizeof(XineramaScreenInfo));
+        unique = ecalloc(nn, sizeof(*unique));
         for (i = 0, j = 0; i < nn; i++)
             if (isuniquegeom(unique, j, &info[i]))
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
@@ -2904,8 +2904,8 @@ updatestatus(void) {
 
 void
 updatetitle(Client *client) {
-    if (!gettextprop(client->win, netatom[NetWMName], client->name, sizeof client->name))
-        gettextprop(client->win, XA_WM_NAME, client->name, sizeof client->name);
+    if (!gettextprop(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
+        gettextprop(client->win, XA_WM_NAME, client->name, sizeof(client->name));
     if (client->name[0] == '\0') /* hack to mark broken clients */
         strcpy(client->name, broken);
     return;
