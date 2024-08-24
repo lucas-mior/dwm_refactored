@@ -209,17 +209,17 @@ static void focus_stack(const Arg *arg);
 static void focus_urgent(const Arg *arg);
 static void gapless_grid(Monitor *monitor);
 static Atom get_atom_prop(Client *client, Atom prop);
-static Picture get_icon_prop(Window w, uint *icon_width, uint *icon_height);
+static Picture get_icon_prop(Window win, uint *icon_width, uint *icon_height);
 static int get_root_pointer(int *x, int *y);
-static long get_state(Window w);
+static long get_state(Window win);
 static pid_t get_status_bar_pid(void);
-static int get_text_prop(Window w, Atom atom, char *text, uint size);
+static int get_text_prop(Window win, Atom atom, char *text, uint size);
 static void grabbuttons(Client *client, int focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
 static void key_press(XEvent *e);
 static void killclient(const Arg *arg);
-static void manage(Window w, XWindowAttributes *wa);
+static void manage(Window win, XWindowAttributes *wa);
 static void mapping_notify(XEvent *e);
 static void map_request(XEvent *e);
 static void monocle(Monitor *monitor);
@@ -275,8 +275,8 @@ static void update_icon(Client *client);
 static void update_window_type(Client *client);
 static void updatewm_hintsints(Client *client);
 static void view(const Arg *arg);
-static Client *wintoclient(Window w);
-static Monitor *wintomon(Window w);
+static Client *wintoclient(Window win);
+static Monitor *wintomon(Window win);
 static void winview(const Arg* arg);
 static int xerror(Display *display, XErrorEvent *ee);
 static int xerrordummy(Display *display, XErrorEvent *ee);
@@ -1494,14 +1494,14 @@ get_root_pointer(int *x, int *y) {
 }
 
 long
-get_state(Window w) {
+get_state(Window win) {
     int format;
     long result = -1;
     uchar *p = NULL;
     ulong n, extra;
     Atom real;
 
-    if (XGetWindowProperty(display, w, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
+    if (XGetWindowProperty(display, win, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
         &real, &format, &n, &extra, (uchar **)&p) != Success)
         return -1;
     if (n != 0)
@@ -1511,7 +1511,7 @@ get_state(Window w) {
 }
 
 int
-get_text_prop(Window w, Atom atom, char *text, uint size) {
+get_text_prop(Window win, Atom atom, char *text, uint size) {
     char **list = NULL;
     int n;
     XTextProperty name;
@@ -1519,7 +1519,7 @@ get_text_prop(Window w, Atom atom, char *text, uint size) {
     if (!text || size == 0)
         return 0;
     text[0] = '\0';
-    if (!XGetTextProperty(display, w, &name, atom) || !name.nitems)
+    if (!XGetTextProperty(display, win, &name, atom) || !name.nitems)
         return 0;
     if (name.encoding == XA_STRING) {
         strncpy(text, (char *)name.value, size - 1);
@@ -1640,13 +1640,13 @@ killclient(const Arg *arg) {
 }
 
 void
-manage(Window w, XWindowAttributes *wa) {
+manage(Window win, XWindowAttributes *wa) {
     Client *client, *t = NULL;
     Window trans = None;
     XWindowChanges wc;
 
     client = ecalloc(1, sizeof(*client));
-    client->win = w;
+    client->win = win;
     /* geometry */
     client->x = client->old_x = wa->x;
     client->y = client->old_y = wa->y;
@@ -1656,7 +1656,7 @@ manage(Window w, XWindowAttributes *wa) {
 
     update_icon(client);
     update_title(client);
-    if (XGetTransientForHint(display, w, &trans) && (t = wintoclient(trans))) {
+    if (XGetTransientForHint(display, win, &trans) && (t = wintoclient(trans))) {
         client->monitor = t->monitor;
         client->tags = t->tags;
     } else {
@@ -1673,8 +1673,8 @@ manage(Window w, XWindowAttributes *wa) {
     client->border_width = border_pixels;
 
     wc.border_width = client->border_width;
-    XConfigureWindow(display, w, CWBorderWidth, &wc);
-    XSetWindowBorder(display, w, scheme[SchemeNorm][ColBorder].pixel);
+    XConfigureWindow(display, win, CWBorderWidth, &wc);
+    XSetWindowBorder(display, win, scheme[SchemeNorm][ColBorder].pixel);
     configure(client); /* propagates border_width, if size doesn't change */
     update_window_type(client);
     update_size_hints(client);
@@ -1705,7 +1705,7 @@ manage(Window w, XWindowAttributes *wa) {
     client->stored_fh = client->h;
     client->x = client->monitor->mx + (client->monitor->mw - WIDTH(client)) / 2;
     client->y = client->monitor->my + (client->monitor->mh - HEIGHT(client)) / 2;
-    XSelectInput(display, w, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
+    XSelectInput(display, win, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
     grabbuttons(client, 0);
     if (!client->isfloating)
         client->isfloating = client->oldstate = trans != None || client->isfixed;
@@ -2994,10 +2994,10 @@ view(const Arg *arg) {
 }
 
 Client *
-wintoclient(Window w) {
+wintoclient(Window win) {
     for (Monitor *m = monitors; m; m = m->next) {
         for (Client *client = m->clients; client; client = client->next) {
-            if (client->win == w)
+            if (client->win == win)
                 return client;
         }
     }
@@ -3033,8 +3033,11 @@ winview(const Arg* arg) {
 
     if (!XGetInputFocus(display, &window, &unused))
         return;
-    while (XQueryTree(display, window, &root_return, &parent_return, &children_return, &nchildren_return) && parent_return != root_return)
+    while (XQueryTree(display, window,
+                      &root_return, &parent_return, &children_return,
+                      &nchildren_return) && parent_return != root_return) {
         window = parent_return;
+    }
 
     if (!(client = wintoclient(window)))
         return;
