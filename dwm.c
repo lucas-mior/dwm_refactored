@@ -70,15 +70,14 @@ typedef unsigned int uint;
 #define TAGWIDTH                32
 
 /* enums */
-enum { CursorNormal, CursorResize, CursorMove, CursorLast }; /* cursor */
+enum { CursorNormal, CursorResize, CursorMove, CursorLast };
 enum { SchemeNorm, SchemeInv, SchemeSel, SchemeUrg }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
-       NetWMFullscreen, NetActiveWindow, NetWMWindowType,
-       NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast }; /* EWMH atoms */
-enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
+       NetWMFullscreen, NetActiveWindow, NetWMWindowType, /* EWMH atoms */
+       NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast };
+enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* atoms */
 enum { ClickTagBar, ClickLtSymbol, ClickStatusText, ClickWinTitle,
-       ClickExtraBar,
-       ClickClientWin, ClickRootWin, ClickLast }; /* clicks */
+       ClickExtraBar, ClickClientWin, ClickRootWin, ClickLast };
 
 typedef union {
 	int i;
@@ -314,7 +313,7 @@ static Cur *cursor[CursorLast];
 static Clr **scheme;
 static Display *dpy;
 static Drw *drw;
-static Monitor *mons, *selmon;
+static Monitor *monitors, *selmon;
 static Window root, wmcheckwin;
 
 static int alt_tab_direction = 0;
@@ -349,7 +348,7 @@ alttab(const Arg *arg) {
 	if (allclients == NULL)
 		return;
 
-	for (Monitor *m = mons; m; m = m->next)
+	for (Monitor *m = monitors; m; m = m->next)
 		view(&(Arg){ .ui = (uint) ~0 });
 	focusnext(&(Arg){ .i = alt_tab_direction });
 
@@ -458,7 +457,7 @@ applyrules(Client *c)
 				c->y = c->mon->wy + (c->mon->wh / 2 - HEIGHT(c) / 2);
 			}
 
-			for (m = mons; m && m->num != r->monitor; m = m->next);
+			for (m = monitors; m && m->num != r->monitor; m = m->next);
 			if (m)
 				c->mon = m;
 			if (r->switchtotag) {
@@ -550,14 +549,14 @@ arrange(Monitor *m)
 	if (m) {
 		showhide(m->stack);
 	} else {
-		for (m = mons; m; m = m->next)
+		for (m = monitors; m; m = m->next)
 			showhide(m->stack);
 	}
 	if (m) {
 		arrangemon(m);
 		restack(m);
 	} else {
-		for (m = mons; m; m = m->next)
+		for (m = monitors; m; m = m->next)
 			arrangemon(m);
 		XSync(dpy, False);
 		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
@@ -708,13 +707,13 @@ cleanup(void)
 
 	view(&a);
 	selmon->lt[selmon->sellt] = &foo;
-	for (Monitor *m = mons; m; m = m->next) {
+	for (Monitor *m = monitors; m; m = m->next) {
 		while (m->stack)
 			unmanage(m->stack, 0);
 	}
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
-	while (mons)
-		cleanupmon(mons);
+	while (monitors)
+		cleanupmon(monitors);
 	for (i = 0; i < CursorLast; i++)
 		drw_cur_free(drw, cursor[i]);
 	for (i = 0; i < LENGTH(colors); i++)
@@ -733,10 +732,10 @@ cleanupmon(Monitor *mon)
 {
 	Monitor *m;
 
-	if (mon == mons) {
-		mons = mons->next;
+	if (mon == monitors) {
+		monitors = monitors->next;
 	} else {
-		for (m = mons; m && m->next != mon; m = m->next);
+		for (m = monitors; m && m->next != mon; m = m->next);
 		m->next = mon->next;
 	}
 	XUnmapWindow(dpy, mon->barwin);
@@ -802,7 +801,7 @@ configurenotify(XEvent *e)
 		if (updategeom() || dirty) {
 			drw_resize(drw, sw, bh);
 			updatebars();
-			for (Monitor *m = mons; m; m = m->next) {
+			for (Monitor *m = monitors; m; m = m->next) {
 				for (Client *c = m->clients; c; c = c->next) {
 					if (c->isfullscreen && !c->isfakefullscreen)
 						resizeclient(c, m->mx, m->my, m->mw, m->mh);
@@ -983,11 +982,11 @@ dirtomon(int dir)
 
 	if (dir > 0) {
 		if (!(m = selmon->next))
-			m = mons;
-	} else if (selmon == mons) {
-		for (m = mons; m->next; m = m->next);
+			m = monitors;
+	} else if (selmon == monitors) {
+		for (m = monitors; m->next; m = m->next);
 	} else {
-		for (m = mons; m->next != selmon; m = m->next);
+		for (m = monitors; m->next != selmon; m = m->next);
 	}
 	return m;
 }
@@ -1104,7 +1103,7 @@ drawbar(Monitor *m)
 void
 drawbars(void)
 {
-	for (Monitor *m = mons; m; m = m->next)
+	for (Monitor *m = monitors; m; m = m->next)
 		drawbar(m);
 	return;
 }
@@ -1250,7 +1249,7 @@ focusmon(const Arg *arg)
 {
 	Monitor *m;
 
-	if (!mons->next)
+	if (!monitors->next)
 		return;
 	if ((m = dirtomon(arg->i)) == selmon)
 		return;
@@ -1325,7 +1324,7 @@ focusstack(const Arg *arg)
 static void
 focusurgent(const Arg *arg) {
 	(void) arg;
-	for (Monitor *m = mons; m; m = m->next) {
+	for (Monitor *m = monitors; m; m = m->next) {
 		Client *c;
 
 		for (c = m->clients; c && !c->isurgent; c = c->next);
@@ -1721,7 +1720,7 @@ manage(Window w, XWindowAttributes *wa)
 		if (XGetWindowProperty(dpy, c->win, netatom[NetClientInfo], 0L, 2L, False, XA_CARDINAL,
 				&atom, &format, &n, &extra, (unsigned char **)&data) == Success && n == 2) {
 			c->tags = *data;
-			for (m = mons; m; m = m->next) {
+			for (m = monitors; m; m = m->next) {
 				if (m->num == *(data+1)) {
 					c->mon = m;
 					break;
@@ -1957,7 +1956,7 @@ recttomon(int x, int y, int w, int h)
 	Monitor *m, *r = selmon;
 	int a, area = 0;
 
-	for (m = mons; m; m = m->next) {
+	for (m = monitors; m; m = m->next) {
 		if ((a = INTERSECT(x, y, w, h, m)) > area) {
 			area = a;
 			r = m;
@@ -2341,7 +2340,7 @@ setup(void)
 	XSelectInput(dpy, root, wa.event_mask);
 	grabkeys();
 	focus(NULL);
-	for (Monitor *m = mons; m; m = m->next) {
+	for (Monitor *m = monitors; m; m = m->next) {
 		unfocus(selmon->sel, 0);
 		selmon = m;
 		focus(NULL);
@@ -2438,7 +2437,7 @@ tag(const Arg *arg)
 void
 tagmon(const Arg *arg)
 {
-	if (!selmon->sel || !mons->next)
+	if (!selmon->sel || !monitors->next)
 		return;
 	Monitor *mon = dirtomon(arg->i);
 	if (selmon->sel->isfloating) {
@@ -2754,7 +2753,7 @@ updatebars(void)
 		.event_mask = ButtonPressMask|ExposureMask
 	};
 	XClassHint ch = {"dwm", "dwm"};
-	for (m = mons; m; m = m->next) {
+	for (m = monitors; m; m = m->next) {
 		if (!m->barwin) {
 			m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bh, 0, depth,
 					InputOutput, visual,
@@ -2803,7 +2802,7 @@ updateclientlist(void)
 	Monitor *m;
 
 	XDeleteProperty(dpy, root, netatom[NetClientList]);
-	for (m = mons; m; m = m->next) {
+	for (m = monitors; m; m = m->next) {
 		for (c = m->clients; c; c = c->next)
 			XChangeProperty(dpy, root, netatom[NetClientList],
 							XA_WINDOW, 32, PropModeAppend,
@@ -2825,7 +2824,7 @@ updategeom(void)
 		XineramaScreenInfo *info = XineramaQueryScreens(dpy, &nn);
 		XineramaScreenInfo *unique = NULL;
 
-		for (n = 0, m = mons; m; m = m->next, n++);
+		for (n = 0, m = monitors; m; m = m->next, n++);
 		/* only consider unique geometries as separate screens */
 		unique = ecalloc(nn, sizeof(XineramaScreenInfo));
 		for (i = 0, j = 0; i < nn; i++)
@@ -2836,13 +2835,13 @@ updategeom(void)
 
 		/* new monitors if nn > n */
 		for (i = n; i < nn; i++) {
-			for (m = mons; m && m->next; m = m->next);
+			for (m = monitors; m && m->next; m = m->next);
 			if (m)
 				m->next = createmon();
 			else
-				mons = createmon();
+				monitors = createmon();
 		}
-		for (i = 0, m = mons; i < nn && m; m = m->next, i++)
+		for (i = 0, m = monitors; i < nn && m; m = m->next, i++)
 			if (i >= n
 			|| unique[i].x_org != m->mx || unique[i].y_org != m->my
 			|| unique[i].width != m->mw || unique[i].height != m->mh) {
@@ -2856,35 +2855,35 @@ updategeom(void)
 			}
 		/* removed monitors if n > nn */
 		for (i = nn; i < n; i++) {
-			for (m = mons; m && m->next; m = m->next);
+			for (m = monitors; m && m->next; m = m->next);
 			while ((c = m->clients)) {
 				dirty = 1;
 				m->clients = c->next;
 				allclients = c->allnext;
 				detachstack(c);
-				c->mon = mons;
+				c->mon = monitors;
 				attach(c);
 				attachstack(c);
 			}
 			if (m == selmon)
-				selmon = mons;
+				selmon = monitors;
 			cleanupmon(m);
 		}
 		free(unique);
 	} else
 #endif /* XINERAMA */
 	{ /* default monitor setup */
-		if (!mons)
-			mons = createmon();
-		if (mons->mw != sw || mons->mh != sh) {
+		if (!monitors)
+			monitors = createmon();
+		if (monitors->mw != sw || monitors->mh != sh) {
 			dirty = 1;
-			mons->mw = mons->ww = sw;
-			mons->mh = mons->wh = sh;
-			updatebarpos(mons);
+			monitors->mw = monitors->ww = sw;
+			monitors->mh = monitors->wh = sh;
+			updatebarpos(monitors);
 		}
 	}
 	if (dirty) {
-		selmon = mons;
+		selmon = monitors;
 		selmon = wintomon(root);
 	}
 	return dirty;
@@ -3090,7 +3089,7 @@ wintoclient(Window w)
 	Client *c;
 	Monitor *m;
 
-	for (m = mons; m; m = m->next) {
+	for (m = monitors; m; m = m->next) {
 		for (c = m->clients; c; c = c->next) {
 			if (c->win == w)
 				return c;
@@ -3108,7 +3107,7 @@ wintomon(Window w)
 
 	if (w == root && getrootptr(&x, &y))
 		return recttomon(x, y, 1, 1);
-	for (m = mons; m; m = m->next)
+	for (m = monitors; m; m = m->next)
 		if (w == m->barwin || w == m->extrabarwin)
 			return m;
 	if ((c = wintoclient(w)))
