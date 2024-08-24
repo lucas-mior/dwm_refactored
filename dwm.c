@@ -174,8 +174,8 @@ typedef struct {
 } Rule;
 
 /* function declarations */
-static void alttab(const Arg *arg);
-static void applyrules(Client *client);
+static void alt_tab(const Arg *arg);
+static void apply_rules(Client *client);
 static int apply_size_hints(Client *client, int *, int *, int *, int *, int);
 static void arrange(Monitor *monitor);
 static void arrange_monitor(Monitor *monitor);
@@ -184,7 +184,7 @@ static void attach(Client *client);
 static void attach_stack(Client *client);
 static void button_press(XEvent *e);
 static void cleanup(void);
-static void cleanupmon(Monitor *monitor);
+static void cleanup_monitor(Monitor *monitor);
 static void client_message(XEvent *e);
 static void col(Monitor *);
 static void configure(Client *client);
@@ -195,9 +195,9 @@ static void debug_dwm(char *message, ...);
 static void destroy_notify(XEvent *e);
 static void detach(Client *client);
 static void detach_stack(Client *client);
-static Monitor *dirtomon(int dir);
-static void drawbar(Monitor *monitor);
-static void drawbars(void);
+static Monitor *direction_to_mon(int dir);
+static void draw_bar(Monitor *monitor);
+static void draw_bars(void);
 static void enter_notify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *client);
@@ -206,14 +206,14 @@ static void focus_in(XEvent *e);
 static void focus_monitor(const Arg *arg);
 static void focus_next(const Arg *arg);
 static void focus_stack(const Arg *arg);
-static void focusurgent(const Arg *arg);
-static void gaplessgrid(Monitor *monitor);
-static Atom getatomprop(Client *client, Atom prop);
-static Picture geticonprop(Window w, uint *icon_width, uint *icon_height);
-static int getrootptr(int *x, int *y);
-static long getstate(Window w);
-static pid_t getstatusbarpid(void);
-static int gettextprop(Window w, Atom atom, char *text, uint size);
+static void focus_urgent(const Arg *arg);
+static void gapless_grid(Monitor *monitor);
+static Atom get_atom_prop(Client *client, Atom prop);
+static Picture get_icon_prop(Window w, uint *icon_width, uint *icon_height);
+static int get_root_pointer(int *x, int *y);
+static long get_state(Window w);
+static pid_t get_status_bar_pid(void);
+static int get_text_prop(Window w, Atom atom, char *text, uint size);
 static void grabbuttons(Client *client, int focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
@@ -350,7 +350,7 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 /* function implementations */
 
 void
-alttab(const Arg *arg) {
+alt_tab(const Arg *arg) {
     (void) arg;
     if (allclients == NULL)
         return;
@@ -436,7 +436,7 @@ alttab(const Arg *arg) {
 }
 
 void
-applyrules(Client *client) {
+apply_rules(Client *client) {
     const char *class, *instance;
     XClassHint class_hint = { NULL, NULL };
 
@@ -711,7 +711,7 @@ cleanup(void) {
     }
     XUngrabKey(display, AnyKey, AnyModifier, root);
     while (monitors)
-        cleanupmon(monitors);
+        cleanup_monitor(monitors);
     for (int i = 0; i < CursorLast; i++)
         drw_cur_free(drw, cursor[i]);
     for (int i = 0; i < LENGTH(colors); i++)
@@ -726,7 +726,7 @@ cleanup(void) {
 }
 
 void
-cleanupmon(Monitor *monitor) {
+cleanup_monitor(Monitor *monitor) {
 
     if (monitor == monitors) {
         monitors = monitors->next;
@@ -965,7 +965,7 @@ detach_stack(Client *client) {
 }
 
 Monitor *
-dirtomon(int dir) {
+direction_to_mon(int dir) {
     Monitor *m = NULL;
 
     if (dir > 0) {
@@ -980,7 +980,7 @@ dirtomon(int dir) {
 }
 
 void
-drawbar(Monitor *m) {
+draw_bar(Monitor *m) {
     int x, w, tw = 0, extra_status_width = 0;
     int boxs = drw->fonts->h / 9;
     int boxw = drw->fonts->h / 6 + 2;
@@ -1088,9 +1088,9 @@ drawbar(Monitor *m) {
 }
 
 void
-drawbars(void) {
+draw_bars(void) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        drawbar(monitor);
+        draw_bar(monitor);
     return;
 }
 
@@ -1120,7 +1120,7 @@ expose(XEvent *e) {
     XExposeEvent *ev = &e->xexpose;
 
     if (ev->count == 0 && (m = wintomon(ev->window)))
-        drawbar(m);
+        draw_bar(m);
     return;
 }
 
@@ -1145,7 +1145,7 @@ focus(Client *client) {
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
     current_monitor->selected_client = client;
-    drawbars();
+    draw_bars();
     return;
 }
 
@@ -1231,7 +1231,7 @@ focus_monitor(const Arg *arg) {
 
     if (!monitors->next)
         return;
-    if ((m = dirtomon(arg->i)) == current_monitor)
+    if ((m = direction_to_mon(arg->i)) == current_monitor)
         return;
     unfocus(current_monitor->selected_client, 0);
     current_monitor = m;
@@ -1274,7 +1274,7 @@ focus_next(const Arg *arg) {
 void
 focus_stack(const Arg *arg) {
     Client *client = NULL;
-	Client *client_i;
+    Client *client_i;
 
     if (!current_monitor->selected_client || (current_monitor->selected_client->isfullscreen && lockfullscreen))
         return;
@@ -1302,7 +1302,7 @@ focus_stack(const Arg *arg) {
 }
 
 static void
-focusurgent(const Arg *arg) {
+focus_urgent(const Arg *arg) {
     (void) arg;
     for (Monitor *m = monitors; m; m = m->next) {
         Client *client;
@@ -1324,7 +1324,7 @@ focusurgent(const Arg *arg) {
 }
 
 void
-gaplessgrid(Monitor *m) {
+gapless_grid(Monitor *m) {
     uint n, cols, rows, cn, rn, i, cx, cy, cw, ch;
     Client *client;
 
@@ -1362,7 +1362,7 @@ gaplessgrid(Monitor *m) {
 }
 
 Atom
-getatomprop(Client *client, Atom prop) {
+get_atom_prop(Client *client, Atom prop) {
     int di;
     ulong dl;
     uchar *p = NULL;
@@ -1377,7 +1377,7 @@ getatomprop(Client *client, Atom prop) {
 }
 
 pid_t
-getstatusbarpid(void) {
+get_status_bar_pid(void) {
     char buffer[32], *str = buffer, *client;
     FILE *fp;
 
@@ -1407,7 +1407,7 @@ static uint32 prealpha(uint32 p) {
 }
 
 Picture
-geticonprop(Window win, uint *picw, uint *pich) {
+get_icon_prop(Window win, uint *picw, uint *pich) {
     int format;
     ulong n, extra, *p = NULL;
     Atom real;
@@ -1485,7 +1485,7 @@ geticonprop(Window win, uint *picw, uint *pich) {
 }
 
 int
-getrootptr(int *x, int *y) {
+get_root_pointer(int *x, int *y) {
     int di;
     uint dui;
     Window dummy;
@@ -1494,7 +1494,7 @@ getrootptr(int *x, int *y) {
 }
 
 long
-getstate(Window w) {
+get_state(Window w) {
     int format;
     long result = -1;
     uchar *p = NULL;
@@ -1511,7 +1511,7 @@ getstate(Window w) {
 }
 
 int
-gettextprop(Window w, Atom atom, char *text, uint size) {
+get_text_prop(Window w, Atom atom, char *text, uint size) {
     char **list = NULL;
     int n;
     XTextProperty name;
@@ -1661,7 +1661,7 @@ manage(Window w, XWindowAttributes *wa) {
         client->tags = t->tags;
     } else {
         client->monitor = current_monitor;
-        applyrules(client);
+        apply_rules(client);
     }
 
     if (client->x + WIDTH(client) > client->monitor->wx + client->monitor->ww)
@@ -1800,7 +1800,7 @@ movemouse(const Arg *arg) {
     if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
         None, cursor[CursorMove]->cursor, CurrentTime) != GrabSuccess)
         return;
-    if (!getrootptr(&x, &y))
+    if (!get_root_pointer(&x, &y))
         return;
     do {
         XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
@@ -1881,18 +1881,18 @@ property_notify(XEvent *e) {
             break;
         case XA_WM_HINTS:
             updatewm_hintsints(client);
-            drawbars();
+            draw_bars();
             break;
         }
         if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
             update_title(client);
             if (client == client->monitor->selected_client)
-                drawbar(client->monitor);
+                draw_bar(client->monitor);
         }
         else if (ev->atom == netatom[NetWMIcon]) {
             update_icon(client);
             if (client == client->monitor->selected_client)
-                drawbar(client->monitor);
+                draw_bar(client->monitor);
         }
         if (ev->atom == netatom[NetWMWindowType])
             update_window_type(client);
@@ -2020,7 +2020,7 @@ restack(Monitor *m) {
     XEvent ev;
     XWindowChanges wc;
 
-    drawbar(m);
+    draw_bar(m);
     if (!m->selected_client)
         return;
     if (m->selected_client->isfloating || !m->layout[m->layout_index]->arrange)
@@ -2062,14 +2062,14 @@ scan(void) {
             if (!XGetWindowAttributes(display, wins[i], &wa)
             || wa.override_redirect || XGetTransientForHint(display, wins[i], &d1))
                 continue;
-            if (wa.map_state == IsViewable || getstate(wins[i]) == IconicState)
+            if (wa.map_state == IsViewable || get_state(wins[i]) == IconicState)
                 manage(wins[i], &wa);
         }
         for (i = 0; i < num; i++) { /* now the transients */
             if (!XGetWindowAttributes(display, wins[i], &wa))
                 continue;
             if (XGetTransientForHint(display, wins[i], &d1)
-            && (wa.map_state == IsViewable || getstate(wins[i]) == IconicState))
+            && (wa.map_state == IsViewable || get_state(wins[i]) == IconicState))
                 manage(wins[i], &wa);
         }
         if (wins)
@@ -2186,7 +2186,7 @@ set_layout(const Arg *arg) {
     if (current_monitor->selected_client)
         arrange(current_monitor);
     else
-        drawbar(current_monitor);
+        draw_bar(current_monitor);
     return;
 }
 
@@ -2346,7 +2346,7 @@ signal_status_bar(const Arg *arg) {
         return;
     sv.sival_int = arg->i | ((SIGRTMIN+statussig) << 3);
 
-    if ((statuspid = getstatusbarpid()) <= 0)
+    if ((statuspid = get_status_bar_pid()) <= 0)
         return;
 
     sigqueue(statuspid, SIGUSR1, sv);
@@ -2376,7 +2376,7 @@ void
 tagmon(const Arg *arg) {
     if (!current_monitor->selected_client || !monitors->next)
         return;
-    Monitor *monitor = dirtomon(arg->i);
+    Monitor *monitor = direction_to_mon(arg->i);
     if (current_monitor->selected_client->isfloating) {
         current_monitor->selected_client->x += monitor->mx - current_monitor->mx;
         current_monitor->selected_client->y += monitor->my - current_monitor->my;
@@ -2786,7 +2786,7 @@ update_geometry(void) {
             }
             if (monitor == current_monitor)
                 current_monitor = monitors;
-            cleanupmon(monitor);
+            cleanup_monitor(monitor);
         }
         free(unique);
     } else
@@ -2871,7 +2871,7 @@ update_size_hints(Client *client) {
 void
 update_status(void) {
     char text[768];
-    if (!gettextprop(root, XA_WM_NAME, text, sizeof(text))) {
+    if (!get_text_prop(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
         statusw = TEXTW(stext) - lrpad + 2;
         extra_status[0] = '\0';
@@ -2901,14 +2901,14 @@ update_status(void) {
         statusw += TEXTW(text2) - lrpad + 2;
 
     }
-    drawbar(current_monitor);
+    draw_bar(current_monitor);
     return;
 }
 
 void
 update_title(Client *client) {
-    if (!gettextprop(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
-        gettextprop(client->win, XA_WM_NAME, client->name, sizeof(client->name));
+    if (!get_text_prop(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
+        get_text_prop(client->win, XA_WM_NAME, client->name, sizeof(client->name));
     if (client->name[0] == '\0') /* hack to mark broken clients */
         strcpy(client->name, broken);
     return;
@@ -2917,14 +2917,14 @@ update_title(Client *client) {
 void
 update_icon(Client *client) {
     freeicon(client);
-    client->icon = geticonprop(client->win, &client->icon_width, &client->icon_height);
+    client->icon = get_icon_prop(client->win, &client->icon_width, &client->icon_height);
     return;
 }
 
 void
 update_window_type(Client *client) {
-    Atom state = getatomprop(client, netatom[NetWMState]);
-    Atom wtype = getatomprop(client, netatom[NetWMWindowType]);
+    Atom state = get_atom_prop(client, netatom[NetWMState]);
+    Atom wtype = get_atom_prop(client, netatom[NetWMWindowType]);
 
     if (state == netatom[NetWMFullscreen])
         setfullscreen(client, 1);
@@ -3010,7 +3010,7 @@ wintomon(Window window) {
     Client *client;
     Monitor *monitor;
 
-    if (window == root && getrootptr(&x, &y))
+    if (window == root && get_root_pointer(&x, &y))
         return recttomon(x, y, 1, 1);
     for (monitor = monitors; monitor; monitor = monitor->next)
         if (window == monitor->barwin || window == monitor->extrabarwin)

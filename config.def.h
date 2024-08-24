@@ -89,7 +89,7 @@ static const Layout layouts[] = {
 	{ "[]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
-	{ "###",      gaplessgrid },
+	{ "###",      gapless_grid },
 	{ "|||",      col },
 };
 
@@ -109,7 +109,7 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,             XK_b,    toggleextrabar, {0} },
 	{ MODKEY,                       XK_k,      focus_stack,     {.i = +1 } },
 	{ MODKEY,                       XK_l,      focus_stack,     {.i = -1 } },
-	{ MODKEY|ShiftMask,             XK_u,      focusurgent,    {0} },
+	{ MODKEY|ShiftMask,             XK_u,      focus_urgent,    {0} },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_u,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_j,      setmaster_fact,       {.f = -0.05} },
@@ -142,7 +142,7 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask|ShiftMask, XK_q,      quit,           {.i = 0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_r,      quit,           {.i = 1} },
 	{ MODKEY,                       XK_g,      winview,        {0}},
-	{ Mod1Mask,                     XK_Tab,    alttab,         {0} },
+	{ Mod1Mask,                     XK_Tab,    alt_tab,         {0} },
 	{ 0,                            XK_F11,    togglefullscr,  {0}},
 };
 
