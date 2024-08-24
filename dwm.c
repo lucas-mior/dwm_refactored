@@ -1535,9 +1535,10 @@ grabbuttons(Client *client, int focused) {
 
     updatenumlockmask();
     XUngrabButton(display, AnyButton, AnyModifier, client->win);
-    if (!focused)
+    if (!focused) {
         XGrabButton(display, AnyButton, AnyModifier, client->win, False,
                     BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
+	}
     for (int i = 0; i < LENGTH(buttons); i++) {
         if (buttons[i].click == ClickClientWin) {
             for (int j = 0; j < LENGTH(modifiers); j++) {
@@ -1553,7 +1554,6 @@ grabbuttons(Client *client, int focused) {
 
 void
 grabkeys(void) {
-    uint i, j, k;
     uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
     int start, end, skip;
     KeySym *syms;
@@ -1565,11 +1565,11 @@ grabkeys(void) {
     syms = XGetKeyboardMapping(display, start, end - start + 1, &skip);
     if (!syms)
         return;
-    for (k = start; k <= end; k++) {
-        for (i = 0; i < LENGTH(keys); i++) {
+    for (int k = start; k <= end; k++) {
+        for (int i = 0; i < LENGTH(keys); i++) {
             /* skip modifier codes, we do that ourselves */
             if (keys[i].keysym == syms[(k - start) * skip]) {
-                for (j = 0; j < LENGTH(modifiers); j++)
+                for (int j = 0; j < LENGTH(modifiers); j++)
                     XGrabKey(display, k, keys[i].mod | modifiers[j],
                              root, True, GrabModeAsync, GrabModeAsync);
             }
@@ -3022,19 +3022,19 @@ wintomon(Window window) {
 /* to be displayed is matched to the focused window tag list. */
 void
 winview(const Arg* arg) {
-    (void) arg;
-    Window win, win_r, win_p, *win_c;
-    unsigned nc;
+    Window window, root_return, parent_return, *children_return;
+    uint nchildren_return;
     int unused;
     Client* client;
     Arg view_arg;
+    (void) arg;
 
-    if (!XGetInputFocus(display, &win, &unused))
+    if (!XGetInputFocus(display, &window, &unused))
         return;
-    while (XQueryTree(display, win, &win_r, &win_p, &win_c, &nc) && win_p != win_r)
-        win = win_p;
+    while (XQueryTree(display, window, &root_return, &parent_return, &children_return, &nchildren_return) && parent_return != root_return)
+        window = parent_return;
 
-    if (!(client = wintoclient(win)))
+    if (!(client = wintoclient(window)))
         return;
 
     view_arg.ui = client->tags;
@@ -3118,12 +3118,13 @@ xinitvisual(void) {
 
 void
 zoom(const Arg *arg) {
-    (void) arg;
     Client *client = current_monitor->selected_client;
+	Monitor *monitor = current_monitor;
+    (void) arg;
 
-    if (!current_monitor->layout[current_monitor->layout_index]->arrange || !client || client->isfloating)
+    if (!monitor->layout[monitor->layout_index]->arrange || !client || client->isfloating)
         return;
-    if (client == nexttiled(current_monitor->clients) && !(client = nexttiled(client->next)))
+    if (client == nexttiled(monitor->clients) && !(client = nexttiled(client->next)))
         return;
     pop(client);
     return;
