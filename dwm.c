@@ -248,6 +248,7 @@ static void setup(void);
 static void seturgent(Client *client, int urg);
 static void showhide(Client *client);
 static void signal_status_bar(const Arg *arg);
+static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *monitor);
@@ -262,16 +263,16 @@ static void freeicon(Client *client);
 static void unfocus(Client *client, int set_focus);
 static void unmanage(Client *client, int destroyed);
 static void unmap_notify(XEvent *e);
-static void updatebarpos(Monitor *monitor);
-static void updatebars(void);
-static void updateclientlist(void);
-static int updategeom(void);
-static void updatenumlockmask(void);
-static void updatesizehints(Client *client);
-static void updatestatus(void);
-static void updatetitle(Client *client);
-static void updateicon(Client *client);
-static void updatewindowtype(Client *client);
+static void update_bar_pos(Monitor *monitor);
+static void update_bars(void);
+static void update_client_list(void);
+static int update_geometry(void);
+static void update_numlock_mask(void);
+static void update_size_hints(Client *client);
+static void update_status(void);
+static void update_title(Client *client);
+static void update_icon(Client *client);
+static void update_window_type(Client *client);
 static void updatewm_hintsints(Client *client);
 static void view(const Arg *arg);
 static Client *wintoclient(Window w);
@@ -451,9 +452,8 @@ applyrules(Client *client) {
         Monitor *monitor;
 
         if ((!r->title || strstr(client->name, r->title))
-        && (!r->class || strstr(class, r->class))
-        && (!r->instance || strstr(instance, r->instance)))
-        {
+            && (!r->class || strstr(class, r->class))
+            && (!r->instance || strstr(instance, r->instance))) {
             client->isfloating = r->isfloating;
             client->isfakefullscreen = r->isfakefullscreen;
             client->tags |= r->tags;
@@ -475,7 +475,10 @@ applyrules(Client *client) {
         XFree(class_hint.res_class);
     if (class_hint.res_name)
         XFree(class_hint.res_name);
-    client->tags = client->tags & TAGMASK ? client->tags & TAGMASK : (client->monitor->tagset[client->monitor->seltags] & (uint) ~SPTAGMASK);
+    client->tags = client->tags & TAGMASK 
+                   ? client->tags & TAGMASK 
+                   : (client->monitor->tagset[client->monitor->seltags] 
+                      & (uint) ~SPTAGMASK);
     return;
 }
 
@@ -512,7 +515,7 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         *w = bh;
     if (resizehints || client->isfloating || !client->monitor->layout[client->monitor->layout_index]->arrange) {
         if (!client->hintsvalid)
-            updatesizehints(client);
+            update_size_hints(client);
         /* see last two sentences in ICCCM 4.1.2.3 */
         baseismin = client->basew == client->minw && client->baseh == client->minh;
         if (!baseismin) { /* temporarily remove base dimensions */
@@ -786,14 +789,14 @@ configure_notify(XEvent *e) {
     XConfigureEvent *ev = &e->xconfigure;
     int dirty;
 
-    /* TODO: updategeom handling sucks, needs to be simplified */
+    /* TODO: update_geometry handling sucks, needs to be simplified */
     if (ev->window == root) {
         dirty = (sw != ev->width || sh != ev->height);
         sw = ev->width;
         sh = ev->height;
-        if (updategeom() || dirty) {
+        if (update_geometry() || dirty) {
             drw_resize(drw, sw, bh);
-            updatebars();
+            update_bars();
             for (Monitor *m = monitors; m; m = m->next) {
                 for (Client *client = m->clients; client; client = client->next) {
                     if (client->isfullscreen && !client->isfakefullscreen)
@@ -1533,12 +1536,12 @@ void
 grabbuttons(Client *client, int focused) {
     uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 
-    updatenumlockmask();
+    update_numlock_mask();
     XUngrabButton(display, AnyButton, AnyModifier, client->win);
     if (!focused) {
         XGrabButton(display, AnyButton, AnyModifier, client->win, False,
                     BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
-	}
+    }
     for (int i = 0; i < LENGTH(buttons); i++) {
         if (buttons[i].click == ClickClientWin) {
             for (int j = 0; j < LENGTH(modifiers); j++) {
@@ -1546,7 +1549,7 @@ grabbuttons(Client *client, int focused) {
                             buttons[i].mask | modifiers[j],
                             client->win, False, BUTTONMASK,
                             GrabModeAsync, GrabModeSync, None, None);
-			}
+            }
         }
     }
     return;
@@ -1558,7 +1561,7 @@ grabkeys(void) {
     int start, end, skip;
     KeySym *syms;
 
-    updatenumlockmask();
+    update_numlock_mask();
 
     XUngrabKey(display, AnyKey, AnyModifier, root);
     XDisplayKeycodes(display, &start, &end);
@@ -1651,8 +1654,8 @@ manage(Window w, XWindowAttributes *wa) {
     client->h = client->old_h = wa->height;
     client->oldbw = wa->border_width;
 
-    updateicon(client);
-    updatetitle(client);
+    update_icon(client);
+    update_title(client);
     if (XGetTransientForHint(display, w, &trans) && (t = wintoclient(trans))) {
         client->monitor = t->monitor;
         client->tags = t->tags;
@@ -1673,8 +1676,8 @@ manage(Window w, XWindowAttributes *wa) {
     XConfigureWindow(display, w, CWBorderWidth, &wc);
     XSetWindowBorder(display, w, scheme[SchemeNorm][ColBorder].pixel);
     configure(client); /* propagates border_width, if size doesn't change */
-    updatewindowtype(client);
-    updatesizehints(client);
+    update_window_type(client);
+    update_size_hints(client);
     updatewm_hintsints(client);
     {
         int format;
@@ -1861,7 +1864,7 @@ property_notify(XEvent *e) {
     XPropertyEvent *ev = &e->xproperty;
 
     if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
-        updatestatus();
+        update_status();
     } else if (ev->state == PropertyDelete) {
         return; /* ignore */
     } else if ((client = wintoclient(ev->window))) {
@@ -1882,17 +1885,17 @@ property_notify(XEvent *e) {
             break;
         }
         if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
-            updatetitle(client);
+            update_title(client);
             if (client == client->monitor->selected_client)
                 drawbar(client->monitor);
         }
         else if (ev->atom == netatom[NetWMIcon]) {
-            updateicon(client);
+            update_icon(client);
             if (client == client->monitor->selected_client)
                 drawbar(client->monitor);
         }
         if (ev->atom == netatom[NetWMWindowType])
-            updatewindowtype(client);
+            update_window_type(client);
     }
     return;
 }
@@ -2229,7 +2232,7 @@ setup(void) {
         die("no fonts could be loaded.");
     lrpad = drw->fonts->h / 2;
     bh = drw->fonts->h + 2;
-    updategeom();
+    update_geometry();
     /* init atoms */
     utf8string = XInternAtom(display, "UTF8_STRING", False);
     wmatom[WMProtocols] = XInternAtom(display, "WM_PROTOCOLS", False);
@@ -2256,8 +2259,8 @@ setup(void) {
     for (i = 0; i < LENGTH(colors); i++)
         scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
     /* init bars */
-    updatebars();
-    updatestatus();
+    update_bars();
+    update_status();
     /* supporting window for NetWMCheck */
     wmcheckwin = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
     XChangeProperty(display, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32,
@@ -2447,7 +2450,7 @@ void
 togglebar(const Arg *arg) {
     (void) arg;
     current_monitor->showbar = current_monitor->pertag->showbars[current_monitor->pertag->current_tag] = !current_monitor->showbar;
-    updatebarpos(current_monitor);
+    update_bar_pos(current_monitor);
     XMoveResizeWindow(display, current_monitor->barwin, current_monitor->wx, current_monitor->bar_y, current_monitor->ww, bh);
     arrange(current_monitor);
     return;
@@ -2456,7 +2459,7 @@ togglebar(const Arg *arg) {
 void
 toggleextrabar(const Arg *arg) {
     current_monitor->extrabar = !current_monitor->extrabar;
-    updatebarpos(current_monitor);
+    update_bar_pos(current_monitor);
     XMoveResizeWindow(display, current_monitor->extrabarwin, current_monitor->wx, current_monitor->extra_bar_y, current_monitor->ww, bh);
     arrange(current_monitor);
 }
@@ -2642,7 +2645,7 @@ unmanage(Client *client, int destroyed) {
     }
     free(client);
     focus(NULL);
-    updateclientlist();
+    update_client_list();
     arrange(m);
     return;
 }
@@ -2662,7 +2665,7 @@ unmap_notify(XEvent *e) {
 }
 
 void
-updatebars(void) {
+update_bars(void) {
     Monitor *m;
     XSetWindowAttributes wa = {
         .override_redirect = True,
@@ -2694,7 +2697,7 @@ updatebars(void) {
 }
 
 void
-updatebarpos(Monitor *m) {
+update_bar_pos(Monitor *m) {
     m->wy = m->my;
     m->wh = m->mh;
     if (m->showbar) {
@@ -2714,7 +2717,7 @@ updatebarpos(Monitor *m) {
 }
 
 void
-updateclientlist(void) {
+update_client_list(void) {
     Client *client;
     Monitor *m;
 
@@ -2729,7 +2732,7 @@ updateclientlist(void) {
 }
 
 int
-updategeom(void) {
+update_geometry(void) {
     int dirty = 0;
 
 #ifdef XINERAMA
@@ -2767,7 +2770,7 @@ updategeom(void) {
                 monitor->my = monitor->wy = unique[i].y_org;
                 monitor->mw = monitor->ww = unique[i].width;
                 monitor->mh = monitor->wh = unique[i].height;
-                updatebarpos(monitor);
+                update_bar_pos(monitor);
             }
         /* removed monitors if n > nn */
         for (i = nn; i < n; i++) {
@@ -2795,7 +2798,7 @@ updategeom(void) {
             dirty = 1;
             monitors->mw = monitors->ww = sw;
             monitors->mh = monitors->wh = sh;
-            updatebarpos(monitors);
+            update_bar_pos(monitors);
         }
     }
     if (dirty) {
@@ -2806,7 +2809,7 @@ updategeom(void) {
 }
 
 void
-updatenumlockmask(void) {
+update_numlock_mask(void) {
     uint i, j;
     XModifierKeymap *modmap;
 
@@ -2823,7 +2826,7 @@ updatenumlockmask(void) {
 }
 
 void
-updatesizehints(Client *client) {
+update_size_hints(Client *client) {
     long msize;
     XSizeHints size;
 
@@ -2867,7 +2870,7 @@ updatesizehints(Client *client) {
 }
 
 void
-updatestatus(void) {
+update_status(void) {
     char text[768];
     if (!gettextprop(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
@@ -2904,7 +2907,7 @@ updatestatus(void) {
 }
 
 void
-updatetitle(Client *client) {
+update_title(Client *client) {
     if (!gettextprop(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
         gettextprop(client->win, XA_WM_NAME, client->name, sizeof(client->name));
     if (client->name[0] == '\0') /* hack to mark broken clients */
@@ -2913,14 +2916,14 @@ updatetitle(Client *client) {
 }
 
 void
-updateicon(Client *client) {
+update_icon(Client *client) {
     freeicon(client);
     client->icon = geticonprop(client->win, &client->icon_width, &client->icon_height);
     return;
 }
 
 void
-updatewindowtype(Client *client) {
+update_window_type(Client *client) {
     Atom state = getatomprop(client, netatom[NetWMState]);
     Atom wtype = getatomprop(client, netatom[NetWMWindowType]);
 
@@ -3119,7 +3122,7 @@ xinitvisual(void) {
 void
 zoom(const Arg *arg) {
     Client *client = current_monitor->selected_client;
-	Monitor *monitor = current_monitor;
+    Monitor *monitor = current_monitor;
     (void) arg;
 
     if (!monitor->layout[monitor->layout_index]->arrange || !client || client->isfloating)
