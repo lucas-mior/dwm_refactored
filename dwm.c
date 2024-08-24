@@ -705,11 +705,10 @@ void
 cleanup(void)
 {
 	Arg a = {.ui = ~0};
-	Layout foo = { "", NULL };
-	size_t i;
+	Layout layout = { "", NULL };
 
 	view(&a);
-	current_monitor->layout[current_monitor->layout_index] = &foo;
+	current_monitor->layout[current_monitor->layout_index] = &layout;
 	for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
 		while (monitor->stack)
 			unmanage(monitor->stack, 0);
@@ -717,9 +716,9 @@ cleanup(void)
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
 	while (monitors)
 		cleanupmon(monitors);
-	for (i = 0; i < CursorLast; i++)
+	for (int i = 0; i < CursorLast; i++)
 		drw_cur_free(drw, cursor[i]);
-	for (i = 0; i < LENGTH(colors); i++)
+	for (int i = 0; i < LENGTH(colors); i++)
 		free(scheme[i]);
 	free(scheme);
 	XDestroyWindow(dpy, wmcheckwin);
