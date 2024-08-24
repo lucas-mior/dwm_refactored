@@ -61,7 +61,7 @@ typedef unsigned char uchar;
     (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
      * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->seltags]))
-#define LENGTH(X) (int) (sizeof X / sizeof X[0])
+#define LENGTH(X) (int) (sizeof (X) / sizeof (*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)  ((X)->w + 2 * (X)->border_width)
 #define HEIGHT(X) ((X)->h + 2 * (X)->border_width)
@@ -568,7 +568,7 @@ arrange(Monitor *monitor) {
 
 void
 arrange_monitor(Monitor *monitor) {
-    strncpy(monitor->layout_symbol, monitor->layout[monitor->layout_index]->symbol, sizeof monitor->layout_symbol);
+    strncpy(monitor->layout_symbol, monitor->layout[monitor->layout_index]->symbol, sizeof(monitor->layout_symbol));
     if (monitor->layout[monitor->layout_index]->arrange)
         monitor->layout[monitor->layout_index]->arrange(monitor);
     return;
@@ -866,7 +866,7 @@ createmon(void) {
     Monitor *m;
     uint i;
 
-    m = ecalloc(1, sizeof(Monitor));
+    m = ecalloc(1, sizeof(*m));
     m->tagset[0] = m->tagset[1] = 1;
     m->master_fact = master_fact;
     m->nmaster = nmaster;
@@ -875,8 +875,8 @@ createmon(void) {
     m->extrabar = extrabar;
     m->layout[0] = &layouts[0];
     m->layout[1] = &layouts[1 % LENGTH(layouts)];
-    strncpy(m->layout_symbol, layouts[0].symbol, sizeof m->layout_symbol);
-    m->pertag = ecalloc(1, sizeof(Pertag));
+    strncpy(m->layout_symbol, layouts[0].symbol, sizeof(m->layout_symbol));
+    m->pertag = ecalloc(1, sizeof(*(m->pertag)));
     m->pertag->current_tag = m->pertag->previous_tag = 1;
 
     for (i = 0; i <= LENGTH(tags); i++) {
@@ -907,7 +907,7 @@ void debug_dwm(char *message, ...) {
     va_list args;
     va_start(args, message);
     
-    vsnprintf(buffer, sizeof (buffer), message, args);
+    vsnprintf(buffer, sizeof(buffer), message, args);
     argv[4] = buffer;
     va_end(args);
 
@@ -1364,7 +1364,7 @@ getatomprop(Client *client, Atom prop) {
     uchar *p = NULL;
     Atom da, atom = None;
 
-    if (XGetWindowProperty(display, client->win, prop, 0L, sizeof atom, False, XA_ATOM,
+    if (XGetWindowProperty(display, client->win, prop, 0L, sizeof(atom), False, XA_ATOM,
                            &da, &di, &dl, &dl, &p) == Success && p) {
         atom = *(Atom *)p;
         XFree(p);
@@ -1374,13 +1374,13 @@ getatomprop(Client *client, Atom prop) {
 
 pid_t
 getstatusbarpid(void) {
-    char buf[32], *str = buf, *client;
+    char buffer[32], *str = buffer, *client;
     FILE *fp;
 
     if (statuspid > 0) {
-        snprintf(buf, sizeof(buf), "/proc/%u/cmdline", statuspid);
-        if ((fp = fopen(buf, "r"))) {
-            fgets(buf, sizeof(buf), fp);
+        snprintf(buffer, sizeof(buffer), "/proc/%u/cmdline", statuspid);
+        if ((fp = fopen(buffer, "r"))) {
+            fgets(buffer, sizeof(buffer), fp);
             while ((client = strchr(str, '/')))
                 str = client + 1;
             fclose(fp);
@@ -1390,9 +1390,9 @@ getstatusbarpid(void) {
     }
     if (!(fp = popen("pidof -s "STATUSBAR, "r")))
         return -1;
-    fgets(buf, sizeof(buf), fp);
+    fgets(buffer, sizeof(buffer), fp);
     pclose(fp);
-    return strtol(buf, NULL, 10);
+    return strtol(buffer, NULL, 10);
 }
 
 static uint32 prealpha(uint32 p) {
