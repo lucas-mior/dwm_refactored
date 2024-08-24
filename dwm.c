@@ -275,7 +275,6 @@ static void zoom(const Arg *arg);
 static const char broken[] = "broken";
 static char stext[256];
 static char estextl[256];
-static char estextr[256];
 static int statusw;
 static int statussig;
 static pid_t statuspid = -1;
@@ -658,16 +657,14 @@ buttonpress(XEvent *e)
 	} else if (ev->window == selmon->extrabarwin) {
 		if (ev->x < (int)TEXTW(estextl))
 			click = ClkExBarLeftStatus;
-		else if (ev->x > selmon->ww - (int)TEXTW(estextr))
-			click = ClkExBarRightStatus;
 		else
 			click = ClkExBarMiddle;
 		statussig = 0;
-		char *s = &stext[
-		debug_dwm("first s = %c\n", *s);
+		unsigned char *s = &estextl[0];
+		debug_dwm("extextl = %s\n", estextl);
 		sleep(1);
 		for (char *text = s; *s && x <= ev->x; s++) {
-			debug_dwm("s = %c\n", *s);
+			debug_dwm("s = %d\n", *s);
 			if ((unsigned char)(*s) < ' ') {
 				char ch = *s;
 				*s = '\0';
@@ -680,7 +677,7 @@ buttonpress(XEvent *e)
 			    debug_dwm("final statussigs = %d\n", *s);
 			}
 		}
-		debug_dwm("outsides = %c\n", *s);
+		debug_dwm("outsides = %d\n", *s);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -1090,8 +1087,6 @@ drawbar(Monitor *m)
 		drw_setscheme(drw, scheme[SchemeNorm]);
 		/* clear default bar draw buffer by drawing a blank rectangle */
 		drw_rect(drw, 0, 0, m->ww, bh, 1, 1);
-		etwr = TEXTW(estextr) - lrpad + 2; /* 2px right padding */
-		drw_text(drw, m->ww - etwr, 0, etwr, bh, 0, estextr, 0);
 		etwl = TEXTW(estextl);
 		drw_text(drw, 0, 0, etwl, bh, 0, estextl, 0);
 		drw_map(drw, m->extrabarwin, 0, 0, m->ww, bh);
@@ -2959,25 +2954,20 @@ updatestatus(void)
 		strcpy(stext, "dwm-"VERSION);
 		statusw = TEXTW(stext) - lrpad + 2;
 		estextl[0] = '\0';
-		estextr[0] = '\0';
 	} else {
 		char *l = strchr(text, statussep);
 		if (l) {
 			*l = '\0'; l++;
 			strncpy(estextl, l, sizeof(estextl) - 1);
-		} else
+		} else {
 			estextl[0] = '\0';
-		char *r = strchr(estextl, statussep);
-		if (r) {
-			*r = '\0'; r++;
-			strncpy(estextr, r, sizeof(estextr) - 1);
-		} else
-			estextr[0] = '\0';
+		}
 		strncpy(stext, text, sizeof(stext) - 1);
 
 		char *s;
+		char *text2;
 		statusw  = 0;
-		for (char *text2 = s = stext; *s; s++) {
+		for (text2 = s = stext; *s; s++) {
 			char ch;
 			if ((unsigned char)(*s) < ' ') {
 				ch = *s;
