@@ -47,6 +47,9 @@
 #include "drw.h"
 #include "util.h"
 
+typedef uint32_t uint32;
+typedef unsigned int uint;
+
 /* macros */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
@@ -79,14 +82,14 @@ enum { ClickTagBar, ClickLtSymbol, ClickStatusText, ClickWinTitle,
 
 typedef union {
 	int i;
-	unsigned int ui;
+	uint ui;
 	float f;
 	const void *v;
 } Arg;
 
 typedef struct {
-	unsigned int click;
-	unsigned int mask;
+	uint click;
+	uint mask;
 	unsigned long button;
 	void (*func)(const Arg *arg);
 	const Arg arg;
@@ -96,16 +99,16 @@ typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
 	char name[256];
-	float mina, maxa;
+	float min_a, max_a;
 	int x, y, w, h;
 	int stored_fx, stored_fy, stored_fw, stored_fh;
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int bw, oldbw;
-	unsigned int tags;
+	uint tags;
 	int isfixed, isfloating, isurgent;
 	int neverfocus, oldstate, isfullscreen, isfakefullscreen;
-	unsigned int icw, ich;
+	uint icw, ich;
 	int unused;
 	Picture icon;
 	Client *next;
@@ -137,9 +140,9 @@ struct Monitor {
 	int eby;              /* extra bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
-	unsigned int seltags;
-	unsigned int sellt;
-	unsigned int tagset[2];
+	uint seltags;
+	uint sellt;
+	uint tagset[2];
 	int showbar;
 	int topbar;
 	int extrabar;
@@ -157,8 +160,8 @@ typedef struct {
 	const char *class;
 	const char *instance;
 	const char *title;
-	unsigned int tags;
-	unsigned int switchtotag;
+	uint tags;
+	uint switchtotag;
 	int isfloating;
 	int isfakefullscreen;
 	int monitor;
@@ -201,11 +204,11 @@ static void focusstack(const Arg *arg);
 static void focusurgent(const Arg *arg);
 static void gaplessgrid(Monitor *m);
 static Atom getatomprop(Client *c, Atom prop);
-static Picture geticonprop(Window w, unsigned int *icw, unsigned int *ich);
+static Picture geticonprop(Window w, uint *icw, uint *ich);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
 static pid_t getstatusbarpid(void);
-static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
+static int gettextprop(Window w, Atom atom, char *text, uint size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
@@ -287,7 +290,7 @@ static int sw, sh;           /* X display screen geometry width, height */
 static int bh;               /* bar height */
 static int lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
-static unsigned int numlockmask = 0;
+static uint numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress] = buttonpress,
 	[ClientMessage] = clientmessage,
@@ -325,17 +328,17 @@ static Colormap cmap;
 #include "config.def.h"
 
 struct Pertag {
-	unsigned int curtag, prevtag; /* current and previous tag */
+	uint curtag, prevtag; /* current and previous tag */
 	int nmasters[LENGTH(tags) + 1]; /* number of windows in master area */
 	float mfacts[LENGTH(tags) + 1]; /* mfacts per tag */
-	unsigned int sellts[LENGTH(tags) + 1]; /* selected layouts */
+	uint sellts[LENGTH(tags) + 1]; /* selected layouts */
 	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
 
-static unsigned int tagw[LENGTH(tags)];
+static uint tagw[LENGTH(tags)];
 
-/* compile-time check if all tags fit into an unsigned int bit array. */
+/* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 /* function implementations */
@@ -514,11 +517,11 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 			*h -= c->baseh;
 		}
 		/* adjust for aspect limits */
-		if (c->mina > 0 && c->maxa > 0) {
-			if (c->maxa < (float)*w / *h)
-				*w = *h * c->maxa + 0.5;
-			else if (c->mina < (float)*h / *w)
-				*h = *w * c->mina + 0.5;
+		if (c->min_a > 0 && c->max_a > 0) {
+			if (c->max_a < (float)*w / *h)
+				*w = *h * c->max_a + 0.5;
+			else if (c->min_a < (float)*h / *w)
+				*h = *w * c->min_a + 0.5;
 		}
 		if (baseismin) { /* increment calculation requires this */
 			*w -= c->basew;
@@ -617,7 +620,7 @@ attachstack(Client *c)
 void
 buttonpress(XEvent *e)
 {
-	unsigned int i, x, click;
+	uint i, x, click;
 	Arg arg = {0};
 	Client *c;
 	Monitor *m;
@@ -872,7 +875,7 @@ Monitor *
 createmon(void)
 {
 	Monitor *m;
-	unsigned int i;
+	uint i;
 
 	m = ecalloc(1, sizeof(Monitor));
 	m->tagset[0] = m->tagset[1] = 1;
@@ -995,7 +998,7 @@ drawbar(Monitor *m)
 	int x, w, tw = 0, etwl = 0, etwr = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
-	unsigned int i, occ = 0, urg = 0;
+	uint i, occ = 0, urg = 0;
 	char tagdisp[TAGWIDTH];
 	char *masterclientontag[LENGTH(tags)];
 
@@ -1172,8 +1175,8 @@ focusdir(const Arg *arg)
 	if (!s)
 		return;
 
-	unsigned int score = -1;
-	unsigned int client_score;
+	uint score = -1;
+	uint client_score;
 	int dist;
 	int dirweight = 20;
 	int isfloating = s->isfloating;
@@ -1343,7 +1346,7 @@ focusurgent(const Arg *arg) {
 
 void
 gaplessgrid(Monitor *m) {
-	unsigned int n, cols, rows, cn, rn, i, cx, cy, cw, ch;
+	uint n, cols, rows, cn, rn, i, cx, cy, cw, ch;
 	Client *c;
 
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
@@ -1419,15 +1422,15 @@ getstatusbarpid(void)
 	return strtol(buf, NULL, 10);
 }
 
-static uint32_t prealpha(uint32_t p) {
+static uint32 prealpha(uint32 p) {
 	uint8_t a = p >> 24u;
-	uint32_t rb = (a * (p & 0xFF00FFu)) >> 8u;
-	uint32_t g = (a * (p & 0x00FF00u)) >> 8u;
+	uint32 rb = (a * (p & 0xFF00FFu)) >> 8u;
+	uint32 g = (a * (p & 0x00FF00u)) >> 8u;
 	return (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
 }
 
 Picture
-geticonprop(Window win, unsigned int *picw, unsigned int *pich)
+geticonprop(Window win, uint *picw, uint *pich)
 {
 	int format;
 	unsigned long n, extra, *p = NULL;
@@ -1442,10 +1445,10 @@ geticonprop(Window win, unsigned int *picw, unsigned int *pich)
 	}
 
 	unsigned long *bstp = NULL;
-	uint32_t w, h, sz;
+	uint32 w, h, sz;
 	{
 		unsigned long *i; const unsigned long *end = p + n;
-		uint32_t bstd = UINT32_MAX, d, m;
+		uint32 bstd = UINT32_MAX, d, m;
 		for (i = p; i < end - 1; i += sz) {
 			if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
 				XFree(p);
@@ -1483,7 +1486,7 @@ geticonprop(Window win, unsigned int *picw, unsigned int *pich)
 		return None;
 	}
 
-	uint32_t icw, ich;
+	uint32 icw, ich;
 	if (w <= h) {
 		ich = ICONSIZE; icw = w * ICONSIZE / h;
 		if (icw == 0)
@@ -1495,7 +1498,7 @@ geticonprop(Window win, unsigned int *picw, unsigned int *pich)
 	}
 	*picw = icw; *pich = ich;
 
-	uint32_t i, *bstp32 = (uint32_t *)bstp;
+	uint32 i, *bstp32 = (uint32 *)bstp;
 	for (sz = w * h, i = 0; i < sz; ++i)
 		bstp32[i] = prealpha(bstp[i]);
 
@@ -1509,7 +1512,7 @@ int
 getrootptr(int *x, int *y)
 {
 	int di;
-	unsigned int dui;
+	uint dui;
 	Window dummy;
 
 	return XQueryPointer(dpy, root, &dummy, &dummy, x, y, &di, &di, &dui);
@@ -1534,7 +1537,7 @@ getstate(Window w)
 }
 
 int
-gettextprop(Window w, Atom atom, char *text, unsigned int size)
+gettextprop(Window w, Atom atom, char *text, uint size)
 {
 	char **list = NULL;
 	int n;
@@ -1559,8 +1562,8 @@ gettextprop(Window w, Atom atom, char *text, unsigned int size)
 void
 grabbuttons(Client *c, int focused)
 {
-	unsigned int i, j;
-	unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
+	uint i, j;
+	uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 
 	updatenumlockmask();
 	XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
@@ -1582,8 +1585,8 @@ grabbuttons(Client *c, int focused)
 void
 grabkeys(void)
 {
-	unsigned int i, j, k;
-	unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
+	uint i, j, k;
+	uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 	int start, end, skip;
 	KeySym *syms;
 
@@ -1636,7 +1639,7 @@ isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info)
 void
 keypress(XEvent *e)
 {
-	unsigned int i;
+	uint i;
 	KeySym keysym;
 	XKeyEvent *ev;
 
@@ -1784,7 +1787,7 @@ maprequest(XEvent *e)
 void
 monocle(Monitor *m)
 {
-	unsigned int n = 0;
+	uint n = 0;
 	Client *c;
 
 	for (c = m->clients; c; c = c->next) {
@@ -1975,7 +1978,7 @@ void
 resizeclient(Client *c, int x, int y, int w, int h)
 {
 	XWindowChanges wc;
-	unsigned int n;
+	uint n;
 	Client *nbc;
 
 	c->oldx = c->x; c->x = wc.x = x;
@@ -2100,7 +2103,7 @@ run(void)
 void
 scan(void)
 {
-	unsigned int i, num;
+	uint i, num;
 	Window d1, d2, *wins = NULL;
 	XWindowAttributes wa;
 
@@ -2455,7 +2458,7 @@ tagmon(const Arg *arg)
 void
 col(Monitor *m)
 {
-	unsigned int i, n, h, w, x, y, mw;
+	uint i, n, h, w, x, y, mw;
 	Client *c;
 
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
@@ -2483,7 +2486,7 @@ col(Monitor *m)
 void
 tile(Monitor *m)
 {
-	unsigned int i, n, h, mw, my, ty;
+	uint i, n, h, mw, my, ty;
 	Client *c;
 
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
@@ -2589,14 +2592,14 @@ void
 togglescratch(const Arg *arg)
 {
 	Client *c;
-	unsigned int found = 0;
-	unsigned int scratchtag = SPTAG(arg->ui);
+	uint found = 0;
+	uint scratchtag = SPTAG(arg->ui);
 	Arg sparg = {.v = scratchpads[arg->ui].cmd};
 
 	for (c = selmon->clients; c && !(found = c->tags & scratchtag); c = c->next);
 	if (found) {
-		unsigned int this_tag = c->tags & selmon->tagset[selmon->seltags];
-		unsigned int newtagset = selmon->tagset[selmon->seltags] ^ scratchtag;
+		uint this_tag = c->tags & selmon->tagset[selmon->seltags];
+		uint newtagset = selmon->tagset[selmon->seltags] ^ scratchtag;
 
 		if (this_tag) {
 			c->tags = scratchtag;
@@ -2621,7 +2624,7 @@ togglescratch(const Arg *arg)
 void
 toggletag(const Arg *arg)
 {
-	unsigned int newtags;
+	uint newtags;
 
 	if (!selmon->sel)
 		return;
@@ -2638,7 +2641,7 @@ toggletag(const Arg *arg)
 void
 toggleview(const Arg *arg)
 {
-	unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg->ui & TAGMASK);
+	uint newtagset = selmon->tagset[selmon->seltags] ^ (arg->ui & TAGMASK);
 	int i;
 
 	if (newtagset) {
@@ -2890,7 +2893,7 @@ updategeom(void)
 void
 updatenumlockmask(void)
 {
-	unsigned int i, j;
+	uint i, j;
 	XModifierKeymap *modmap;
 
 	numlockmask = 0;
@@ -2941,10 +2944,10 @@ updatesizehints(Client *c)
 	} else
 		c->minw = c->minh = 0;
 	if (size.flags & PAspect) {
-		c->mina = (float)size.min_aspect.y / size.min_aspect.x;
-		c->maxa = (float)size.max_aspect.x / size.max_aspect.y;
+		c->min_a = (float)size.min_aspect.y / size.min_aspect.x;
+		c->max_a = (float)size.max_aspect.x / size.max_aspect.y;
 	} else
-		c->maxa = c->mina = 0.0;
+		c->max_a = c->min_a = 0.0;
 	c->isfixed = (c->maxw && c->maxh && c->maxw == c->minw && c->maxh == c->minh);
 	c->hintsvalid = 1;
 	return;
@@ -3046,7 +3049,7 @@ void
 view(const Arg *arg)
 {
 	int i;
-	unsigned int tmptag;
+	uint tmptag;
 
 	if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
 		return;
