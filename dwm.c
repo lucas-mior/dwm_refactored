@@ -667,10 +667,7 @@ button_press(XEvent *e) {
         click = ClickExtraBar;
         statussig = 0;
         char *s = &extra_status[0];
-        debug_dwm("extextl = %s, x=%d\n", extra_status, x);
-        sleep(1);
         for (char *text = s; *s && x <= ev->x; s++) {
-            debug_dwm("s = %d, x = %d\n", *s, x);
             if ((uchar)(*s) < ' ') {
                 char ch = *s;
                 *s = '\0';
@@ -680,10 +677,8 @@ button_press(XEvent *e) {
                 if (x >= ev->x)
                     break;
                 statussig = ch;
-                debug_dwm("final statussigs = %d\n", *s);
             }
         }
-        debug_dwm("outsides = %d = %client\n", *s, *s);
     } else if ((client = wintoclient(ev->window))) {
         focus(client);
         restack(current_monitor);
@@ -901,19 +896,18 @@ createmon(void) {
 void debug_dwm(char *message, ...) {
     char buffer[256];
     char *argv[6] = {
-        "dunstify",
-        "-t",
-        "3000",
-        "dwm",
-        NULL,
-        NULL,
+        [0] = "dunstify",
+        [1] = "-t",
+        [2] = "3000",
+        [3] = "dwm",
+        [4] = NULL,
+        [5] = NULL,
     };
 
     va_list args;
     va_start(args, message);
     
-    vsnprintf(buffer, sizeof (buffer),
-              message, args);
+    vsnprintf(buffer, sizeof (buffer), message, args);
     argv[4] = buffer;
     va_end(args);
 
