@@ -636,7 +636,7 @@ button_press(XEvent *event) {
     }
     if (button_event->window == current_monitor->barwin) {
         uint i = 0;
-        uint x = 0;
+        int x = 0;
 
         do {
             x += tagw[i];
@@ -644,7 +644,7 @@ button_press(XEvent *event) {
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
             arg.ui = 1 << i;
-        } else if (button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
+        } else if (button_event->x < x + (int) TEXTW(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
         } else if (button_event->x > current_monitor->win_w - statusw) {
             char *s;
@@ -2536,10 +2536,11 @@ col(Monitor *m) {
 
 void
 tile(Monitor *m) {
-    uint i;
+    int i;
     int n = 0;
     uint h;
-    uint mon_w, mon_y, ty;
+    uint mon_w;
+    int mon_y, ty;
     Client *client;
 
     for (Client *client_aux = next_tiled(m->clients);
@@ -2716,7 +2717,7 @@ toggle_view(const Arg *arg) {
         int current_tag;
         monitor->tagset[monitor->seltags] = newtagset;
 
-        if (newtagset == ~0) {
+        if (newtagset == (uint) ~0) {
             monitor->pertag->previous_tag = monitor->pertag->current_tag;
             monitor->pertag->current_tag = 0;
         }
