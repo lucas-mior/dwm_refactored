@@ -1308,7 +1308,7 @@ focus_stack(const Arg *arg) {
     return;
 }
 
-static void
+void
 focus_urgent(const Arg *arg) {
     (void) arg;
     for (Monitor *m = monitors; m; m = m->next) {
@@ -1597,11 +1597,14 @@ grab_keys(void) {
 void
 inc_number_masters(const Arg *arg) {
     int nslave = 0;
+    int new_number_masters;
     Client *client = current_monitor->clients;
 
     for (client = nexttiled(client->next); client; client = nexttiled(client->next), nslave++);
 
-    current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag] = MAX(MIN(current_monitor->nmaster + arg->i, nslave + 1), 0);
+    new_number_masters = MAX(MIN(current_monitor->nmaster + arg->i, nslave + 1), 0);
+    current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag] = new_number_masters;
+
     arrange(current_monitor);
     return;
 }
