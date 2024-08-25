@@ -293,10 +293,13 @@ static char extra_status[256];
 static int statusw;
 static int statussig;
 static pid_t statuspid = -1;
+
 static int screen;
-static int screen_width, screen_height;           /* X display screen geometry width, height */
+static int screen_width;
+static int screen_height;
+
 static int bar_height;               /* bar height */
-static int lrpad;            /* sum of left and right padding for text */
+static uint lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -645,31 +648,31 @@ button_press(XEvent *event) {
     }
     if (button_event->window == current_monitor->barwin) {
         uint i = 0;
-        int x = 0;
+        uint x = 0;
 
         do {
             x += tagw[i];
-        } while (button_event->x >= x && ++i < LENGTH(tags));
+        } while ((uint) button_event->x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
             arg.ui = 1 << i;
-        } else if (button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
+        } else if ((uint) button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
         } else if (button_event->x > current_monitor->win_w - statusw) {
             char *s;
 
-            x = current_monitor->win_w - statusw;
+            x = (uint) (current_monitor->win_w - statusw);
             click = ClickStatusText;
             statussig = 0;
 
-            for (char *text = s = stext; *s && x <= button_event->x; s += 1) {
+            for (char *text = s = stext; *s && (int) x <= button_event->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
                     x += TEXTW(text) - lrpad;
                     *s = ch;
                     text = s + 1;
-                    if (x >= button_event->x)
+                    if ((int) x >= button_event->x)
                         break;
                     statussig = ch;
                 }
@@ -2288,7 +2291,7 @@ set_layout(const Arg *arg) {
 void
 set_master_fact(const Arg *arg) {
     float factor;
-    int current_tag = current_monitor->pertag->current_tag;
+    uint current_tag = current_monitor->pertag->current_tag;
 
     if (!arg)
         return;
