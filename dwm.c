@@ -1196,13 +1196,18 @@ layout_gapless_grid(Monitor *monitor) {
     cw = cols ? monitor->win_w / cols : monitor->win_w;
     cn = 0; /* current column number */
     rn = 0; /* current row number */
-    for (Client *client = next_tiled(monitor->clients); client; client = next_tiled(client->next)) {
+    for (Client *client = next_tiled(monitor->clients);
+                 client;
+                 client = next_tiled(client->next)) {
         if (i/rows + 1 > cols - n%cols)
             rows = n/cols + 1;
         ch = rows ? monitor->win_h / rows : monitor->win_h;
         cx = monitor->win_x + cn*cw;
         cy = monitor->win_y + rn*ch;
-        resize(client, cx, cy, cw - 2*client->border_width, ch - 2*client->border_width, False);
+        resize(client,
+               cx, cy,
+               cw - 2*client->border_width, ch - 2*client->border_width,
+               False);
         rn += 1;
         if (rn >= rows) {
             rn = 0;
