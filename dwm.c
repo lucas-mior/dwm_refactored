@@ -1333,10 +1333,10 @@ focus_urgent(const Arg *arg) {
 void
 gapless_grid(Monitor *m) {
     uint n = 0;
-    uint cols, rows, cn, rn, i, cx, cy, cw, ch;
-    Client *client;
+    uint cols, rows, cn, rn, cx, cy, cw, ch;
+    uint i = 0;
 
-    for (client = nexttiled(m->clients);
+    for (Client *client = nexttiled(m->clients);
          client;
          client = nexttiled(client->next), n += 1);
     if (n == 0)
@@ -1355,7 +1355,7 @@ gapless_grid(Monitor *m) {
     cw = cols ? m->win_w / cols : m->win_w;
     cn = 0; /* current column number */
     rn = 0; /* current row number */
-    for (i = 0, client = nexttiled(m->clients); client; i++, client = nexttiled(client->next)) {
+    for (Client *client = nexttiled(m->clients); client; client = nexttiled(client->next)) {
         if (i/rows + 1 > cols - n%cols)
             rows = n/cols + 1;
         ch = rows ? m->win_h / rows : m->win_h;
@@ -1367,6 +1367,7 @@ gapless_grid(Monitor *m) {
             rn = 0;
             cn++;
         }
+        i += 1;
     }
     return;
 }
