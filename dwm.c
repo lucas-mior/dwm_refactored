@@ -2099,19 +2099,19 @@ run(void) {
 
 void
 scan(void) {
-    uint i, num;
+    uint nchildren_return;
     Window d1, d2, *wins = NULL;
     XWindowAttributes wa;
 
-    if (XQueryTree(display, root, &d1, &d2, &wins, &num)) {
-        for (i = 0; i < num; i++) {
+    if (XQueryTree(display, root, &d1, &d2, &wins, &nchildren_return)) {
+        for (uint i = 0; i < nchildren_return; i += 1) {
             if (!XGetWindowAttributes(display, wins[i], &wa)
             || wa.override_redirect || XGetTransientForHint(display, wins[i], &d1))
                 continue;
             if (wa.map_state == IsViewable || get_state(wins[i]) == IconicState)
                 manage(wins[i], &wa);
         }
-        for (i = 0; i < num; i++) { /* now the transients */
+        for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
             if (!XGetWindowAttributes(display, wins[i], &wa))
                 continue;
             if (XGetTransientForHint(display, wins[i], &d1)
