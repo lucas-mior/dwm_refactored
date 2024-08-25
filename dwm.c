@@ -238,12 +238,12 @@ static void resize_mouse(const Arg *arg);
 static void restack(Monitor *monitor);
 static void run(void);
 static void scan(void);
-static int send_event(Client *client, Atom proto);
+static bool send_event(Client *client, Atom proto);
 static void send_monitor(Client *client, Monitor *monitor);
 static void set_client_state(Client *client, long state);
 static void set_client_tag_(Client *client);
 static void set_focus(Client *client);
-static void setfullscreen(Client *client, int fullscreen);
+static void set_fullscreen(Client *client, int fullscreen);
 static void set_layout(const Arg *arg);
 static void set_master_fact(const Arg *arg);
 static void setup(void);
@@ -769,7 +769,7 @@ client_message(XEvent *e) {
     if (cme->message_type == netatom[NetWMState]) {
         if ((ulong) cme->data.l[1] == netatom[NetWMFullscreen]
         || (ulong) cme->data.l[2] == netatom[NetWMFullscreen])
-            setfullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
+            set_fullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
                       || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
                                       && (!client->isfullscreen || client->isfakefullscreen))));
     } else if (cme->message_type == netatom[NetActiveWindow]) {
@@ -2190,11 +2190,11 @@ set_client_state(Client *client, long state) {
     return;
 }
 
-int
+bool
 send_event(Client *client, Atom proto) {
     int n;
     Atom *protocols;
-    int exists = 0;
+    bool exists = false;
     XEvent ev;
 
     if (XGetWMProtocols(display, client->win, &protocols, &n)) {
@@ -2227,7 +2227,7 @@ set_focus(Client *client) {
 }
 
 void
-setfullscreen(Client *client, int fullscreen) {
+set_fullscreen(Client *client, int fullscreen) {
     if (fullscreen && !client->isfullscreen) {
         XChangeProperty(display, client->win, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
@@ -2660,7 +2660,7 @@ void
 toggle_fullscreen(const Arg *arg) {
     (void) arg;
     if (current_monitor->selected_client)
-        setfullscreen(current_monitor->selected_client, !current_monitor->selected_client->isfullscreen);
+        set_fullscreen(current_monitor->selected_client, !current_monitor->selected_client->isfullscreen);
     return;
 }
 
@@ -3101,7 +3101,7 @@ update_window_type(Client *client) {
     Atom wtype = get_atom_property(client, netatom[NetWMWindowType]);
 
     if (state == netatom[NetWMFullscreen])
-        setfullscreen(client, 1);
+        set_fullscreen(client, 1);
     if (wtype == netatom[NetWMWindowTypeDialog])
         client->isfloating = 1;
     return;
