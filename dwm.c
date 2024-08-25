@@ -1140,11 +1140,13 @@ enter_notify(XEvent *event) {
 
 void
 expose(XEvent *event) {
-    Monitor *m;
+    Monitor *monitor;
     XExposeEvent *expose_event = &event->xexpose;
 
-    if (expose_event->count == 0 && (m = window_to_monitor(expose_event->window)))
-        draw_bar(m);
+    if (expose_event->count != 0)
+        return;
+    if ((monitor = window_to_monitor(expose_event->window)))
+        draw_bar(monitor);
     return;
 }
 
