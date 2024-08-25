@@ -1337,7 +1337,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     int format;
     ulong n;
     ulong extra;
-    ulong *p = NULL;
+    ulong *propreturn = NULL;
     ulong *bstp = NULL;
     uint32 w, h;
     uint32 sz = 0;
@@ -1345,25 +1345,27 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
 
     if (XGetWindowProperty(display, win, netatom[NetWMIcon],
                            0L, LONG_MAX, False, AnyPropertyType,
-                           &real, &format, &n, &extra, (uchar **)&p) != Success) {
+                           &real, &format, &n, &extra, (uchar **)&propreturn) != Success) {
         return None;
     }
     if (n == 0 || format != 32) {
-        XFree(p);
+        XFree(propreturn);
         return None;
     }
 
     {
         ulong *i;
-        const ulong *end = p + n;
-        uint32 bstd = UINT32_MAX, d, m;
+        const ulong *end = propreturn + n;
+        uint32 bstd = UINT32_MAX;
+        uint32 d;
+        uint32 m;
 
-        for (i = p; i < end - 1; i += sz) {
-            if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
-                XFree(p);
+        for (i = propreturn; i < (end - 1); i += sz) {
+            if ((w = (uint32)*i++) >= 16384 || (h = (uint32)*i++) >= 16384) {
+                XFree(propreturn);
                 return None;
             }
-            if ((sz = w*h) > end - i)
+            if ((sz = w*h) > (end - i))
                 break;
             if ((m = w > h ? w : h) >= ICONSIZE && (d = m - ICONSIZE) < bstd) {
                 bstd = d;
@@ -1371,9 +1373,9 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
             }
         }
         if (!bstp) {
-            for (i = p; i < end - 1; i += sz) {
+            for (i = propreturn; i < end - 1; i += sz) {
                 if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
-                    XFree(p);
+                    XFree(propreturn);
                     return None;
                 }
                 if ((sz = w*h) > end - i)
@@ -1385,13 +1387,13 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
             }
         }
         if (!bstp) {
-            XFree(p);
+            XFree(propreturn);
             return None;
         }
     }
 
     if ((w = *(bstp - 2)) == 0 || (h = *(bstp - 1)) == 0) {
-        XFree(p);
+        XFree(propreturn);
         return None;
     }
 
@@ -1418,7 +1420,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     }
 
     Picture ret = drw_picture_create_resized(drw, (char *)bstp, w, h, icon_width, icon_height);
-    XFree(p);
+    XFree(propreturn);
 
     return ret;
 }
@@ -1436,17 +1438,17 @@ long
 get_state(Window win) {
     int format;
     long result = -1;
-    uchar *p = NULL;
+    uchar *propreturn = NULL;
     ulong n, extra;
     Atom real;
 
     if (XGetWindowProperty(display, win, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
-        &real, &format, &n, &extra, (uchar **)&p) != Success) {
+        &real, &format, &n, &extra, (uchar **)&propreturn) != Success) {
         return -1;
     }
     if (n != 0)
-        result = *p;
-    XFree(p);
+        result = *propreturn;
+    XFree(propreturn);
     return result;
 }
 
