@@ -1307,7 +1307,7 @@ get_atom_property(Client *client, Atom property) {
 pid_t
 get_status_bar_pid(void) {
     char buffer[32];
-    char *str = buffer;
+    char *string = buffer;
     char *client;
     long pid_long;
     FILE *fp;
@@ -1316,10 +1316,10 @@ get_status_bar_pid(void) {
         snprintf(buffer, sizeof(buffer), "/proc/%u/cmdline", statuspid);
         if ((fp = fopen(buffer, "r"))) {
             fgets(buffer, sizeof(buffer), fp);
-            while ((client = strchr(str, '/')))
-                str = client + 1;
+            while ((client = strchr(string, '/')))
+                string = client + 1;
             fclose(fp);
-            if (!strcmp(str, STATUSBAR))
+            if (!strcmp(string, STATUSBAR))
                 return statuspid;
         }
     }
@@ -1348,7 +1348,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     }
 
     {
-        ulong *i; const ulong *end = p + n;
+        ulong *i;
+        const ulong *end = p + n;
         uint32 bstd = UINT32_MAX, d, m;
         for (i = p; i < end - 1; i += sz) {
             if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
