@@ -2537,7 +2537,7 @@ col(Monitor *m) {
 void
 tile(Monitor *m) {
     uint i;
-    uint n = 0;
+    int n = 0;
     uint h;
     uint mon_w, mon_y, ty;
     Client *client;
@@ -2551,10 +2551,11 @@ tile(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mon_w = m->nmaster ? m->win_w*m->master_fact : 0;
+        mon_w = (uint) (m->nmaster ? (float)m->win_w*m->master_fact : 0);
     else
         mon_w = m->win_w;
-    for (i = mon_y = ty = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++)
+
+    for (i = mon_y = ty = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next)) {
         if (i < m->nmaster) {
             h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
             resize(client,
@@ -2572,6 +2573,8 @@ tile(Monitor *m) {
             if (ty + HEIGHT(client) < m->win_h)
                 ty += HEIGHT(client);
         }
+        i += 1;
+    }
     return;
 }
 
