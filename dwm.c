@@ -696,92 +696,6 @@ configure(Client *client) {
     return;
 }
 
-void
-handler_configure_notify(XEvent *e) {
-    XConfigureEvent *event = &e->xconfigure;
-    int dirty;
-
-    if (event->window != root)
-        return;
-
-    /* TODO: update_geometry handling sucks, needs to be simplified */
-    dirty = (screen_width != event->width || screen_height != event->height);
-    screen_width = event->width;
-    screen_height = event->height;
-    if (update_geometry() || dirty) {
-        drw_resize(drw, (uint) screen_width, (uint) bar_height);
-        update_bars();
-        for (Monitor *m = monitors; m; m = m->next) {
-            for (Client *client = m->clients; client; client = client->next) {
-                if (client->isfullscreen && !client->isfakefullscreen)
-                    resize_client(client,
-                                  m->mon_x, m->mon_y, m->mon_w, m->mon_h);
-            }
-            XMoveResizeWindow(display, m->barwin,
-                              m->win_x, m->bar_y, (uint)m->win_w, (uint)bar_height);
-            XMoveResizeWindow(display, m->extrabarwin,
-                              m->win_x, m->extra_bar_y, (uint)m->win_w, (uint)bar_height);
-        }
-        focus(NULL);
-        arrange(NULL);
-    }
-    return;
-}
-
-void
-handler_configure_request(XEvent *e) {
-    Client *client;
-    Monitor *m;
-    XConfigureRequestEvent *event = &e->xconfigurerequest;
-    XWindowChanges window_changes;
-
-    if ((client = window_to_client(event->window))) {
-        if (event->value_mask & CWBorderWidth) {
-            client->border_width = event->border_width;
-        } else if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
-            m = client->monitor;
-            if (event->value_mask & CWX) {
-                client->old_x = client->x;
-                client->x = m->mon_x + event->x;
-            }
-            if (event->value_mask & CWY) {
-                client->old_y = client->y;
-                client->y = m->mon_y + event->y;
-            }
-            if (event->value_mask & CWWidth) {
-                client->old_w = client->w;
-                client->w = event->width;
-            }
-            if (event->value_mask & CWHeight) {
-                client->old_h = client->h;
-                client->h = event->height;
-            }
-            if ((client->x + client->w) > m->mon_x + m->mon_w && client->isfloating)
-                client->x = m->mon_x + (m->mon_w / 2 - WIDTH(client) / 2);
-            if ((client->y + client->h) > m->mon_y + m->mon_h && client->isfloating)
-                client->y = m->mon_y + (m->mon_h / 2 - HEIGHT(client) / 2);
-            if ((event->value_mask & (CWX|CWY)) && !(event->value_mask & (CWWidth|CWHeight)))
-                configure(client);
-            if (ISVISIBLE(client))
-                XMoveResizeWindow(display, client->win,
-                                  client->x, client->y, (uint)client->w, (uint)client->h);
-        } else {
-            configure(client);
-        }
-    } else {
-        window_changes.x = event->x;
-        window_changes.y = event->y;
-        window_changes.width = event->width;
-        window_changes.height = event->height;
-        window_changes.border_width = event->border_width;
-        window_changes.sibling = event->above;
-        window_changes.stack_mode = event->detail;
-        XConfigureWindow(display, event->window, (uint) event->value_mask, &window_changes);
-    }
-    XSync(display, False);
-    return;
-}
-
 Monitor *
 createmon(void) {
     Monitor *m;
@@ -843,6 +757,38 @@ void debug_dwm(char *message, ...) {
         break;
     }
 
+    return;
+}
+
+void
+handler_configure_notify(XEvent *e) {
+    XConfigureEvent *event = &e->xconfigure;
+    int dirty;
+
+    if (event->window != root)
+        return;
+
+    /* TODO: update_geometry handling sucks, needs to be simplified */
+    dirty = (screen_width != event->width || screen_height != event->height);
+    screen_width = event->width;
+    screen_height = event->height;
+    if (update_geometry() || dirty) {
+        drw_resize(drw, (uint) screen_width, (uint) bar_height);
+        update_bars();
+        for (Monitor *m = monitors; m; m = m->next) {
+            for (Client *client = m->clients; client; client = client->next) {
+                if (client->isfullscreen && !client->isfakefullscreen)
+                    resize_client(client,
+                                  m->mon_x, m->mon_y, m->mon_w, m->mon_h);
+            }
+            XMoveResizeWindow(display, m->barwin,
+                              m->win_x, m->bar_y, (uint)m->win_w, (uint)bar_height);
+            XMoveResizeWindow(display, m->extrabarwin,
+                              m->win_x, m->extra_bar_y, (uint)m->win_w, (uint)bar_height);
+        }
+        focus(NULL);
+        arrange(NULL);
+    }
     return;
 }
 
@@ -1033,18 +979,6 @@ handler_enter_notify(XEvent *event) {
         return;
     }
     focus(client);
-    return;
-}
-
-void
-handler_expose(XEvent *event) {
-    Monitor *monitor;
-    XExposeEvent *expose_event = &event->xexpose;
-
-    if (expose_event->count != 0)
-        return;
-    if ((monitor = window_to_monitor(expose_event->window)))
-        draw_bar(monitor);
     return;
 }
 
@@ -1639,6 +1573,61 @@ handler_client_message(XEvent *e) {
     }
     return;
 }
+
+void
+handler_configure_request(XEvent *e) {
+    Client *client;
+    Monitor *m;
+    XConfigureRequestEvent *event = &e->xconfigurerequest;
+    XWindowChanges window_changes;
+
+    if ((client = window_to_client(event->window))) {
+        if (event->value_mask & CWBorderWidth) {
+            client->border_width = event->border_width;
+        } else if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
+            m = client->monitor;
+            if (event->value_mask & CWX) {
+                client->old_x = client->x;
+                client->x = m->mon_x + event->x;
+            }
+            if (event->value_mask & CWY) {
+                client->old_y = client->y;
+                client->y = m->mon_y + event->y;
+            }
+            if (event->value_mask & CWWidth) {
+                client->old_w = client->w;
+                client->w = event->width;
+            }
+            if (event->value_mask & CWHeight) {
+                client->old_h = client->h;
+                client->h = event->height;
+            }
+            if ((client->x + client->w) > m->mon_x + m->mon_w && client->isfloating)
+                client->x = m->mon_x + (m->mon_w / 2 - WIDTH(client) / 2);
+            if ((client->y + client->h) > m->mon_y + m->mon_h && client->isfloating)
+                client->y = m->mon_y + (m->mon_h / 2 - HEIGHT(client) / 2);
+            if ((event->value_mask & (CWX|CWY)) && !(event->value_mask & (CWWidth|CWHeight)))
+                configure(client);
+            if (ISVISIBLE(client))
+                XMoveResizeWindow(display, client->win,
+                                  client->x, client->y, (uint)client->w, (uint)client->h);
+        } else {
+            configure(client);
+        }
+    } else {
+        window_changes.x = event->x;
+        window_changes.y = event->y;
+        window_changes.width = event->width;
+        window_changes.height = event->height;
+        window_changes.border_width = event->border_width;
+        window_changes.sibling = event->above;
+        window_changes.stack_mode = event->detail;
+        XConfigureWindow(display, event->window, (uint) event->value_mask, &window_changes);
+    }
+    XSync(display, False);
+    return;
+}
+
 
 void
 inc_number_masters(const Arg *arg) {
@@ -2869,6 +2858,18 @@ unmanage(Client *client, int destroyed) {
     focus(NULL);
     update_client_list();
     arrange(monitor);
+    return;
+}
+
+void
+handler_expose(XEvent *event) {
+    Monitor *monitor;
+    XExposeEvent *expose_event = &event->xexpose;
+
+    if (expose_event->count != 0)
+        return;
+    if ((monitor = window_to_monitor(expose_event->window)))
+        draw_bar(monitor);
     return;
 }
 
