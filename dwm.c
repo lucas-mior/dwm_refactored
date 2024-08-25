@@ -220,7 +220,7 @@ static void grab_keys(void);
 static void inc_number_masters(const Arg *arg);
 static void key_press(XEvent *e);
 static void kill_client(const Arg *arg);
-static void manage(Window win, XWindowAttributes *wa);
+static void manage(Window win, XWindowAttributes *window_attributes);
 static void mapping_notify(XEvent *e);
 static void map_request(XEvent *e);
 static void monocle(Monitor *monitor);
@@ -1665,7 +1665,7 @@ kill_client(const Arg *arg) {
 }
 
 void
-manage(Window win, XWindowAttributes *wa) {
+manage(Window win, XWindowAttributes *window_attributes) {
     Client *client, *t = NULL;
     Window trans = None;
     XWindowChanges wc;
@@ -1673,11 +1673,11 @@ manage(Window win, XWindowAttributes *wa) {
     client = ecalloc(1, sizeof(*client));
     client->win = win;
     /* geometry */
-    client->x = client->old_x = wa->x;
-    client->y = client->old_y = wa->y;
-    client->w = client->old_w = wa->width;
-    client->h = client->old_h = wa->height;
-    client->oldbw = wa->border_width;
+    client->x = client->old_x = window_attributes->x;
+    client->y = client->old_y = window_attributes->y;
+    client->w = client->old_w = window_attributes->width;
+    client->h = client->old_h = window_attributes->height;
+    client->oldbw = window_attributes->border_width;
 
     update_icon(client);
     update_title(client);
@@ -1766,13 +1766,13 @@ mapping_notify(XEvent *e) {
 
 void
 map_request(XEvent *e) {
-    static XWindowAttributes wa;
+    static XWindowAttributes window_attributes;
     XMapRequestEvent *ev = &e->xmaprequest;
 
-    if (!XGetWindowAttributes(display, ev->window, &wa) || wa.override_redirect)
+    if (!XGetWindowAttributes(display, ev->window, &window_attributes) || window_attributes.override_redirect)
         return;
     if (!window_to_client(ev->window))
-        manage(ev->window, &wa);
+        manage(ev->window, &window_attributes);
     return;
 }
 
@@ -2101,22 +2101,22 @@ void
 scan(void) {
     uint nchildren_return;
     Window d1, d2, *wins = NULL;
-    XWindowAttributes wa;
+    XWindowAttributes window_attributes;
 
     if (XQueryTree(display, root, &d1, &d2, &wins, &nchildren_return)) {
         for (uint i = 0; i < nchildren_return; i += 1) {
-            if (!XGetWindowAttributes(display, wins[i], &wa)
-            || wa.override_redirect || XGetTransientForHint(display, wins[i], &d1))
+            if (!XGetWindowAttributes(display, wins[i], &window_attributes)
+            || window_attributes.override_redirect || XGetTransientForHint(display, wins[i], &d1))
                 continue;
-            if (wa.map_state == IsViewable || get_state(wins[i]) == IconicState)
-                manage(wins[i], &wa);
+            if (window_attributes.map_state == IsViewable || get_state(wins[i]) == IconicState)
+                manage(wins[i], &window_attributes);
         }
         for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
-            if (!XGetWindowAttributes(display, wins[i], &wa))
+            if (!XGetWindowAttributes(display, wins[i], &window_attributes))
                 continue;
             if (XGetTransientForHint(display, wins[i], &d1)
-            && (wa.map_state == IsViewable || get_state(wins[i]) == IconicState))
-                manage(wins[i], &wa);
+            && (window_attributes.map_state == IsViewable || get_state(wins[i]) == IconicState))
+                manage(wins[i], &window_attributes);
         }
         if (wins)
             XFree(wins);
@@ -2261,7 +2261,7 @@ setmaster_fact(const Arg *arg) {
 void
 setup(void) {
     int i;
-    XSetWindowAttributes wa;
+    XSetWindowAttributes window_attributes;
     Atom utf8string;
     struct sigaction sa;
 
@@ -2328,12 +2328,12 @@ setup(void) {
     XDeleteProperty(display, root, netatom[NetClientList]);
     XDeleteProperty(display, root, netatom[NetClientInfo]);
     /* select events */
-    wa.cursor = cursor[CursorNormal]->cursor;
-    wa.event_mask = SubstructureRedirectMask|SubstructureNotifyMask
+    window_attributes.cursor = cursor[CursorNormal]->cursor;
+    window_attributes.event_mask = SubstructureRedirectMask|SubstructureNotifyMask
         |ButtonPressMask|PointerMotionMask|EnterWindowMask
         |LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
-    XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &wa);
-    XSelectInput(display, root, wa.event_mask);
+    XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &window_attributes);
+    XSelectInput(display, root, window_attributes.event_mask);
     grab_keys();
     focus(NULL);
     for (Monitor *m = monitors; m; m = m->next) {
@@ -2718,8 +2718,7 @@ unmap_notify(XEvent *e) {
 
 void
 update_bars(void) {
-    Monitor *m;
-    XSetWindowAttributes wa = {
+    XSetWindowAttributes window_attributes = {
         .override_redirect = True,
         .background_pixel = 0,
         .border_pixel = 0,
@@ -2727,11 +2726,11 @@ update_bars(void) {
         .event_mask = ButtonPressMask|ExposureMask
     };
     XClassHint ch = {"dwm", "dwm"};
-    for (m = monitors; m; m = m->next) {
+    for (Monitor *m = monitors; m; m = m->next) {
         if (!m->barwin) {
             m->barwin = XCreateWindow(display, root, m->win_x, m->bar_y, m->win_w, bh, 0, depth,
                     InputOutput, visual,
-                    CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
+                    CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &window_attributes);
             XDefineCursor(display, m->barwin, cursor[CursorNormal]->cursor);
             XMapRaised(display, m->barwin);
             XSetClassHint(display, m->barwin, &ch);
@@ -2739,7 +2738,7 @@ update_bars(void) {
         if (!m->extrabarwin) {
             m->extrabarwin = XCreateWindow(display, root, m->win_x, m->extra_bar_y, m->win_w, bh, 0, depth,
                     InputOutput, visual,
-                    CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
+                    CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &window_attributes);
             XDefineCursor(display, m->extrabarwin, cursor[CursorNormal]->cursor);
             XMapRaised(display, m->extrabarwin);
             XSetClassHint(display, m->extrabarwin, &ch);
