@@ -1347,14 +1347,18 @@ focus_stack(const Arg *arg) {
 void
 focus_urgent(const Arg *arg) {
     (void) arg;
-    for (Monitor *m = monitors; m; m = m->next) {
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Client *client;
 
-        for (client = m->clients; client && !client->isurgent; client = client->next);
+        for (client = monitor->clients;
+             client && !client->isurgent;
+             client = client->next);
+
         if (client) {
             int i;
             unfocus(current_monitor->selected_client, 0);
-            current_monitor = m;
+            current_monitor = monitor;
+
             for (i = 0; i < LENGTH(tags) && !((1 << i) & client->tags); i += 1);
             if (i < LENGTH(tags)) {
                 const Arg a = {.ui = 1 << i};
@@ -1867,8 +1871,11 @@ move_mouse(const Arg *arg) {
 
     if (!(client = current_monitor->selected_client))
         return;
-    if (client->isfullscreen && !client->isfakefullscreen) /* no support moving fullscreen windows by mouse */
+
+    /* no support moving fullscreen windows by mouse */
+    if (client->isfullscreen && !client->isfakefullscreen)
         return;
+
     restack(current_monitor);
     ocx = client->x;
     ocy = client->y;
