@@ -1598,12 +1598,14 @@ void
 inc_number_masters(const Arg *arg) {
     int nslave = 0;
     int new_number_masters;
+    uint current_tag;
     Client *client = current_monitor->clients;
 
     for (client = nexttiled(client->next); client; client = nexttiled(client->next), nslave++);
 
     new_number_masters = MAX(MIN(current_monitor->nmaster + arg->i, nslave + 1), 0);
-    current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag] = new_number_masters;
+    current_tag = current_monitor->pertag->current_tag;
+    current_monitor->nmaster = current_monitor->pertag->nmasters[current_tag] = new_number_masters;
 
     arrange(current_monitor);
     return;
@@ -1730,7 +1732,10 @@ manage(Window win, XWindowAttributes *wa) {
     attach_stack(client);
     XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
         (uchar *) &(client->win), 1);
-    XMoveResizeWindow(display, client->win, client->x + 2 * screen_width, client->y, client->w, client->h); /* some windows require this */
+
+    /* some windows require this */
+    XMoveResizeWindow(display, client->win,
+                      client->x + 2 * screen_width, client->y, client->w, client->h);
     set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
         unfocus(current_monitor->selected_client, 0);
@@ -1764,18 +1769,23 @@ map_request(XEvent *e) {
 }
 
 void
-monocle(Monitor *m) {
+monocle(Monitor *monitor) {
     uint n = 0;
     Client *client;
 
-    for (client = m->clients; client; client = client->next) {
+    for (client = monitor->clients; client; client = client->next) {
         if (ISVISIBLE(client))
             n++;
     }
     if (n > 0) /* override layout symbol */
-        snprintf(m->layout_symbol, sizeof(m->layout_symbol), "[%d]", n);
-    for (client = nexttiled(m->clients); client; client = nexttiled(client->next))
-        resize(client, m->win_x, m->win_y, m->win_w - 2 * client->border_width, m->win_h - 2 * client->border_width, 0);
+        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
+    for (client = nexttiled(monitor->clients); client; client = nexttiled(client->next)) {
+        int new_x = monitor->win_x;
+        int new_y = monitor->win_y;
+        int new_w = monitor->win_w - 2 * client->border_width;
+        int new_h = monitor->win_h - 2 * client->border_width;
+        resize(client, new_x, new_y, new_w, new_h, 0);
+    }
     return;
 }
 
