@@ -185,7 +185,7 @@ static void attach_stack(Client *);
 static void cleanup(void);
 static void cleanup_monitor(Monitor *);
 static void configure(Client *);
-static Monitor *createmon(void);
+static Monitor *create_monitor(void);
 static void debug_dwm(char *message, ...);
 static void detach(Client *);
 static void detach_stack(Client *);
@@ -263,7 +263,7 @@ static void toggle_view(const Arg *arg);
 static void free_icon(Client *);
 static void unfocus(Client *, int set_focus);
 static void unmanage(Client *, int destroyed);
-static void update_bar_pos(Monitor *);
+static void update_bar_position(Monitor *);
 static void update_bars(void);
 static void update_client_list(void);
 static int update_geometry(void);
@@ -698,7 +698,7 @@ configure(Client *client) {
 }
 
 Monitor *
-createmon(void) {
+create_monitor(void) {
     Monitor *m;
 
     m = ecalloc(1, sizeof(*m));
@@ -2686,7 +2686,7 @@ toggle_bar(const Arg *arg) {
     (void) arg;
 
     monitor->showbar = monitor->pertag->showbars[monitor->pertag->current_tag] = !monitor->showbar;
-    update_bar_pos(monitor);
+    update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->bar_window, monitor->win_x, monitor->bar_y, monitor->win_w, bar_height);
     arrange(monitor);
     return;
@@ -2698,7 +2698,7 @@ toggle_extra_bar(const Arg *arg) {
     (void) arg;
 
     monitor->extrabar = !monitor->extrabar;
-    update_bar_pos(monitor);
+    update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->extra_bar_window,
                       monitor->win_x, monitor->extra_bar_y, monitor->win_w, bar_height);
     arrange(monitor);
@@ -2949,7 +2949,7 @@ update_bars(void) {
 }
 
 void
-update_bar_pos(Monitor *monitor) {
+update_bar_position(Monitor *monitor) {
     monitor->win_y = monitor->mon_y;
     monitor->win_h = monitor->mon_h;
     if (monitor->showbar) {
@@ -3007,9 +3007,9 @@ update_geometry(void) {
         for (i = n; i < nn; i++) {
             for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
             if (monitor)
-                monitor->next = createmon();
+                monitor->next = create_monitor();
             else
-                monitors = createmon();
+                monitors = create_monitor();
         }
         for (i = 0, monitor = monitors; i < nn && monitor; monitor = monitor->next, i++)
             if (i >= n
@@ -3021,7 +3021,7 @@ update_geometry(void) {
                 monitor->mon_y = monitor->win_y = unique[i].y_org;
                 monitor->mon_w = monitor->win_w = unique[i].width;
                 monitor->mon_h = monitor->win_h = unique[i].height;
-                update_bar_pos(monitor);
+                update_bar_position(monitor);
             }
         /* removed monitors if n > nn */
         for (i = nn; i < n; i++) {
@@ -3044,12 +3044,12 @@ update_geometry(void) {
 #endif /* XINERAMA */
     { /* default monitor setup */
         if (!monitors)
-            monitors = createmon();
+            monitors = create_monitor();
         if (monitors->mon_w != screen_width || monitors->mon_h != screen_height) {
             dirty = 1;
             monitors->mon_w = monitors->win_w = screen_width;
             monitors->mon_h = monitors->win_h = screen_height;
-            update_bar_pos(monitors);
+            update_bar_position(monitors);
         }
     }
     if (dirty) {
