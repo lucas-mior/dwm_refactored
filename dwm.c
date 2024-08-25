@@ -1098,7 +1098,7 @@ enter_notify(XEvent *event) {
     Monitor *m;
     XCrossingEvent *crossing_event = &event->xcrossing;
     bool is_root = crossing_event->window == root;
-    bool notify_normal = crossing_event->mode == notify_normal;
+    bool notify_normal = crossing_event->mode == NotifyNormal;
     bool notify_inferior = crossing_event->detail == NotifyInferior;
 
     if (!is_root && (!notify_normal || notify_inferior))
@@ -1422,7 +1422,7 @@ static uint32 prealpha(uint32 p) {
 }
 
 Picture
-get_icon_property(Window win, uint *picw, uint *pich) {
+get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     int format;
     ulong n, extra, *p = NULL;
     Atom real;
@@ -1487,7 +1487,7 @@ get_icon_property(Window win, uint *picw, uint *pich) {
         if (icon_height == 0)
             icon_height = 1;
     }
-    *picw = icon_width; *pich = icon_height;
+    *picture_width = icon_width; *picture_height = icon_height;
 
     uint32 i, *bstp32 = (uint32 *)bstp;
     for (sz = w * h, i = 0; i < sz; i += 1)
