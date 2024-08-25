@@ -243,7 +243,7 @@ static void set_client_tag_(Client *client);
 static void set_focus(Client *client);
 static void setfullscreen(Client *client, int fullscreen);
 static void set_layout(const Arg *arg);
-static void setmaster_fact(const Arg *arg);
+static void set_master_fact(const Arg *arg);
 static void setup(void);
 static void seturgent(Client *client, int urg);
 static void showhide(Client *client);
@@ -636,9 +636,9 @@ button_press(XEvent *event) {
         uint i = 0;
         uint x = 0;
 
-        do
+        do {
             x += tagw[i];
-        while (button_event->x >= x && ++i < LENGTH(tags));
+        } while (button_event->x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
             arg.ui = 1 << i;
@@ -1983,9 +1983,9 @@ resize_client(Client *client, int x, int y, int w, int h) {
     client->old_h = client->h; client->h = window_changes.height = h;
     window_changes.border_width = client->border_width;
 
-    for (Client *client = next_tiled(current_monitor->clients);
-                 client;
-                 client = next_tiled(client->next)) {
+    for (Client *client_aux = next_tiled(current_monitor->clients);
+                 client_aux;
+                 client_aux = next_tiled(client_aux->next)) {
         n += 1;
     }
 
@@ -2248,15 +2248,24 @@ set_layout(const Arg *arg) {
 
 /* arg > 1.0 will set master_fact absolutely */
 void
-setmaster_fact(const Arg *arg) {
-    float f;
+set_master_fact(const Arg *arg) {
+    float factor;
+    int current_tag = current_monitor->pertag->current_tag;
 
-    if (!arg || !current_monitor->layout[current_monitor->layout_index]->arrange)
+    if (!arg)
         return;
-    f = arg->f < 1.0 ? arg->f + current_monitor->master_fact : arg->f - 1.0;
-    if (f < 0.05 || f > 0.95)
+    if (!current_monitor->layout[current_monitor->layout_index]->arrange)
         return;
-    current_monitor->master_fact = current_monitor->pertag->master_facts[current_monitor->pertag->current_tag] = f;
+
+    if (arg->f < 1.0)
+        factor = arg->f + current_monitor->master_fact;
+    else
+        factor = arg->f - 1.0;
+
+    if (factor < 0.05 || factor > 0.95)
+        return;
+
+    current_monitor->master_fact = current_monitor->pertag->master_facts[current_tag] = factor;
     arrange(current_monitor);
     return;
 }
