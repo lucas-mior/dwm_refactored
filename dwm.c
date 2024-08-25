@@ -932,9 +932,9 @@ void debug_dwm(char *message, ...) {
 void
 destroy_notify(XEvent *e) {
     Client *client;
-    XDestroyWindowEvent *ev = &e->xdestroywindow;
+    XDestroyWindowEvent *destroy_window_event = &e->xdestroywindow;
 
-    if ((client = window_to_client(ev->window)))
+    if ((client = window_to_client(destroy_window_event->window)))
         unmanage(client, 1);
     return;
 }
@@ -1117,11 +1117,11 @@ enter_notify(XEvent *event) {
 }
 
 void
-expose(XEvent *e) {
+expose(XEvent *event) {
     Monitor *m;
-    XExposeEvent *ev = &e->xexpose;
+    XExposeEvent *expose_event = &event->xexpose;
 
-    if (ev->count == 0 && (m = window_to_monitor(ev->window)))
+    if (expose_event->count == 0 && (m = window_to_monitor(expose_event->window)))
         draw_bar(m);
     return;
 }
@@ -1232,14 +1232,14 @@ focus_in(XEvent *e) {
 
 void
 focus_monitor(const Arg *arg) {
-    Monitor *m;
+    Monitor *monitor;
 
     if (!monitors->next)
         return;
-    if ((m = direction_to_mon(arg->i)) == current_monitor)
+    if ((monitor = direction_to_mon(arg->i)) == current_monitor)
         return;
     unfocus(current_monitor->selected_client, 0);
-    current_monitor = m;
+    current_monitor = monitor;
     focus(NULL);
     return;
 }
