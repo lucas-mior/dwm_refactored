@@ -517,15 +517,19 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
     if (*w < bh)
         *w = bh;
 
-    if (resizehints || client->isfloating || !client->monitor->layout[client->monitor->layout_index]->arrange) {
+    if (resizehints
+        || client->isfloating
+        || !client->monitor->layout[client->monitor->layout_index]->arrange) {
         if (!client->hintsvalid)
             update_size_hints(client);
+
         /* see last two sentences in ICCCM 4.1.2.3 */
         baseismin = client->basew == client->minw && client->baseh == client->minh;
         if (!baseismin) { /* temporarily remove base dimensions */
             *w -= client->basew;
             *h -= client->baseh;
         }
+
         /* adjust for aspect limits */
         if (client->min_a > 0 && client->max_a > 0) {
             if (client->max_a < (float)*w / (float)*h)
@@ -533,15 +537,18 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
             else if (client->min_a < (float)*h / (float) *w)
                 *h = *w*((int) (client->min_a + 0.5f));
         }
+
         if (baseismin) { /* increment calculation requires this */
             *w -= client->basew;
             *h -= client->baseh;
         }
+
         /* adjust for increment value */
         if (client->incw)
             *w -= *w % client->incw;
         if (client->inch)
             *h -= *h % client->inch;
+
         /* restore base dimensions */
         *w = MAX(*w + client->basew, client->minw);
         *h = MAX(*h + client->baseh, client->minh);
@@ -1638,15 +1645,14 @@ isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
 #endif /* XINERAMA */
 
 void
-key_press(XEvent *e) {
+key_press(XEvent *event) {
     KeySym keysym;
-    XKeyEvent *ev;
+    XKeyEvent *key_event = &event->xkey;
+    keysym = XKeycodeToKeysym(display, (KeyCode)key_event->keycode, 0);
 
-    ev = &e->xkey;
-    keysym = XKeycodeToKeysym(display, (KeyCode)ev->keycode, 0);
     for (uint i = 0; i < LENGTH(keys); i += 1) {
         if (keysym == keys[i].keysym
-            && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
+            && CLEANMASK(keys[i].mod) == CLEANMASK(key_event->state)
             && keys[i].func) {
             keys[i].func(&(keys[i].arg));
         }
