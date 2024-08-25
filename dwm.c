@@ -141,10 +141,10 @@ struct Monitor {
     float master_fact;
     int nmaster;
     int num;
-    int bar_y;               /* bar geometry */
-    int extra_bar_y;              /* extra bar geometry */
-    int mon_x, mon_y, mon_w, mon_h;   /* screen size */
-    int win_x, win_y, win_w, win_h;   /* window area */
+    int bar_y;
+    int extra_bar_y;
+    int mon_x, mon_y, mon_w, mon_h;  /* screen size */
+    int win_x, win_y, win_w, win_h;  /* window area */
     uint seltags;
     uint layout_index;
     uint tagset[2];
@@ -295,8 +295,8 @@ static int screen;
 static int screen_width;
 static int screen_height;
 
-static int bar_height;               /* bar height */
-static uint lrpad;            /* sum of left and right padding for text */
+static int bar_height;  /* bar height */
+static uint lrpad;      /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -326,7 +326,7 @@ static Monitor *monitors, *current_monitor;
 static Window root, wmcheckwin;
 
 static int alt_tab_direction = 0;
-static Client *allclients = NULL;
+static Client *all_clients = NULL;
 static int useargb = 0;
 static Visual *visual;
 static int depth;
@@ -356,7 +356,7 @@ alt_tab(const Arg *arg) {
     int grabbed = 1;
     int grabbed_keyboard = 1000;
     (void) arg;
-    if (allclients == NULL)
+    if (all_clients == NULL)
         return;
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
@@ -617,9 +617,9 @@ aspect_resize(const Arg *arg) {
 void
 attach(Client *client) {
     client->next = client->monitor->clients;
-    client->allnext = allclients;
+    client->allnext = all_clients;
     client->monitor->clients = client;
-    allclients = client;
+    all_clients = client;
     return;
 }
 
@@ -964,7 +964,7 @@ detach(Client *client) {
 
     for (tc = &client->monitor->clients; *tc && *tc != client; tc = &(*tc)->next);
     *tc = client->next;
-    for (tc = &allclients; *tc && *tc != client; tc = &(*tc)->allnext);
+    for (tc = &all_clients; *tc && *tc != client; tc = &(*tc)->allnext);
     *tc = client->allnext;
     return;
 }
@@ -1292,12 +1292,12 @@ focus_next(const Arg *arg) {
         if (client->allnext)
             client = client->allnext;
         else
-            client = allclients;
+            client = all_clients;
     } else {
         Client *last = client;
-        if (last == allclients)
+        if (last == all_clients)
             last = NULL;
-        for (client = allclients; client->allnext != last; client = client->allnext);
+        for (client = all_clients; client->allnext != last; client = client->allnext);
     }
     focus(client);
     return;
@@ -3006,7 +3006,7 @@ update_geometry(void) {
             while ((client = monitor->clients)) {
                 dirty = 1;
                 monitor->clients = client->next;
-                allclients = client->allnext;
+                all_clients = client->allnext;
                 detach_stack(client);
                 client->monitor = monitors;
                 attach(client);
