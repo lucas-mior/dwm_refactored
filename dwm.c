@@ -568,7 +568,6 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
 
 void
 arrange(Monitor *monitor) {
-    XEvent event;
     if (monitor) {
         show_hide(monitor->stack);
     } else {
@@ -579,8 +578,12 @@ arrange(Monitor *monitor) {
         arrange_monitor(monitor);
         restack(monitor);
     } else {
-        for (monitor = monitors; monitor; monitor = monitor->next)
-            arrange_monitor(monitor);
+        XEvent event;
+        for (Monitor *monitor_aux = monitors;
+                      monitor_aux;
+                      monitor_aux = monitor_aux->next) {
+            arrange_monitor(monitor_aux);
+        }
         XSync(display, False);
         while (XCheckMaskEvent(display, EnterWindowMask, &event));
     }
