@@ -712,33 +712,34 @@ configure(Client *client) {
 
 Monitor *
 create_monitor(void) {
-    Monitor *m;
+    Monitor *monitor = ecalloc(1, sizeof(*monitor));
 
-    m = ecalloc(1, sizeof(*m));
-    m->tagset[0] = m->tagset[1] = 1;
-    m->master_fact = master_fact;
-    m->nmaster = nmaster;
-    m->showbar = showbar;
-    m->topbar = topbar;
-    m->extrabar = extrabar;
-    m->layout[0] = &layouts[0];
-    m->layout[1] = &layouts[1 % LENGTH(layouts)];
-    strncpy(m->layout_symbol, layouts[0].symbol, sizeof(m->layout_symbol));
-    m->pertag = ecalloc(1, sizeof(*(m->pertag)));
-    m->pertag->current_tag = m->pertag->previous_tag = 1;
+    monitor->tagset[0] = monitor->tagset[1] = 1;
+    monitor->master_fact = master_fact;
+    monitor->nmaster = nmaster;
+    monitor->showbar = showbar;
+    monitor->topbar = topbar;
+    monitor->extrabar = extrabar;
+    monitor->layout[0] = &layouts[0];
+    monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
+    strncpy(monitor->layout_symbol,
+            layouts[0].symbol,
+            sizeof(monitor->layout_symbol));
+    monitor->pertag = ecalloc(1, sizeof(*(monitor->pertag)));
+    monitor->pertag->current_tag = monitor->pertag->previous_tag = 1;
 
     for (int i = 0; i <= LENGTH(tags); i += 1) {
-        m->pertag->nmasters[i] = m->nmaster;
-        m->pertag->master_facts[i] = m->master_fact;
+        monitor->pertag->nmasters[i] = monitor->nmaster;
+        monitor->pertag->master_facts[i] = monitor->master_fact;
 
-        m->pertag->layout_tags_indexes[i][0] = m->layout[0];
-        m->pertag->layout_tags_indexes[i][1] = m->layout[1];
-        m->pertag->selected_layouts[i] = m->layout_index;
+        monitor->pertag->layout_tags_indexes[i][0] = monitor->layout[0];
+        monitor->pertag->layout_tags_indexes[i][1] = monitor->layout[1];
+        monitor->pertag->selected_layouts[i] = monitor->layout_index;
 
-        m->pertag->showbars[i] = m->showbar;
+        monitor->pertag->showbars[i] = monitor->showbar;
     }
 
-    return m;
+    return monitor;
 }
 
 void debug_dwm(char *message, ...) {
