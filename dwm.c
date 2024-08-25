@@ -2516,6 +2516,7 @@ toggle_extra_bar(const Arg *arg) {
     update_bar_pos(current_monitor);
     XMoveResizeWindow(display, current_monitor->extrabarwin, current_monitor->win_x, current_monitor->extra_bar_y, current_monitor->win_w, bh);
     arrange(current_monitor);
+    return;
 }
 
 void
@@ -2541,6 +2542,7 @@ toggle_floating(const Arg *arg) {
     current_monitor->selected_client->y = current_monitor->selected_client->monitor->mon_y + (current_monitor->selected_client->monitor->mon_h - HEIGHT(current_monitor->selected_client)) / 2;
 
     arrange(current_monitor);
+    return;
 }
 
 void
@@ -2568,6 +2570,7 @@ spawn(const Arg *arg) {
        execvp(((char *const *)arg->v)[0], (char *const *)arg->v);
        die("dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
    }
+   return;
 }
 
 void
@@ -3010,6 +3013,7 @@ updatewm_hints(Client *client) {
 void
 view(const Arg *arg) {
     uint tmptag;
+    uint current_tag;
     Monitor *monitor = current_monitor;
 
     if ((arg->ui & TAGMASK) == monitor->tagset[monitor->seltags])
@@ -3032,11 +3036,12 @@ view(const Arg *arg) {
         monitor->pertag->current_tag = tmptag;
     }
 
-    monitor->nmaster = monitor->pertag->nmasters[monitor->pertag->current_tag];
-    monitor->master_fact = monitor->pertag->master_facts[monitor->pertag->current_tag];
-    monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag];
-    monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index];
-    monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index^1];
+    current_tag = monitor->pertag->current_tag;
+    monitor->nmaster = monitor->pertag->nmasters[current_tag];
+    monitor->master_fact = monitor->pertag->master_facts[current_tag];
+    monitor->layout_index = monitor->pertag->selected_layouts[current_tag];
+    monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
+    monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
     if (monitor->showbar != monitor->pertag->showbars[monitor->pertag->current_tag])
         toggle_bar(NULL);
