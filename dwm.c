@@ -274,7 +274,7 @@ static void update_status(void);
 static void update_title(Client *);
 static void update_icon(Client *);
 static void update_window_type(Client *);
-static void updatewm_hints(Client *);
+static void update_wm_hints(Client *);
 static void view(const Arg *arg);
 static Client *window_to_client(Window);
 static Monitor *window_to_monitor(Window);
@@ -1862,7 +1862,7 @@ handler_property_notify(XEvent *event) {
             client->hintsvalid = 0;
             break;
         case XA_WM_HINTS:
-            updatewm_hints(client);
+            update_wm_hints(client);
             draw_bars();
             break;
         }
@@ -1984,7 +1984,7 @@ manage(Window win, XWindowAttributes *window_attributes) {
     configure(client); /* propagates border_width, if size doesn't change */
     update_window_type(client);
     update_size_hints(client);
-    updatewm_hints(client);
+    update_wm_hints(client);
     {
         int format;
         ulong *data, n, extra;
@@ -3189,7 +3189,7 @@ update_window_type(Client *client) {
 }
 
 void
-updatewm_hints(Client *client) {
+update_wm_hints(Client *client) {
     XWMHints *wm_hints;
 
     if ((wm_hints = XGetWMHints(display, client->win))) {
@@ -3212,22 +3212,24 @@ updatewm_hints(Client *client) {
 
 void
 view(const Arg *arg) {
+    uint arg_tags = arg->ui;
     uint tmptag;
     uint current_tag;
     Monitor *monitor = current_monitor;
 
-    if ((arg->ui & TAGMASK) == monitor->tagset[monitor->seltags])
+    if ((arg_tags & TAGMASK) == monitor->tagset[monitor->seltags])
         return;
     monitor->seltags ^= 1; /* toggle selected_client tagset */
-    if (arg->ui & TAGMASK) {
-        monitor->tagset[monitor->seltags] = arg->ui & TAGMASK;
+    if (arg_tags & TAGMASK) {
+        monitor->tagset[monitor->seltags] = arg_tags & TAGMASK;
         monitor->pertag->previous_tag = monitor->pertag->current_tag;
 
-        if (arg->ui == (uint) ~0) {
+        if (arg_tags == (uint) ~0) {
             monitor->pertag->current_tag = 0;
         } else {
-            uint i;
-            for (i = 0; !(arg->ui & 1 << i); i++);
+            uint i = 0;
+            while (!(arg_tags & 1 << i))
+                i += 1;
             monitor->pertag->current_tag = i + 1;
         }
     } else {
