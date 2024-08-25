@@ -801,25 +801,29 @@ configure_notify(XEvent *e) {
     XConfigureEvent *event = &e->xconfigure;
     int dirty;
 
+    if (event->window != root)
+        return;
+
     /* TODO: update_geometry handling sucks, needs to be simplified */
-    if (event->window == root) {
-        dirty = (screen_width != event->width || screen_height != event->height);
-        screen_width = event->width;
-        screen_height = event->height;
-        if (update_geometry() || dirty) {
-            drw_resize(drw, (uint) screen_width, (uint) bar_height);
-            update_bars();
-            for (Monitor *m = monitors; m; m = m->next) {
-                for (Client *client = m->clients; client; client = client->next) {
-                    if (client->isfullscreen && !client->isfakefullscreen)
-                        resize_client(client, m->mon_x, m->mon_y, m->mon_w, m->mon_h);
-                }
-                XMoveResizeWindow(display, m->barwin, m->win_x, m->bar_y, m->win_w, bar_height);
-                XMoveResizeWindow(display, m->extrabarwin, m->win_x, m->extra_bar_y, m->win_w, bar_height);
+    dirty = (screen_width != event->width || screen_height != event->height);
+    screen_width = event->width;
+    screen_height = event->height;
+    if (update_geometry() || dirty) {
+        drw_resize(drw, (uint) screen_width, (uint) bar_height);
+        update_bars();
+        for (Monitor *m = monitors; m; m = m->next) {
+            for (Client *client = m->clients; client; client = client->next) {
+                if (client->isfullscreen && !client->isfakefullscreen)
+                    resize_client(client,
+                                  m->mon_x, m->mon_y, m->mon_w, m->mon_h);
             }
-            focus(NULL);
-            arrange(NULL);
+            XMoveResizeWindow(display, m->barwin,
+                              m->win_x, m->bar_y, m->win_w, bar_height);
+            XMoveResizeWindow(display, m->extrabarwin,
+                              m->win_x, m->extra_bar_y, m->win_w, bar_height);
         }
+        focus(NULL);
+        arrange(NULL);
     }
     return;
 }
