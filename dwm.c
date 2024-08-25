@@ -475,9 +475,9 @@ apply_rules(Client *client) {
         XFree(class_hint.res_class);
     if (class_hint.res_name)
         XFree(class_hint.res_name);
-    client->tags = client->tags & TAGMASK 
-                   ? client->tags & TAGMASK 
-                   : (client->monitor->tagset[client->monitor->seltags] 
+    client->tags = client->tags & TAGMASK
+                   ? client->tags & TAGMASK
+                   : (client->monitor->tagset[client->monitor->seltags]
                       & (uint) ~SPTAGMASK);
     return;
 }
@@ -908,7 +908,7 @@ void debug_dwm(char *message, ...) {
 
     va_list args;
     va_start(args, message);
-    
+
     vsnprintf(buffer, sizeof(buffer), message, args);
     argv[4] = buffer;
     va_end(args);
@@ -1430,9 +1430,9 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     ulong n, extra, *p = NULL;
     Atom real;
 
-    if (XGetWindowProperty(display, win, netatom[NetWMIcon], 0L, LONG_MAX, False, AnyPropertyType, 
+    if (XGetWindowProperty(display, win, netatom[NetWMIcon], 0L, LONG_MAX, False, AnyPropertyType,
                            &real, &format, &n, &extra, (uchar **)&p) != Success)
-        return None; 
+        return None;
     if (n == 0 || format != 32) {
         XFree(p);
         return None;
@@ -2020,10 +2020,15 @@ resize_mouse(const Arg *arg) {
     restack(current_monitor);
     ocx = client->x;
     ocy = client->y;
+
     if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
                      None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess)
         return;
-    XWarpPointer(display, None, client->win, 0, 0, 0, 0, client->w + client->border_width - 1, client->h + client->border_width - 1);
+
+    XWarpPointer(display, None, client->win,
+                 0, 0, 0, 0,
+                 client->w + client->border_width - 1,
+                 client->h + client->border_width - 1);
     do {
         XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
         switch (ev.type) {
@@ -2661,6 +2666,7 @@ toggle_view(const Arg *arg) {
     int i;
 
     if (newtagset) {
+        int current_tag;
         monitor->tagset[monitor->seltags] = newtagset;
 
         if (newtagset == ~0) {
@@ -2675,14 +2681,16 @@ toggle_view(const Arg *arg) {
             monitor->pertag->current_tag = i + 1;
         }
 
-        /* apply settings for this view */
-        monitor->nmaster = monitor->pertag->nmasters[monitor->pertag->current_tag];
-        monitor->master_fact = monitor->pertag->master_facts[monitor->pertag->current_tag];
-        monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag];
-        monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index];
-        monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index^1];
+        current_tag = monitor->pertag->current_tag;
 
-        if (monitor->showbar != monitor->pertag->showbars[monitor->pertag->current_tag])
+        /* apply settings for this view */
+        monitor->nmaster = monitor->pertag->nmasters[current_tag];
+        monitor->master_fact = monitor->pertag->master_facts[current_tag];
+        monitor->layout_index = monitor->pertag->selected_layouts[current_tag];
+        monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
+        monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
+
+        if (monitor->showbar != monitor->pertag->showbars[current_tag])
             toggle_bar(NULL);
 
         focus(NULL);
