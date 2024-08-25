@@ -185,7 +185,7 @@ static void button_press(XEvent *e);
 static void cleanup(void);
 static void cleanup_monitor(Monitor *monitor);
 static void client_message(XEvent *e);
-static void columns(Monitor *);
+static void layout_columns(Monitor *);
 static void configure(Client *client);
 static void configure_notify(XEvent *e);
 static void configure_request(XEvent *e);
@@ -206,7 +206,7 @@ static void focus_monitor(const Arg *arg);
 static void focus_next(const Arg *arg);
 static void focus_stack(const Arg *arg);
 static void focus_urgent(const Arg *arg);
-static void gapless_grid(Monitor *monitor);
+static void layout_gapless_grid(Monitor *monitor);
 static Atom get_atom_property(Client *client, Atom );
 static Picture get_icon_property(Window win, uint *icon_width, uint *icon_height);
 static int get_root_pointer(int *x, int *y);
@@ -221,7 +221,7 @@ static void kill_client(const Arg *arg);
 static void manage(Window win, XWindowAttributes *window_attributes);
 static void mapping_notify(XEvent *e);
 static void map_request(XEvent *e);
-static void monocle(Monitor *monitor);
+static void layout_monocle(Monitor *monitor);
 static void motion_notify(XEvent *e);
 static void move_mouse(const Arg *arg);
 static Client *next_tiled(Client *client);
@@ -250,7 +250,7 @@ static void signal_status_bar(const Arg *arg);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tag_monitor(const Arg *arg);
-static void tile(Monitor *monitor);
+static void layout_tile(Monitor *monitor);
 static void toggle_bar(const Arg *arg);
 static void toggle_extra_bar(const Arg *arg);
 static void toggle_floating(const Arg *arg);
@@ -1368,7 +1368,7 @@ focus_urgent(const Arg *arg) {
 }
 
 void
-gapless_grid(Monitor *monitor) {
+layout_gapless_grid(Monitor *monitor) {
     uint n = 0;
     uint cols, rows;
     uint cn, rn, cx, cy, cw, ch;
@@ -1817,7 +1817,7 @@ map_request(XEvent *event) {
 }
 
 void
-monocle(Monitor *monitor) {
+layout_monocle(Monitor *monitor) {
     uint n = 0;
 
     for (Client *client = monitor->clients; client; client = client->next) {
@@ -2040,7 +2040,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
     }
 
     if (!(client->isfloating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
-        if (current_monitor->layout[current_monitor->layout_index]->arrange == monocle || n == 1) {
+        if (current_monitor->layout[current_monitor->layout_index]->arrange == layout_monocle || n == 1) {
             window_changes.border_width = 0;
             client->w = window_changes.width += client->border_width*2;
             client->h = window_changes.height += client->border_width*2;
@@ -2436,7 +2436,7 @@ setup(void) {
 
     focus(NULL);
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        Arg lay_monocle = {.v = &layouts[2]};
+        Arg layout_monocle = {.v = &layouts[2]};
         Arg lay_grid = {.v = &layouts[3]};
         Arg tag8 = {.ui = 1 << 5};
         Arg tag1 = {.ui = 1 << 0};
@@ -2447,7 +2447,7 @@ setup(void) {
         focus(NULL);
 
         view(&tag8);
-        set_layout(&lay_monocle);
+        set_layout(&layout_monocle);
         toggle_bar(0);
 
         view(&tag0);
@@ -2549,7 +2549,7 @@ tag_monitor(const Arg *arg) {
 }
 
 void
-columns(Monitor *monitor) {
+layout_columns(Monitor *monitor) {
     int i;
     int n = 0;
     uint x, y, w, h;
@@ -2590,7 +2590,7 @@ columns(Monitor *monitor) {
 }
 
 void
-tile(Monitor *m) {
+layout_tile(Monitor *m) {
     int n = 0;
     int i = 0;
     uint mon_w = 0;
