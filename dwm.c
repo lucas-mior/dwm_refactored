@@ -208,12 +208,12 @@ static void focus_next(const Arg *arg);
 static void focus_stack(const Arg *arg);
 static void focus_urgent(const Arg *arg);
 static void gapless_grid(Monitor *monitor);
-static Atom get_atom_prop(Client *client, Atom prop);
-static Picture get_icon_prop(Window win, uint *icon_width, uint *icon_height);
+static Atom get_atom_property(Client *client, Atom );
+static Picture get_icon_(Window win, uint *icon_width, uint *icon_height);
 static int get_root_pointer(int *x, int *y);
 static long get_state(Window win);
 static pid_t get_status_bar_pid(void);
-static int get_text_prop(Window win, Atom atom, char *text, uint size);
+static int get_text_(Window win, Atom atom, char *text, uint size);
 static void grab_buttons(Client *client, int focused);
 static void grab_keys(void);
 static void inc_number_masters(const Arg *arg);
@@ -239,7 +239,7 @@ static void scan(void);
 static int send_event(Client *client, Atom proto);
 static void send_monitor(Client *client, Monitor *monitor);
 static void set_client_state(Client *client, long state);
-static void set_client_tag_prop(Client *client);
+static void set_client_tag_(Client *client);
 static void set_focus(Client *client);
 static void setfullscreen(Client *client, int fullscreen);
 static void set_layout(const Arg *arg);
@@ -380,7 +380,6 @@ alt_tab(const Arg *arg) {
         if (i == 100 - 1)
             grabbed = 0;
     }
-
 
     while (grabbed) {
         XEvent event;
@@ -1163,7 +1162,6 @@ focus_direction(const Arg *arg) {
     if (!s)
         return;
 
-
     next = s->next;
     if (!next)
         next = s->monitor->clients;
@@ -1364,13 +1362,13 @@ gapless_grid(Monitor *m) {
 }
 
 Atom
-get_atom_prop(Client *client, Atom prop) {
+get_atom_property(Client *client, Atom property) {
     int di;
     ulong dl;
     uchar *p = NULL;
     Atom da, atom = None;
 
-    if (XGetWindowProperty(display, client->win, prop, 0L, sizeof(atom), False, XA_ATOM,
+    if (XGetWindowProperty(display, client->win, property, 0L, sizeof(atom), False, XA_ATOM,
                            &da, &di, &dl, &dl, &p) == Success && p) {
         atom = *(Atom *)p;
         XFree(p);
@@ -1409,7 +1407,7 @@ static uint32 prealpha(uint32 p) {
 }
 
 Picture
-get_icon_prop(Window win, uint *picw, uint *pich) {
+get_icon_(Window win, uint *picw, uint *pich) {
     int format;
     ulong n, extra, *p = NULL;
     Atom real;
@@ -1513,7 +1511,7 @@ get_state(Window win) {
 }
 
 int
-get_text_prop(Window win, Atom atom, char *text, uint size) {
+get_text_(Window win, Atom atom, char *text, uint size) {
     char **list = NULL;
     int n;
     XTextProperty name;
@@ -1699,7 +1697,7 @@ manage(Window win, XWindowAttributes *wa) {
         if (n > 0)
             XFree(data);
     }
-    set_client_tag_prop(client);
+    set_client_tag_(client);
 
     client->stored_fx = client->x;
     client->stored_fy = client->y;
@@ -2091,7 +2089,7 @@ send_monitor(Client *client, Monitor *m) {
     client->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
     attach(client);
     attach_stack(client);
-    set_client_tag_prop(client);
+    set_client_tag_(client);
     focus(NULL);
     arrange(NULL);
     return;
@@ -2355,7 +2353,7 @@ signal_status_bar(const Arg *arg) {
 }
 
 void
-set_client_tag_prop(Client *client) {
+set_client_tag_(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
     XChangeProperty(display, client->win, netatom[NetClientInfo], XA_CARDINAL, 32,
                     PropModeReplace, (uchar *) data, 2);
@@ -2368,7 +2366,7 @@ tag(const Arg *arg) {
     if (current_monitor->selected_client && arg->ui & TAGMASK) {
         client = current_monitor->selected_client;
         current_monitor->selected_client->tags = arg->ui & TAGMASK;
-        set_client_tag_prop(client);
+        set_client_tag_(client);
         focus(NULL);
         arrange(current_monitor);
     }
@@ -2466,7 +2464,6 @@ toggle_extra_bar(const Arg *arg) {
     arrange(current_monitor);
 }
 
-
 void
 toggle_floating(const Arg *arg) {
     (void) arg;
@@ -2560,7 +2557,7 @@ toggle_tag(const Arg *arg) {
     newtags = current_monitor->selected_client->tags ^ (arg->ui & TAGMASK);
     if (newtags) {
         current_monitor->selected_client->tags = newtags;
-        set_client_tag_prop(current_monitor->selected_client);
+        set_client_tag_(current_monitor->selected_client);
         focus(NULL);
         arrange(current_monitor);
     }
@@ -2873,7 +2870,7 @@ update_size_hints(Client *client) {
 void
 update_status(void) {
     char text[768];
-    if (!get_text_prop(root, XA_WM_NAME, text, sizeof(text))) {
+    if (!get_text_(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
         statusw = TEXTW(stext) - lrpad + 2;
         extra_status[0] = '\0';
@@ -2909,8 +2906,8 @@ update_status(void) {
 
 void
 update_title(Client *client) {
-    if (!get_text_prop(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
-        get_text_prop(client->win, XA_WM_NAME, client->name, sizeof(client->name));
+    if (!get_text_(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
+        get_text_(client->win, XA_WM_NAME, client->name, sizeof(client->name));
     if (client->name[0] == '\0') /* hack to mark broken clients */
         strcpy(client->name, broken);
     return;
@@ -2919,14 +2916,14 @@ update_title(Client *client) {
 void
 update_icon(Client *client) {
     free_icon(client);
-    client->icon = get_icon_prop(client->win, &client->icon_width, &client->icon_height);
+    client->icon = get_icon_(client->win, &client->icon_width, &client->icon_height);
     return;
 }
 
 void
 update_window_type(Client *client) {
-    Atom state = get_atom_prop(client, netatom[NetWMState]);
-    Atom wtype = get_atom_prop(client, netatom[NetWMWindowType]);
+    Atom state = get_atom_property(client, netatom[NetWMState]);
+    Atom wtype = get_atom_property(client, netatom[NetWMWindowType]);
 
     if (state == netatom[NetWMFullscreen])
         setfullscreen(client, 1);
