@@ -603,13 +603,18 @@ arrange_monitor(Monitor *monitor) {
 void
 aspect_resize(const Arg *arg) {
     float ratio;
-    int w, h,nw, nh;
+    int w;
+    int h;
+    int nw;
+    int nh;
     Client *client = current_monitor->selected_client;
 
     if (!client || !arg)
         return;
-    if (current_monitor->layout[current_monitor->layout_index]->arrange && !client->isfloating)
+    if (!client->isfloating
+        && current_monitor->layout[current_monitor->layout_index]->arrange) {
         return;
+    }
 
     ratio = (float)client->w / (float)client->h;
     h = arg->i;
