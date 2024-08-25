@@ -1708,7 +1708,7 @@ void
 manage(Window win, XWindowAttributes *window_attributes) {
     Client *client, *t = NULL;
     Window trans = None;
-    XWindowChanges wc;
+    XWindowChanges window_changes;
 
     client = ecalloc(1, sizeof(*client));
     client->win = win;
@@ -1737,8 +1737,8 @@ manage(Window win, XWindowAttributes *window_attributes) {
     client->y = MAX(client->y, client->monitor->win_y);
     client->border_width = border_pixels;
 
-    wc.border_width = client->border_width;
-    XConfigureWindow(display, win, CWBorderWidth, &wc);
+    window_changes.border_width = client->border_width;
+    XConfigureWindow(display, win, CWBorderWidth, &window_changes);
     XSetWindowBorder(display, win, scheme[SchemeNorm][ColBorder].pixel);
     configure(client); /* propagates border_width, if size doesn't change */
     update_window_type(client);
@@ -2126,7 +2126,7 @@ void
 restack(Monitor *m) {
     Client *client;
     XEvent ev;
-    XWindowChanges wc;
+    XWindowChanges window_changes;
 
     draw_bar(m);
     if (!m->selected_client)
@@ -2134,12 +2134,12 @@ restack(Monitor *m) {
     if (m->selected_client->isfloating || !m->layout[m->layout_index]->arrange)
         XRaiseWindow(display, m->selected_client->win);
     if (m->layout[m->layout_index]->arrange) {
-        wc.stack_mode = Below;
-        wc.sibling = m->barwin;
+        window_changes.stack_mode = Below;
+        window_changes.sibling = m->barwin;
         for (client = m->stack; client; client = client->snext) {
             if (!client->isfloating && ISVISIBLE(client)) {
-                XConfigureWindow(display, client->win, CWSibling|CWStackMode, &wc);
-                wc.sibling = client->win;
+                XConfigureWindow(display, client->win, CWSibling|CWStackMode, &window_changes);
+                window_changes.sibling = client->win;
             }
         }
     }
@@ -2827,18 +2827,18 @@ unfocus(Client *client, int set_focus) {
 
 void
 unmanage(Client *client, int destroyed) {
-    Monitor *m = client->monitor;
-    XWindowChanges wc;
+    Monitor *monitor = client->monitor;
+    XWindowChanges window_changes;
 
     detach(client);
     detach_stack(client);
     free_icon(client);
     if (!destroyed) {
-        wc.border_width = client->oldbw;
+        window_changes.border_width = client->oldbw;
         XGrabServer(display); /* avoid race conditions */
         XSetErrorHandler(xerrordummy);
         XSelectInput(display, client->win, NoEventMask);
-        XConfigureWindow(display, client->win, CWBorderWidth, &wc); /* restore border */
+        XConfigureWindow(display, client->win, CWBorderWidth, &window_changes); /* restore border */
         XUngrabButton(display, AnyButton, AnyModifier, client->win);
         set_client_state(client, WithdrawnState);
         XSync(display, False);
@@ -2848,7 +2848,7 @@ unmanage(Client *client, int destroyed) {
     free(client);
     focus(NULL);
     update_client_list();
-    arrange(m);
+    arrange(monitor);
     return;
 }
 
