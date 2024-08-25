@@ -181,27 +181,27 @@ static void arrange_monitor(Monitor *monitor);
 static void aspect_resize(const Arg *arg);
 static void attach(Client *client);
 static void attach_stack(Client *client);
-static void button_press(XEvent *e);
+static void button_press(XEvent *);
 static void cleanup(void);
 static void cleanup_monitor(Monitor *monitor);
-static void client_message(XEvent *e);
+static void client_message(XEvent *);
 static void layout_columns(Monitor *);
 static void configure(Client *client);
-static void configure_notify(XEvent *e);
-static void configure_request(XEvent *e);
+static void configure_notify(XEvent *);
+static void configure_request(XEvent *);
 static Monitor *createmon(void);
 static void debug_dwm(char *message, ...);
-static void destroy_notify(XEvent *e);
+static void destroy_notify(XEvent *);
 static void detach(Client *client);
 static void detach_stack(Client *client);
 static Monitor *direction_to_monitor(int dir);
 static void draw_bar(Monitor *monitor);
 static void draw_bars(void);
-static void enter_notify(XEvent *e);
-static void expose(XEvent *e);
+static void enter_notify(XEvent *);
+static void expose(XEvent *);
 static void focus(Client *client);
 static void focus_direction(const Arg *arg);
-static void focus_in(XEvent *e);
+static void focus_in(XEvent *);
 static void focus_monitor(const Arg *arg);
 static void focus_next(const Arg *arg);
 static void focus_stack(const Arg *arg);
@@ -216,17 +216,17 @@ static int get_text_property(Window win, Atom atom, char *text, uint size);
 static void grab_buttons(Client *client, int focused);
 static void grab_keys(void);
 static void inc_number_masters(const Arg *arg);
-static void key_press(XEvent *e);
+static void key_press(XEvent *);
 static void kill_client(const Arg *arg);
 static void manage(Window win, XWindowAttributes *window_attributes);
-static void mapping_notify(XEvent *e);
-static void map_request(XEvent *e);
+static void mapping_notify(XEvent *);
+static void map_request(XEvent *);
 static void layout_monocle(Monitor *monitor);
-static void motion_notify(XEvent *e);
+static void motion_notify(XEvent *);
 static void move_mouse(const Arg *arg);
 static Client *next_tiled(Client *client);
 static void pop(Client *client);
-static void property_notify(XEvent *e);
+static void property_notify(XEvent *);
 static void quit(const Arg *arg);
 static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *client, int x, int y, int w, int h, int interact);
@@ -261,7 +261,7 @@ static void toggle_view(const Arg *arg);
 static void free_icon(Client *client);
 static void unfocus(Client *client, int set_focus);
 static void unmanage(Client *client, int destroyed);
-static void unmap_notify(XEvent *e);
+static void unmap_notify(XEvent *);
 static void update_bar_pos(Monitor *monitor);
 static void update_bars(void);
 static void update_client_list(void);
@@ -1946,17 +1946,17 @@ pop(Client *client) {
 }
 
 void
-property_notify(XEvent *e) {
+property_notify(XEvent *event) {
     Client *client;
     Window trans;
-    XPropertyEvent *ev = &e->xproperty;
+    XPropertyEvent *property_event = &event->xproperty;
 
-    if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
+    if ((property_event->window == root) && (property_event->atom == XA_WM_NAME)) {
         update_status();
-    } else if (ev->state == PropertyDelete) {
+    } else if (property_event->state == PropertyDelete) {
         return; /* ignore */
-    } else if ((client = window_to_client(ev->window))) {
-        switch (ev->atom) {
+    } else if ((client = window_to_client(property_event->window))) {
+        switch (property_event->atom) {
         default:
             break;
         case XA_WM_TRANSIENT_FOR:
@@ -1972,17 +1972,17 @@ property_notify(XEvent *e) {
             draw_bars();
             break;
         }
-        if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
+        if (property_event->atom == XA_WM_NAME || property_event->atom == netatom[NetWMName]) {
             update_title(client);
             if (client == client->monitor->selected_client)
                 draw_bar(client->monitor);
         }
-        else if (ev->atom == netatom[NetWMIcon]) {
+        else if (property_event->atom == netatom[NetWMIcon]) {
             update_icon(client);
             if (client == client->monitor->selected_client)
                 draw_bar(client->monitor);
         }
-        if (ev->atom == netatom[NetWMWindowType])
+        if (property_event->atom == netatom[NetWMWindowType])
             update_window_type(client);
     }
     return;
