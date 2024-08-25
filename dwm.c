@@ -67,7 +67,7 @@ typedef unsigned char uchar;
 #define TAGMASK   ((1 << NUMTAGS) - 1)
 #define SPTAG(i)  (uint) ((1 << LENGTH(tags)) << (i))
 #define SPTAGMASK (((1 << LENGTH(scratchpads))-1) << LENGTH(tags))
-#define TEXTW(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
 
 #define OPAQUE    0xffU
 #define TAGWIDTH  32
@@ -823,14 +823,14 @@ draw_bar(Monitor *monitor) {
             if ((uchar)(*s) < ' ') {
                 ch = *s;
                 *s = '\0';
-                tw = TEXTW(text) - lrpad;
+                tw = TEXT_PIXELS(text) - lrpad;
                 drw_text(drw, monitor->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
                 x += tw;
                 *s = ch;
                 text = s + 1;
             }
         }
-        tw = TEXTW(text) - lrpad + 2;
+        tw = TEXT_PIXELS(text) - lrpad + 2;
         drw_text(drw, monitor->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
         tw = statusw;
     }
@@ -867,7 +867,7 @@ draw_bar(Monitor *monitor) {
         } else {
             snprintf(tagdisp, TAGWIDTH, tag_empty_format, tags[i]);
         }
-        tagw[i] = w = TEXTW(tagdisp);
+        tagw[i] = w = TEXT_PIXELS(tagdisp);
         drw_setscheme(drw, scheme[monitor->tagset[monitor->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
         drw_text(drw, x, 0, w, bar_height, lrpad / 2, tagdisp, urg & 1 << i);
         x += w;
@@ -881,7 +881,7 @@ draw_bar(Monitor *monitor) {
             tagw[i] += client->icon_width + lrpad/2;
         }
     }
-    w = TEXTW(monitor->layout_symbol);
+    w = TEXT_PIXELS(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNorm]);
     x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
 
@@ -902,7 +902,7 @@ draw_bar(Monitor *monitor) {
         drw_setscheme(drw, scheme[SchemeNorm]);
         /* clear default bar draw buffer by drawing a blank rectangle */
         drw_rect(drw, 0, 0, monitor->win_w, bar_height, 1, 1);
-        extra_status_width = TEXTW(extra_status);
+        extra_status_width = TEXT_PIXELS(extra_status);
         drw_text(drw, 0, 0, extra_status_width, bar_height, 0, extra_status, 0);
         drw_map(drw, monitor->extrabarwin, 0, 0, monitor->win_w, bar_height);
     }
@@ -1418,7 +1418,7 @@ handler_button_press(XEvent *event) {
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
             arg.ui = 1 << i;
-        } else if ((uint) button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
+        } else if ((uint) button_event->x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
         } else if (button_event->x > current_monitor->win_w - statusw) {
             char *s;
@@ -1431,7 +1431,7 @@ handler_button_press(XEvent *event) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
-                    x += TEXTW(text) - lrpad;
+                    x += TEXT_PIXELS(text) - lrpad;
                     *s = ch;
                     text = s + 1;
                     if ((int) x >= button_event->x)
@@ -1452,7 +1452,7 @@ handler_button_press(XEvent *event) {
             if ((uchar)(*s) < ' ') {
                 char ch = *s;
                 *s = '\0';
-                x += TEXTW(text) - lrpad;
+                x += TEXT_PIXELS(text) - lrpad;
                 *s = ch;
                 text = s + 1;
                 if (x >= button_event->x)
@@ -1895,7 +1895,6 @@ manage(Window win, XWindowAttributes *window_attributes) {
     focus(NULL);
     return;
 }
-
 
 void
 layout_monocle(Monitor *monitor) {
@@ -3102,7 +3101,7 @@ update_status(void) {
     char text[768];
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
-        statusw = TEXTW(stext) - lrpad + 2;
+        statusw = TEXT_PIXELS(stext) - lrpad + 2;
         extra_status[0] = '\0';
     } else {
         char *s;
@@ -3122,12 +3121,12 @@ update_status(void) {
             if ((uchar)(*s) < ' ') {
                 ch = *s;
                 *s = '\0';
-                statusw += TEXTW(text2) - lrpad;
+                statusw += TEXT_PIXELS(text2) - lrpad;
                 *s = ch;
                 text2 = s + 1;
             }
         }
-        statusw += TEXTW(text2) - lrpad + 2;
+        statusw += TEXT_PIXELS(text2) - lrpad + 2;
 
     }
     draw_bar(current_monitor);
