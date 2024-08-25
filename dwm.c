@@ -1864,8 +1864,8 @@ move_mouse(const Arg *arg) {
     int ocx, ocy;
     int nx, ny;
     Client *client;
-    Monitor *m;
-    XEvent ev;
+    Monitor *monitor;
+    XEvent event;
     Time lasttime = 0;
     (void) arg;
 
@@ -1885,20 +1885,20 @@ move_mouse(const Arg *arg) {
     if (!get_root_pointer(&x, &y))
         return;
     do {
-        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
-        switch (ev.type) {
+        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
+        switch (event.type) {
         case ConfigureRequest:
         case Expose:
         case MapRequest:
-            handler[ev.type](&ev);
+            handler[event.type](&event);
             break;
         case MotionNotify:
-            if ((ev.xmotion.time - lasttime) <= (1000 / 60))
+            if ((event.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
-            lasttime = ev.xmotion.time;
+            lasttime = event.xmotion.time;
 
-            nx = ocx + (ev.xmotion.x - x);
-            ny = ocy + (ev.xmotion.y - y);
+            nx = ocx + (event.xmotion.x - x);
+            ny = ocy + (event.xmotion.y - y);
             if (abs(current_monitor->win_x - nx) < snap)
                 nx = current_monitor->win_x;
             else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < snap)
@@ -1916,11 +1916,14 @@ move_mouse(const Arg *arg) {
         default:
             break;
         }
-    } while (ev.type != ButtonRelease);
+    } while (event.type != ButtonRelease);
+
     XUngrabPointer(display, CurrentTime);
-    if ((m = recttomon(client->x, client->y, client->w, client->h)) != current_monitor) {
-        send_monitor(client, m);
-        current_monitor = m;
+
+    monitor = recttomon(client->x, client->y, client->w, client->h);
+    if (monitor != current_monitor) {
+        send_monitor(client, monitor);
+        current_monitor = monitor;
         focus(NULL);
     }
     return;
