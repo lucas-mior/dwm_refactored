@@ -1379,6 +1379,7 @@ get_atom_property(Client *client, Atom property) {
 pid_t
 get_status_bar_pid(void) {
     char buffer[32], *str = buffer, *client;
+    long pid_long;
     FILE *fp;
 
     if (statuspid > 0) {
@@ -1396,7 +1397,8 @@ get_status_bar_pid(void) {
         return -1;
     fgets(buffer, sizeof(buffer), fp);
     pclose(fp);
-    return strtol(buffer, NULL, 10);
+    pid_long = strtol(buffer, NULL, 10);
+    return (pid_t) pid_long;
 }
 
 static uint32 prealpha(uint32 p) {
@@ -1785,7 +1787,9 @@ motion_notify(XEvent *e) {
 void
 move_mouse(const Arg *arg) {
     (void) arg;
-    int x, y, ocx, ocy, nx, ny;
+    int x, y;
+    int ocx, ocy;
+    int nx, ny;
     Client *client;
     Monitor *m;
     XEvent ev;
@@ -1831,6 +1835,8 @@ move_mouse(const Arg *arg) {
                 toggle_floating(NULL);
             if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->isfloating)
                 resize(client, nx, ny, client->w, client->h, 1);
+            break;
+        default:
             break;
         }
     } while (ev.type != ButtonRelease);
@@ -3007,7 +3013,8 @@ window_to_client(Window win) {
 
 Monitor *
 window_to_monitor(Window window) {
-    int x, y;
+    int x;
+    int y;
     Client *client;
     Monitor *monitor;
 
