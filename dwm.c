@@ -777,18 +777,25 @@ void debug_dwm(char *message, ...) {
 
 void
 detach(Client *client) {
-    Client **tc;
+    Client **clients;
 
-    for (tc = &client->monitor->clients; *tc && *tc != client; tc = &(*tc)->next);
-    *tc = client->next;
-    for (tc = &all_clients; *tc && *tc != client; tc = &(*tc)->allnext);
-    *tc = client->allnext;
+    for (clients = &client->monitor->clients;
+         *clients && *clients != client;
+         clients = &(*clients)->next);
+    *clients = client->next;
+
+    for (clients = &all_clients;
+         *clients && *clients != client;
+         clients = &(*clients)->allnext);
+    *clients = client->allnext;
+
     return;
 }
 
 void
 detach_stack(Client *client) {
-    Client **tc, *t;
+    Client **tc;
+    Client *t;
 
     for (tc = &client->monitor->stack; *tc && *tc != client; tc = &(*tc)->snext);
     *tc = client->snext;
