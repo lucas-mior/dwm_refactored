@@ -209,11 +209,11 @@ static void focus_stack(const Arg *arg);
 static void focus_urgent(const Arg *arg);
 static void gapless_grid(Monitor *monitor);
 static Atom get_atom_property(Client *client, Atom );
-static Picture get_icon_(Window win, uint *icon_width, uint *icon_height);
+static Picture get_icon_property(Window win, uint *icon_width, uint *icon_height);
 static int get_root_pointer(int *x, int *y);
 static long get_state(Window win);
 static pid_t get_status_bar_pid(void);
-static int get_text_(Window win, Atom atom, char *text, uint size);
+static int get_text_property(Window win, Atom atom, char *text, uint size);
 static void grab_buttons(Client *client, int focused);
 static void grab_keys(void);
 static void inc_number_masters(const Arg *arg);
@@ -1407,7 +1407,7 @@ static uint32 prealpha(uint32 p) {
 }
 
 Picture
-get_icon_(Window win, uint *picw, uint *pich) {
+get_icon_property(Window win, uint *picw, uint *pich) {
     int format;
     ulong n, extra, *p = NULL;
     Atom real;
@@ -1502,8 +1502,9 @@ get_state(Window win) {
     Atom real;
 
     if (XGetWindowProperty(display, win, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
-        &real, &format, &n, &extra, (uchar **)&p) != Success)
+        &real, &format, &n, &extra, (uchar **)&p) != Success) {
         return -1;
+    }
     if (n != 0)
         result = *p;
     XFree(p);
@@ -1511,7 +1512,7 @@ get_state(Window win) {
 }
 
 int
-get_text_(Window win, Atom atom, char *text, uint size) {
+get_text_property(Window win, Atom atom, char *text, uint size) {
     char **list = NULL;
     int n;
     XTextProperty name;
@@ -2870,7 +2871,7 @@ update_size_hints(Client *client) {
 void
 update_status(void) {
     char text[768];
-    if (!get_text_(root, XA_WM_NAME, text, sizeof(text))) {
+    if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
         statusw = TEXTW(stext) - lrpad + 2;
         extra_status[0] = '\0';
@@ -2906,8 +2907,8 @@ update_status(void) {
 
 void
 update_title(Client *client) {
-    if (!get_text_(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
-        get_text_(client->win, XA_WM_NAME, client->name, sizeof(client->name));
+    if (!get_text_property(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
+        get_text_property(client->win, XA_WM_NAME, client->name, sizeof(client->name));
     if (client->name[0] == '\0') /* hack to mark broken clients */
         strcpy(client->name, broken);
     return;
@@ -2916,7 +2917,7 @@ update_title(Client *client) {
 void
 update_icon(Client *client) {
     free_icon(client);
-    client->icon = get_icon_(client->win, &client->icon_width, &client->icon_height);
+    client->icon = get_icon_property(client->win, &client->icon_width, &client->icon_height);
     return;
 }
 
