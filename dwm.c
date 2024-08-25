@@ -1214,6 +1214,30 @@ layout_gapless_grid(Monitor *monitor) {
 }
 
 void
+layout_monocle(Monitor *monitor) {
+    uint n = 0;
+
+    for (Client *client = monitor->clients; client; client = client->next) {
+        if (ISVISIBLE(client))
+            n += 1;
+    }
+
+    if (n > 0) /* override layout symbol */
+        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
+
+    for (Client *client = next_tiled(monitor->clients);
+                 client;
+                 client = next_tiled(client->next)) {
+        int new_x = monitor->win_x;
+        int new_y = monitor->win_y;
+        int new_w = monitor->win_w - 2*client->border_width;
+        int new_h = monitor->win_h - 2*client->border_width;
+        resize(client, new_x, new_y, new_w, new_h, 0);
+    }
+    return;
+}
+
+void
 layout_tile(Monitor *m) {
     int n = 0;
     int i = 0;
@@ -1260,31 +1284,6 @@ layout_tile(Monitor *m) {
     return;
 }
 
-void
-layout_monocle(Monitor *monitor) {
-    uint n = 0;
-
-    for (Client *client = monitor->clients; client; client = client->next) {
-        if (ISVISIBLE(client))
-            n += 1;
-    }
-
-    if (n > 0) /* override layout symbol */
-        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
-
-    for (Client *client = next_tiled(monitor->clients);
-                 client;
-                 client = next_tiled(client->next)) {
-        int new_x = monitor->win_x;
-        int new_y = monitor->win_y;
-        int new_w = monitor->win_w - 2*client->border_width;
-        int new_h = monitor->win_h - 2*client->border_width;
-        resize(client, new_x, new_y, new_w, new_h, 0);
-    }
-    return;
-}
-
-
 Atom
 get_atom_property(Client *client, Atom property) {
     int di;
@@ -1325,13 +1324,6 @@ get_status_bar_pid(void) {
     pclose(fp);
     pid_long = strtol(buffer, NULL, 10);
     return (pid_t) pid_long;
-}
-
-static uint32 prealpha(uint32 p) {
-    uint8_t a = p >> 24u;
-    uint32 rb = (a*(p & 0xFF00FFu)) >> 8u;
-    uint32 g = (a*(p & 0x00FF00u)) >> 8u;
-    return (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
 }
 
 Picture
@@ -1403,8 +1395,13 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     *picture_width = icon_width; *picture_height = icon_height;
 
     uint32 i, *bstp32 = (uint32 *)bstp;
-    for (sz = w*h, i = 0; i < sz; i += 1)
-        bstp32[i] = prealpha(bstp[i]);
+    for (sz = w*h, i = 0; i < sz; i += 1) {
+        uint32 p = bstp[i];
+        uint8_t a = p >> 24u;
+        uint32 rb = (a*(p & 0xFF00FFu)) >> 8u;
+        uint32 g = (a*(p & 0x00FF00u)) >> 8u;
+        bstp32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
+    }
 
     Picture ret = drw_picture_create_resized(drw, (char *)bstp, w, h, icon_width, icon_height);
     XFree(p);
