@@ -1430,6 +1430,8 @@ Picture
 get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     int format;
     ulong n, extra, *p = NULL;
+    ulong *bstp = NULL;
+    uint32 w, h, sz;
     Atom real;
 
     if (XGetWindowProperty(display, win, netatom[NetWMIcon], 0L, LONG_MAX, False, AnyPropertyType,
@@ -1440,8 +1442,6 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         return None;
     }
 
-    ulong *bstp = NULL;
-    uint32 w, h, sz;
     {
         ulong *i; const ulong *end = p + n;
         uint32 bstd = UINT32_MAX, d, m;
@@ -2461,10 +2461,9 @@ set_client_tag_(Client *client) {
 
 void
 tag(const Arg *arg) {
-    Client *client;
     if (current_monitor->selected_client && arg->ui & TAGMASK) {
-        client = current_monitor->selected_client;
-        current_monitor->selected_client->tags = arg->ui & TAGMASK;
+        Client *client = current_monitor->selected_client;
+        client->tags = arg->ui & TAGMASK;
         set_client_tag_(client);
         focus(NULL);
         arrange(current_monitor);
