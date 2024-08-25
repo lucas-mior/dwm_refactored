@@ -25,6 +25,7 @@
 #include <locale.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -338,7 +339,7 @@ struct Pertag {
     int nmasters[LENGTH(tags) + 1]; /* number of windows in master area */
     float master_facts[LENGTH(tags) + 1]; /* master_facts per tag */
     uint selected_layouts[LENGTH(tags) + 1]; /* selected layouts */
-    const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
+    const Layout *layout_tags_indexes[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
     int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
 
@@ -885,8 +886,8 @@ createmon(void) {
         m->pertag->nmasters[i] = m->nmaster;
         m->pertag->master_facts[i] = m->master_fact;
 
-        m->pertag->ltidxs[i][0] = m->layout[0];
-        m->pertag->ltidxs[i][1] = m->layout[1];
+        m->pertag->layout_tags_indexes[i][0] = m->layout[0];
+        m->pertag->layout_tags_indexes[i][1] = m->layout[1];
         m->pertag->selected_layouts[i] = m->layout_index;
 
         m->pertag->showbars[i] = m->showbar;
@@ -1096,9 +1097,13 @@ enter_notify(XEvent *event) {
     Client *client;
     Monitor *m;
     XCrossingEvent *crossing_event = &event->xcrossing;
+    bool is_root = crossing_event->window == root;
+    bool notify_normal = crossing_event->mode == notify_normal;
+    bool notify_inferior = crossing_event->detail == NotifyInferior;
 
-    if ((crossing_event->mode != NotifyNormal || crossing_event->detail == NotifyInferior) && crossing_event->window != root)
+    if (!is_root && (!notify_normal || notify_inferior))
         return;
+
     client = window_to_client(crossing_event->window);
     m = client ? client->monitor : window_to_monitor(crossing_event->window);
     if (m != current_monitor) {
@@ -2190,14 +2195,18 @@ setfullscreen(Client *client, int fullscreen) {
 
 void
 set_layout(const Arg *arg) {
-    Layout *layout = arg->v;
+    const Layout *layout = arg->v;
     Monitor *monitor = current_monitor;
 
     if (!arg || !arg->v || arg->v != monitor->layout[monitor->layout_index])
         monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag] ^= 1;
     if (arg && arg->v)
-        monitor->layout[monitor->layout_index] = monitor->pertag->ltidxs[monitor->pertag->current_tag][monitor->layout_index] = layout;
-    strncpy(monitor->layout_symbol, monitor->layout[monitor->layout_index]->symbol, sizeof(monitor->layout_symbol));
+        monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index] = layout;
+
+    strncpy(monitor->layout_symbol,
+            monitor->layout[monitor->layout_index]->symbol,
+            sizeof(monitor->layout_symbol));
+
     if (monitor->selected_client)
         arrange(monitor);
     else
@@ -2603,8 +2612,8 @@ toggle_view(const Arg *arg) {
         current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag];
         current_monitor->master_fact = current_monitor->pertag->master_facts[current_monitor->pertag->current_tag];
         current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag];
-        current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index];
-        current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index^1];
+        current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->layout_tags_indexes[current_monitor->pertag->current_tag][current_monitor->layout_index];
+        current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->layout_tags_indexes[current_monitor->pertag->current_tag][current_monitor->layout_index^1];
 
         if (current_monitor->showbar != current_monitor->pertag->showbars[current_monitor->pertag->current_tag])
             toggle_bar(NULL);
@@ -2997,8 +3006,8 @@ view(const Arg *arg) {
     monitor->nmaster = monitor->pertag->nmasters[monitor->pertag->current_tag];
     monitor->master_fact = monitor->pertag->master_facts[monitor->pertag->current_tag];
     monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag];
-    monitor->layout[monitor->layout_index] = monitor->pertag->ltidxs[monitor->pertag->current_tag][monitor->layout_index];
-    monitor->layout[monitor->layout_index^1] = monitor->pertag->ltidxs[monitor->pertag->current_tag][monitor->layout_index^1];
+    monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index];
+    monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index^1];
 
     if (monitor->showbar != monitor->pertag->showbars[monitor->pertag->current_tag])
         toggle_bar(NULL);
