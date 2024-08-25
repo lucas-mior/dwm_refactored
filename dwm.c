@@ -448,7 +448,7 @@ apply_rules(Client *client) {
     class    = class_hint.res_class ? class_hint.res_class : broken;
     instance = class_hint.res_name  ? class_hint.res_name  : broken;
 
-    for (int i = 0; i < LENGTH(rules); i++) {
+    for (int i = 0; i < LENGTH(rules); i += 1) {
         const Rule *r = &rules[i];
         Monitor *monitor;
 
@@ -650,7 +650,7 @@ button_press(XEvent *e) {
             x = current_monitor->win_w - statusw;
             click = ClickStatusText;
             statussig = 0;
-            for (char *text = s = stext; *s && x <= ev->x; s++) {
+            for (char *text = s = stext; *s && x <= ev->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
@@ -671,7 +671,7 @@ button_press(XEvent *e) {
 
         click = ClickExtraBar;
         statussig = 0;
-        for (char *text = s; *s && x <= ev->x; s++) {
+        for (char *text = s; *s && x <= ev->x; s += 1) {
             if ((uchar)(*s) < ' ') {
                 char ch = *s;
                 *s = '\0';
@@ -689,7 +689,7 @@ button_press(XEvent *e) {
         XAllowEvents(display, ReplayPointer, CurrentTime);
         click = ClickClientWin;
     }
-    for (uint i = 0; i < LENGTH(buttons); i++) {
+    for (uint i = 0; i < LENGTH(buttons); i += 1) {
         if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
         && CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
             buttons[i].func(click == ClickTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
@@ -712,9 +712,9 @@ cleanup(void) {
     XUngrabKey(display, AnyKey, AnyModifier, root);
     while (monitors)
         cleanup_monitor(monitors);
-    for (int i = 0; i < CursorLast; i++)
+    for (int i = 0; i < CursorLast; i += 1)
         drw_cur_free(drw, cursor[i]);
-    for (int i = 0; i < LENGTH(colors); i++)
+    for (int i = 0; i < LENGTH(colors); i += 1)
         free(scheme[i]);
     free(scheme);
     XDestroyWindow(display, wmcheckwin);
@@ -882,7 +882,7 @@ createmon(void) {
     m->pertag = ecalloc(1, sizeof(*(m->pertag)));
     m->pertag->current_tag = m->pertag->previous_tag = 1;
 
-    for (int i = 0; i <= LENGTH(tags); i++) {
+    for (int i = 0; i <= LENGTH(tags); i += 1) {
         m->pertag->nmasters[i] = m->nmaster;
         m->pertag->master_facts[i] = m->master_fact;
 
@@ -998,7 +998,7 @@ draw_bar(Monitor *m) {
         drw_setscheme(drw, scheme[SchemeNorm]);
 
         x = 0;
-        for (text = s = stext; *s; s++) {
+        for (text = s = stext; *s; s += 1) {
             if ((uchar)(*s) < ' ') {
                 ch = *s;
                 *s = '\0';
@@ -1014,7 +1014,7 @@ draw_bar(Monitor *m) {
         tw = statusw;
     }
 
-    for (int i = 0; i < LENGTH(tags); i++) {
+    for (int i = 0; i < LENGTH(tags); i += 1) {
         masterclientontag[i] = NULL;
         icontagclient[i] = NULL;
     }
@@ -1022,7 +1022,7 @@ draw_bar(Monitor *m) {
     for (Client *client = m->clients; client; client = client->next) {
         if (client->isurgent)
             urg |= client->tags;
-        for (int i = 0; i < LENGTH(tags); i++) {
+        for (int i = 0; i < LENGTH(tags); i += 1) {
             if (client->icon && client->tags & (1 << i))
                 icontagclient[i] = client;
             if (!masterclientontag[i] && client->tags & (1<<i)) {
@@ -1033,7 +1033,7 @@ draw_bar(Monitor *m) {
         }
     }
     x = 0;
-    for (int i = 0; i < LENGTH(tags); i++) {
+    for (int i = 0; i < LENGTH(tags); i += 1) {
         Client *client = icontagclient[i];
 
         if (masterclientontag[i]) {
@@ -1319,7 +1319,7 @@ focus_urgent(const Arg *arg) {
             int i;
             unfocus(current_monitor->selected_client, 0);
             current_monitor = m;
-            for (i = 0; i < LENGTH(tags) && !((1 << i) & client->tags); i++);
+            for (i = 0; i < LENGTH(tags) && !((1 << i) & client->tags); i += 1);
             if (i < LENGTH(tags)) {
                 const Arg a = {.ui = 1 << i};
                 view(&a);
@@ -1332,15 +1332,18 @@ focus_urgent(const Arg *arg) {
 
 void
 gapless_grid(Monitor *m) {
-    uint n, cols, rows, cn, rn, i, cx, cy, cw, ch;
+    uint n = 0;
+    uint cols, rows, cn, rn, i, cx, cy, cw, ch;
     Client *client;
 
-    for (n = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), n++);
+    for (client = nexttiled(m->clients);
+         client;
+         client = nexttiled(client->next), n += 1);
     if (n == 0)
         return;
 
     /* grid dimensions */
-    for (cols = 0; cols <= n/2; cols++) {
+    for (cols = 0; cols <= n/2; cols += 1) {
         if (cols*cols >= n)
             break;
     }
@@ -1771,15 +1774,18 @@ map_request(XEvent *e) {
 void
 monocle(Monitor *monitor) {
     uint n = 0;
-    Client *client;
 
-    for (client = monitor->clients; client; client = client->next) {
+    for (Client *client = monitor->clients; client; client = client->next) {
         if (ISVISIBLE(client))
             n++;
     }
+
     if (n > 0) /* override layout symbol */
         snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
-    for (client = nexttiled(monitor->clients); client; client = nexttiled(client->next)) {
+
+    for (Client *client = nexttiled(monitor->clients);
+                 client;
+                 client = nexttiled(client->next)) {
         int new_x = monitor->win_x;
         int new_y = monitor->win_y;
         int new_w = monitor->win_w - 2 * client->border_width;
