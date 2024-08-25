@@ -2006,7 +2006,6 @@ resize_client(Client *client, int x, int y, int w, int h) {
 void
 resize_mouse(const Arg *arg) {
     int ocx, ocy;
-    int nw, nh;
     Client *client;
     Monitor *m;
     XEvent ev;
@@ -2030,6 +2029,9 @@ resize_mouse(const Arg *arg) {
                  client->w + client->border_width - 1,
                  client->h + client->border_width - 1);
     do {
+        int nw;
+        int nh;
+
         XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
         switch (ev.type) {
         case ConfigureRequest:
@@ -2044,10 +2046,13 @@ resize_mouse(const Arg *arg) {
 
             nw = MAX(ev.xmotion.x - ocx - 2 * client->border_width + 1, 1);
             nh = MAX(ev.xmotion.y - ocy - 2 * client->border_width + 1, 1);
-            if (client->monitor->win_x + nw >= current_monitor->win_x && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
-            && client->monitor->win_y + nh >= current_monitor->win_y && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
+
+            if (client->monitor->win_x + nw >= current_monitor->win_x 
+                && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
+                && client->monitor->win_y + nh >= current_monitor->win_y 
+                && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
                 if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
-                && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
+                    && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
                     toggle_floating(NULL);
             }
             if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->isfloating)
