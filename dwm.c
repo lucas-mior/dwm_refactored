@@ -68,7 +68,7 @@ typedef unsigned char uchar;
 #define HEIGHT(X) ((X)->h + 2*(X)->border_width)
 #define NUMTAGS   (LENGTH(tags) + LENGTH(scratchpads))
 #define TAGMASK   ((1 << NUMTAGS) - 1)
-#define SPTAG(i)  ((1 << LENGTH(tags)) << (i))
+#define SPTAG(i)  (uint) ((1 << LENGTH(tags)) << (i))
 #define SPTAGMASK (((1 << LENGTH(scratchpads))-1) << LENGTH(tags))
 #define TEXTW(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
 
@@ -2687,7 +2687,7 @@ toggle_scratch(const Arg *arg) {
     Client *client;
     uint found = 0;
     uint scrath_tag = SPTAG(arg->ui);
-    Arg sparg = {.v = scratchpads[arg->ui].cmd};
+    Arg scratchpad_arg = {.v = scratchpads[arg->ui].cmd};
 
     for (client = current_monitor->clients;
          client && !(found = client->tags & scrath_tag);
@@ -2713,7 +2713,7 @@ toggle_scratch(const Arg *arg) {
         }
     } else {
         current_monitor->tagset[current_monitor->seltags] |= scrath_tag;
-        spawn(&sparg);
+        spawn(&scratchpad_arg);
     }
 }
 
