@@ -786,14 +786,14 @@ configure(Client *client) {
 
 void
 configure_notify(XEvent *e) {
-    XConfigureEvent *ev = &e->xconfigure;
+    XConfigureEvent *event = &e->xconfigure;
     int dirty;
 
     /* TODO: update_geometry handling sucks, needs to be simplified */
-    if (ev->window == root) {
-        dirty = (screen_width != ev->width || screen_height != ev->height);
-        screen_width = ev->width;
-        screen_height = ev->height;
+    if (event->window == root) {
+        dirty = (screen_width != event->width || screen_height != event->height);
+        screen_width = event->width;
+        screen_height = event->height;
         if (update_geometry() || dirty) {
             drw_resize(drw, screen_width, bh);
             update_bars();
@@ -816,35 +816,35 @@ void
 configure_request(XEvent *e) {
     Client *client;
     Monitor *m;
-    XConfigureRequestEvent *ev = &e->xconfigurerequest;
-    XWindowChanges wc;
+    XConfigureRequestEvent *event = &e->xconfigurerequest;
+    XWindowChanges window_changes;
 
-    if ((client = window_to_client(ev->window))) {
-        if (ev->value_mask & CWBorderWidth) {
-            client->border_width = ev->border_width;
+    if ((client = window_to_client(event->window))) {
+        if (event->value_mask & CWBorderWidth) {
+            client->border_width = event->border_width;
         } else if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
             m = client->monitor;
-            if (ev->value_mask & CWX) {
+            if (event->value_mask & CWX) {
                 client->old_x = client->x;
-                client->x = m->mon_x + ev->x;
+                client->x = m->mon_x + event->x;
             }
-            if (ev->value_mask & CWY) {
+            if (event->value_mask & CWY) {
                 client->old_y = client->y;
-                client->y = m->mon_y + ev->y;
+                client->y = m->mon_y + event->y;
             }
-            if (ev->value_mask & CWWidth) {
+            if (event->value_mask & CWWidth) {
                 client->old_w = client->w;
-                client->w = ev->width;
+                client->w = event->width;
             }
-            if (ev->value_mask & CWHeight) {
+            if (event->value_mask & CWHeight) {
                 client->old_h = client->h;
-                client->h = ev->height;
+                client->h = event->height;
             }
             if ((client->x + client->w) > m->mon_x + m->mon_w && client->isfloating)
                 client->x = m->mon_x + (m->mon_w / 2 - WIDTH(client) / 2);
             if ((client->y + client->h) > m->mon_y + m->mon_h && client->isfloating)
                 client->y = m->mon_y + (m->mon_h / 2 - HEIGHT(client) / 2);
-            if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
+            if ((event->value_mask & (CWX|CWY)) && !(event->value_mask & (CWWidth|CWHeight)))
                 configure(client);
             if (ISVISIBLE(client))
                 XMoveResizeWindow(display, client->win, client->x, client->y, client->w, client->h);
@@ -852,14 +852,14 @@ configure_request(XEvent *e) {
             configure(client);
         }
     } else {
-        wc.x = ev->x;
-        wc.y = ev->y;
-        wc.width = ev->width;
-        wc.height = ev->height;
-        wc.border_width = ev->border_width;
-        wc.sibling = ev->above;
-        wc.stack_mode = ev->detail;
-        XConfigureWindow(display, ev->window, (uint) ev->value_mask, &wc);
+        window_changes.x = event->x;
+        window_changes.y = event->y;
+        window_changes.width = event->width;
+        window_changes.height = event->height;
+        window_changes.border_width = event->border_width;
+        window_changes.sibling = event->above;
+        window_changes.stack_mode = event->detail;
+        XConfigureWindow(display, event->window, (uint) event->value_mask, &window_changes);
     }
     XSync(display, False);
     return;
