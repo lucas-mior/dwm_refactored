@@ -1279,7 +1279,6 @@ focus_next(const Arg *arg) {
 void
 focus_stack(const Arg *arg) {
     Client *client = NULL;
-    Client *client_i;
 
     if (!current_monitor->selected_client || (current_monitor->selected_client->isfullscreen && lockfullscreen))
         return;
@@ -1288,14 +1287,17 @@ focus_stack(const Arg *arg) {
         if (!client)
             for (client = current_monitor->clients; client && !ISVISIBLE(client); client = client->next);
     } else {
-        for (client_i = current_monitor->clients; client_i != current_monitor->selected_client; client_i = client_i->next) {
-            if (ISVISIBLE(client_i))
-                client = client_i;
+        Client *client_aux;
+        for (client_aux = current_monitor->clients;
+             client_aux != current_monitor->selected_client;
+             client_aux = client_aux->next) {
+            if (ISVISIBLE(client_aux))
+                client = client_aux;
         }
         if (!client) {
-            for (; client_i; client_i = client_i->next) {
-                if (ISVISIBLE(client_i))
-                    client = client_i;
+            for (; client_aux; client_aux = client_aux->next) {
+                if (ISVISIBLE(client_aux))
+                    client = client_aux;
             }
         }
     }
