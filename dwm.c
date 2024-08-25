@@ -2495,7 +2495,7 @@ tag_monitor(const Arg *arg) {
 
 void
 col(Monitor *m) {
-    uint i;
+    int i;
     int n = 0;
     uint x, y, w, h;
     uint mon_w;
@@ -2510,9 +2510,9 @@ col(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mon_w = m->nmaster ? m->win_w*m->master_fact : 0;
+        mon_w = (uint) (m->nmaster ? (float)m->win_w*m->master_fact : 0);
     else
-        mon_w = m->win_w;
+        mon_w = (uint) m->win_w;
 
     for (i = x = y = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++) {
         if (i < m->nmaster) {
@@ -2536,10 +2536,17 @@ col(Monitor *m) {
 
 void
 tile(Monitor *m) {
-    uint i, n, h, mon_w, mon_y, ty;
+    uint i;
+    uint n = 0;
+    uint h;
+    uint mon_w, mon_y, ty;
     Client *client;
 
-    for (n = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), n++);
+    for (Client *client_aux = next_tiled(m->clients);
+                 client_aux;
+                 client_aux = next_tiled(client_aux->next)) {
+        n += 1;
+    }
     if (n == 0)
         return;
 
