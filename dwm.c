@@ -64,8 +64,8 @@ typedef unsigned char uchar;
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->seltags]))
 #define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
-#define WIDTH(X)  ((X)->w + 2 * (X)->border_width)
-#define HEIGHT(X) ((X)->h + 2 * (X)->border_width)
+#define WIDTH(X)  ((X)->w + 2*(X)->border_width)
+#define HEIGHT(X) ((X)->h + 2*(X)->border_width)
 #define NUMTAGS   (LENGTH(tags) + LENGTH(scratchpads))
 #define TAGMASK   ((1 << NUMTAGS) - 1)
 #define SPTAG(i)  ((1 << LENGTH(tags)) << (i))
@@ -114,7 +114,6 @@ struct Client {
     int isfixed, isfloating, isurgent;
     int neverfocus, oldstate, isfullscreen, isfakefullscreen;
     uint icon_width, icon_height;
-    int unused;
     Picture icon;
     Client *next;
     Client *snext;
@@ -170,7 +169,6 @@ typedef struct {
     int isfloating;
     int isfakefullscreen;
     int monitor;
-    int unused;
 } Rule;
 
 /* function declarations */
@@ -495,18 +493,18 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
             *x = screen_width - WIDTH(client);
         if (*y > screen_height)
             *y = screen_height - HEIGHT(client);
-        if (*x + *w + 2 * client->border_width < 0)
+        if (*x + *w + 2*client->border_width < 0)
             *x = 0;
-        if (*y + *h + 2 * client->border_width < 0)
+        if (*y + *h + 2*client->border_width < 0)
             *y = 0;
     } else {
         if (*x >= monitor->win_x + monitor->win_w)
             *x = monitor->win_x + monitor->win_w - WIDTH(client);
         if (*y >= monitor->win_y + monitor->win_h)
             *y = monitor->win_y + monitor->win_h - HEIGHT(client);
-        if (*x + *w + 2 * client->border_width <= monitor->win_x)
+        if (*x + *w + 2*client->border_width <= monitor->win_x)
             *x = monitor->win_x;
-        if (*y + *h + 2 * client->border_width <= monitor->win_y)
+        if (*y + *h + 2*client->border_width <= monitor->win_y)
             *y = monitor->win_y;
     }
     if (*h < bh)
@@ -525,9 +523,9 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         /* adjust for aspect limits */
         if (client->min_a > 0 && client->max_a > 0) {
             if (client->max_a < (float)*w / (float)*h)
-                *w = *h * (int) (client->max_a + 0.5f);
+                *w = *h*((int) (client->max_a + 0.5f));
             else if (client->min_a < (float)*h / (float) *w)
-                *h = *w * (int) (client->min_a + 0.5f);
+                *h = *w*((int) (client->min_a + 0.5f));
         }
         if (baseismin) { /* increment calculation requires this */
             *w -= client->basew;
@@ -591,7 +589,7 @@ aspect_resize(const Arg *arg) {
 
     ratio = (float)client->w / (float)client->h;
     h = arg->i;
-    w = (int)(ratio * (float)h);
+    w = (int)(ratio*(float)h);
 
     nw = client->w + w;
     nh = client->h + h;
@@ -1182,26 +1180,26 @@ focus_direction(const Arg *arg) {
         case 0: // left
             dist = s->x - client->x - client->w;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_w)) +
+                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
                 abs(s->y - client->y);
             break;
         case 1: // right
             dist = client->x - s->x - s->w;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_w)) +
+                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
                 abs(client->y - s->y);
             break;
         case 2: // up
             dist = s->y - client->y - client->h;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_h)) +
+                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
                 abs(s->x - client->x);
             break;
         default:
         case 3: // down
             dist = client->y - s->y - s->h;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_h)) +
+                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
                 abs(client->x - s->x);
             break;
         }
@@ -1364,7 +1362,7 @@ gapless_grid(Monitor *m) {
         ch = rows ? m->win_h / rows : m->win_h;
         cx = m->win_x + cn*cw;
         cy = m->win_y + rn*ch;
-        resize(client, cx, cy, cw - 2 * client->border_width, ch - 2 * client->border_width, False);
+        resize(client, cx, cy, cw - 2*client->border_width, ch - 2*client->border_width, False);
         rn += 1;
         if (rn >= rows) {
             rn = 0;
@@ -1419,8 +1417,8 @@ get_status_bar_pid(void) {
 
 static uint32 prealpha(uint32 p) {
     uint8_t a = p >> 24u;
-    uint32 rb = (a * (p & 0xFF00FFu)) >> 8u;
-    uint32 g = (a * (p & 0x00FF00u)) >> 8u;
+    uint32 rb = (a*(p & 0xFF00FFu)) >> 8u;
+    uint32 g = (a*(p & 0x00FF00u)) >> 8u;
     return (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
 }
 
@@ -1448,7 +1446,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
                 XFree(p);
                 return None;
             }
-            if ((sz = w * h) > end - i)
+            if ((sz = w*h) > end - i)
                 break;
             if ((m = w > h ? w : h) >= ICONSIZE && (d = m - ICONSIZE) < bstd) {
                 bstd = d;
@@ -1461,7 +1459,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
                     XFree(p);
                     return None;
                 }
-                if ((sz = w * h) > end - i)
+                if ((sz = w*h) > end - i)
                     break;
                 if ((d = ICONSIZE - (w > h ? w : h)) < bstd) {
                     bstd = d;
@@ -1482,18 +1480,18 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
 
     uint32 icon_width, icon_height;
     if (w <= h) {
-        icon_height = ICONSIZE; icon_width = w * ICONSIZE / h;
+        icon_height = ICONSIZE; icon_width = w*ICONSIZE / h;
         if (icon_width == 0)
             icon_width = 1;
     } else {
-        icon_width = ICONSIZE; icon_height = h * ICONSIZE / w;
+        icon_width = ICONSIZE; icon_height = h*ICONSIZE / w;
         if (icon_height == 0)
             icon_height = 1;
     }
     *picture_width = icon_width; *picture_height = icon_height;
 
     uint32 i, *bstp32 = (uint32 *)bstp;
-    for (sz = w * h, i = 0; i < sz; i += 1)
+    for (sz = w*h, i = 0; i < sz; i += 1)
         bstp32[i] = prealpha(bstp[i]);
 
     Picture ret = drw_picture_create_resized(drw, (char *)bstp, w, h, icon_width, icon_height);
@@ -1590,7 +1588,7 @@ grab_keys(void) {
     for (int k = start; k <= end; k += 1) {
         for (int i = 0; i < LENGTH(keys); i += 1) {
             /* skip modifier codes, we do that ourselves */
-            if (keys[i].keysym == key_sym[(k - start) * skip]) {
+            if (keys[i].keysym == key_sym[(k - start)*skip]) {
                 for (int j = 0; j < LENGTH(modifiers); j += 1)
                     XGrabKey(display, k, (uint) keys[i].mod | modifiers[j],
                              root, True, GrabModeAsync, GrabModeAsync);
@@ -1746,7 +1744,7 @@ manage(Window win, XWindowAttributes *window_attributes) {
 
     /* some windows require this */
     XMoveResizeWindow(display, client->win,
-                      client->x + 2 * screen_width, client->y, client->w, client->h);
+                      client->x + 2*screen_width, client->y, client->w, client->h);
     set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
         unfocus(current_monitor->selected_client, 0);
@@ -1796,8 +1794,8 @@ monocle(Monitor *monitor) {
                  client = next_tiled(client->next)) {
         int new_x = monitor->win_x;
         int new_y = monitor->win_y;
-        int new_w = monitor->win_w - 2 * client->border_width;
-        int new_h = monitor->win_h - 2 * client->border_width;
+        int new_w = monitor->win_w - 2*client->border_width;
+        int new_h = monitor->win_h - 2*client->border_width;
         resize(client, new_x, new_y, new_w, new_h, 0);
     }
     return;
@@ -1992,8 +1990,8 @@ resize_client(Client *client, int x, int y, int w, int h) {
     if (!(client->isfloating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
         if (current_monitor->layout[current_monitor->layout_index]->arrange == monocle || n == 1) {
             window_changes.border_width = 0;
-            client->w = window_changes.width += client->border_width * 2;
-            client->h = window_changes.height += client->border_width * 2;
+            client->w = window_changes.width += client->border_width*2;
+            client->h = window_changes.height += client->border_width*2;
         }
     }
 
@@ -2044,8 +2042,8 @@ resize_mouse(const Arg *arg) {
                 continue;
             lasttime = ev.xmotion.time;
 
-            nw = MAX(ev.xmotion.x - ocx - 2 * client->border_width + 1, 1);
-            nh = MAX(ev.xmotion.y - ocy - 2 * client->border_width + 1, 1);
+            nw = MAX(ev.xmotion.x - ocx - 2*client->border_width + 1, 1);
+            nh = MAX(ev.xmotion.y - ocy - 2*client->border_width + 1, 1);
 
             if (client->monitor->win_x + nw >= current_monitor->win_x 
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
@@ -2419,7 +2417,7 @@ showhide(Client *client) {
     } else {
         /* hide clients bottom up */
         showhide(client->snext);
-        XMoveWindow(display, client->win, WIDTH(client) * -2, client->y);
+        XMoveWindow(display, client->win, -2*WIDTH(client), client->y);
     }
     return;
 }
@@ -2483,7 +2481,7 @@ tag_monitor(const Arg *arg) {
 void
 col(Monitor *m) {
     uint i;
-    uint n = 0;
+    int n = 0;
     uint h, w, x, y, mon_w;
     Client *client;
 
@@ -2496,18 +2494,18 @@ col(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mon_w = m->nmaster ? m->win_w * m->master_fact : 0;
+        mon_w = m->nmaster ? m->win_w*m->master_fact : 0;
     else
         mon_w = m->win_w;
 
     for (i = x = y = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++) {
         if (i < m->nmaster) {
             w = (mon_w - x) / (MIN(n, m->nmaster) - i);
-            resize(client, x + m->win_x, m->win_y, w - (2 * client->border_width), m->win_h - (2 * client->border_width), 0);
+            resize(client, x + m->win_x, m->win_y, w - (2*client->border_width), m->win_h - (2*client->border_width), 0);
             x += WIDTH(client);
         } else {
             h = (m->win_h - y) / (n - i);
-            resize(client, x + m->win_x, m->win_y + y, m->win_w - x - (2 * client->border_width), h - (2 * client->border_width), 0);
+            resize(client, x + m->win_x, m->win_y + y, m->win_w - x - (2*client->border_width), h - (2*client->border_width), 0);
             y += HEIGHT(client);
         }
     }
@@ -2524,7 +2522,7 @@ tile(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mon_w = m->nmaster ? m->win_w * m->master_fact : 0;
+        mon_w = m->nmaster ? m->win_w*m->master_fact : 0;
     else
         mon_w = m->win_w;
     for (i = mon_y = ty = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++)
@@ -2918,7 +2916,7 @@ update_numlock_mask(void) {
     modmap = XGetModifierMapping(display);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < modmap->max_keypermod; j++) {
-            if (modmap->modifiermap[i * modmap->max_keypermod + j]
+            if (modmap->modifiermap[i*modmap->max_keypermod + j]
                 == XKeysymToKeycode(display, XK_Num_Lock))
                 numlockmask = (1 << i);
         }
