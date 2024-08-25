@@ -2565,21 +2565,25 @@ tile(Monitor *m) {
 
 void
 toggle_bar(const Arg *arg) {
+    Monitor *monitor = current_monitor;
     (void) arg;
-    current_monitor->showbar = current_monitor->pertag->showbars[current_monitor->pertag->current_tag] = !current_monitor->showbar;
-    update_bar_pos(current_monitor);
-    XMoveResizeWindow(display, current_monitor->barwin, current_monitor->win_x, current_monitor->bar_y, current_monitor->win_w, bh);
-    arrange(current_monitor);
+
+    monitor->showbar = monitor->pertag->showbars[monitor->pertag->current_tag] = !monitor->showbar;
+    update_bar_pos(monitor);
+    XMoveResizeWindow(display, monitor->barwin, monitor->win_x, monitor->bar_y, monitor->win_w, bh);
+    arrange(monitor);
     return;
 }
 
 void
 toggle_extra_bar(const Arg *arg) {
+    Monitor *monitor = current_monitor;
     (void) arg;
-    current_monitor->extrabar = !current_monitor->extrabar;
-    update_bar_pos(current_monitor);
-    XMoveResizeWindow(display, current_monitor->extrabarwin, current_monitor->win_x, current_monitor->extra_bar_y, current_monitor->win_w, bh);
-    arrange(current_monitor);
+
+    monitor->extrabar = !monitor->extrabar;
+    update_bar_pos(monitor);
+    XMoveResizeWindow(display, monitor->extrabarwin, monitor->win_x, monitor->extra_bar_y, monitor->win_w, bh);
+    arrange(monitor);
     return;
 }
 
