@@ -2069,9 +2069,11 @@ resize_mouse(const Arg *arg) {
     ocx = client->x;
     ocy = client->y;
 
-    if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-                     None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess)
+    if (XGrabPointer(display, root,
+                     False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
+                     None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess) {
         return;
+    }
 
     XWarpPointer(display, None, client->win,
                  0, 0, 0, 0,
