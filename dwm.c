@@ -818,9 +818,9 @@ configure_notify(XEvent *e) {
                                   m->mon_x, m->mon_y, m->mon_w, m->mon_h);
             }
             XMoveResizeWindow(display, m->barwin,
-                              m->win_x, m->bar_y, m->win_w, bar_height);
+                              m->win_x, m->bar_y, (uint)m->win_w, (uint)bar_height);
             XMoveResizeWindow(display, m->extrabarwin,
-                              m->win_x, m->extra_bar_y, m->win_w, bar_height);
+                              m->win_x, m->extra_bar_y, (uint)m->win_w, (uint)bar_height);
         }
         focus(NULL);
         arrange(NULL);
@@ -863,7 +863,8 @@ configure_request(XEvent *e) {
             if ((event->value_mask & (CWX|CWY)) && !(event->value_mask & (CWWidth|CWHeight)))
                 configure(client);
             if (ISVISIBLE(client))
-                XMoveResizeWindow(display, client->win, client->x, client->y, client->w, client->h);
+                XMoveResizeWindow(display, client->win,
+                                  client->x, client->y, (uint)client->w, (uint)client->h);
         } else {
             configure(client);
         }
@@ -1350,13 +1351,13 @@ focus_urgent(const Arg *arg) {
 }
 
 void
-gapless_grid(Monitor *m) {
+gapless_grid(Monitor *monitor) {
     uint n = 0;
     uint cols, rows;
     uint cn, rn, cx, cy, cw, ch;
     uint i = 0;
 
-    for (Client *client = next_tiled(m->clients);
+    for (Client *client = next_tiled(monitor->clients);
          client;
          client = next_tiled(client->next), n += 1);
     if (n == 0)
@@ -1372,15 +1373,15 @@ gapless_grid(Monitor *m) {
     rows = n/cols;
 
     /* window geometries */
-    cw = cols ? m->win_w / cols : m->win_w;
+    cw = cols ? monitor->win_w / cols : monitor->win_w;
     cn = 0; /* current column number */
     rn = 0; /* current row number */
-    for (Client *client = next_tiled(m->clients); client; client = next_tiled(client->next)) {
+    for (Client *client = next_tiled(monitor->clients); client; client = next_tiled(client->next)) {
         if (i/rows + 1 > cols - n%cols)
             rows = n/cols + 1;
-        ch = rows ? m->win_h / rows : m->win_h;
-        cx = m->win_x + cn*cw;
-        cy = m->win_y + rn*ch;
+        ch = rows ? monitor->win_h / rows : monitor->win_h;
+        cx = monitor->win_x + cn*cw;
+        cy = monitor->win_y + rn*ch;
         resize(client, cx, cy, cw - 2*client->border_width, ch - 2*client->border_width, False);
         rn += 1;
         if (rn >= rows) {
