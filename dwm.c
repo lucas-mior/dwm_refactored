@@ -489,9 +489,9 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
     int baseismin;
     Monitor *monitor = client->monitor;
 
-    /* set minimum possible */
     *w = MAX(1, *w);
     *h = MAX(1, *h);
+
     if (interact) {
         if (*x > screen_width)
             *x = screen_width - WIDTH(client);
@@ -511,10 +511,12 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         if (*y + *h + 2*client->border_width <= monitor->win_y)
             *y = monitor->win_y;
     }
+
     if (*h < bh)
         *h = bh;
     if (*w < bh)
         *w = bh;
+
     if (resizehints || client->isfloating || !client->monitor->layout[client->monitor->layout_index]->arrange) {
         if (!client->hintsvalid)
             update_size_hints(client);
@@ -2668,21 +2670,24 @@ void
 toggle_scratch(const Arg *arg) {
     Client *client;
     uint found = 0;
-    uint scratchtag = SPTAG(arg->ui);
+    uint scrath_tag = SPTAG(arg->ui);
     Arg sparg = {.v = scratchpads[arg->ui].cmd};
 
-    for (client = current_monitor->clients; client && !(found = client->tags & scratchtag); client = client->next);
+    for (client = current_monitor->clients;
+         client && !(found = client->tags & scrath_tag);
+         client = client->next);
+
     if (found) {
         uint this_tag = client->tags & current_monitor->tagset[current_monitor->seltags];
-        uint newtagset = current_monitor->tagset[current_monitor->seltags] ^ scratchtag;
+        uint new_tagset = current_monitor->tagset[current_monitor->seltags] ^ scrath_tag;
 
         if (this_tag) {
-            client->tags = scratchtag;
+            client->tags = scrath_tag;
         } else {
             client->tags |= current_monitor->tagset[current_monitor->seltags];
         }
-        if (newtagset) {
-            current_monitor->tagset[current_monitor->seltags] = newtagset;
+        if (new_tagset) {
+            current_monitor->tagset[current_monitor->seltags] = new_tagset;
             focus(NULL);
             arrange(current_monitor);
         }
@@ -2691,7 +2696,7 @@ toggle_scratch(const Arg *arg) {
             restack(current_monitor);
         }
     } else {
-        current_monitor->tagset[current_monitor->seltags] |= scratchtag;
+        current_monitor->tagset[current_monitor->seltags] |= scrath_tag;
         spawn(&sparg);
     }
 }
@@ -2715,22 +2720,22 @@ toggle_tag(const Arg *arg) {
 void
 toggle_view(const Arg *arg) {
     Monitor *monitor = current_monitor;
-    uint newtagset = monitor->tagset[monitor->seltags] ^ (arg->ui & TAGMASK);
+    uint new_tagset = monitor->tagset[monitor->seltags] ^ (arg->ui & TAGMASK);
     int i;
 
-    if (newtagset) {
+    if (new_tagset) {
         int current_tag;
-        monitor->tagset[monitor->seltags] = newtagset;
+        monitor->tagset[monitor->seltags] = new_tagset;
 
-        if (newtagset == (uint) ~0) {
+        if (new_tagset == (uint) ~0) {
             monitor->pertag->previous_tag = monitor->pertag->current_tag;
             monitor->pertag->current_tag = 0;
         }
 
         /* test if the user did not select the same tag */
-        if (!(newtagset & 1 << (monitor->pertag->current_tag - 1))) {
+        if (!(new_tagset & 1 << (monitor->pertag->current_tag - 1))) {
             monitor->pertag->previous_tag = monitor->pertag->current_tag;
-            for (i = 0; !(newtagset & 1 << i); i++) ;
+            for (i = 0; !(new_tagset & 1 << i); i++);
             monitor->pertag->current_tag = i + 1;
         }
 
