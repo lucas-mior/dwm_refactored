@@ -58,9 +58,6 @@ typedef unsigned char uchar;
 #define CLEANMASK(mask)         \
     (mask & ~(numlockmask|LockMask) \
     & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
-#define INTERSECT(x,y,w,h,m)    \
-    (MAX(0, MIN((x)+(w),(m)->win_x+(m)->win_w) - MAX((x),(m)->win_x)) \
-     * MAX(0, MIN((y)+(h),(m)->win_y+(m)->win_h) - MAX((y),(m)->win_y)))
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->seltags]))
 #define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
@@ -2001,11 +1998,17 @@ Monitor *
 recttomon(int x, int y, int w, int h) {
     Monitor *r = current_monitor;
     int a;
-    int area = 0;
+    int max_area = 0;
 
     for (Monitor *m = monitors; m; m = m->next) {
-        if ((a = INTERSECT(x, y, w, h, m)) > area) {
-            area = a;
+        int min_x = MIN(x + w, m->win_x + m->win_w);
+        int min_y = MIN(y + h, m->win_y + m->win_h);
+
+        int ax = MAX(0, min_x - MAX(x, m->win_x));
+        int ay = MAX(0, min_y - MAX(y, m->win_y));
+
+        if ((a = ax*ay) > max_area) {
+            max_area = a;
             r = m;
         }
     }
