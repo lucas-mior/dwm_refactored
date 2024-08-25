@@ -247,7 +247,7 @@ static void set_fullscreen(Client *, int fullscreen);
 static void set_layout(const Arg *arg);
 static void set_master_fact(const Arg *arg);
 static void setup(void);
-static void set_urgent(Client *, int urg);
+static void set_urgent(Client *, int urgent);
 static void show_hide(Client *);
 static void signal_status_bar(const Arg *arg);
 static void spawn(const Arg *arg);
@@ -804,9 +804,7 @@ direction_to_monitor(int dir) {
 void
 draw_bar(Monitor *monitor) {
     int x, w, tw = 0, extra_status_width = 0;
-    int boxs = drw->fonts->h / 9;
-    int boxw = drw->fonts->h / 6 + 2;
-    uint urg = 0;
+    uint urgent = 0;
     char tagdisp[TAGWIDTH];
     char *masterclientontag[LENGTH(tags)];
     Client *icontagclient[LENGTH(tags)] = {0};
@@ -843,7 +841,7 @@ draw_bar(Monitor *monitor) {
 
     for (Client *client = monitor->clients; client; client = client->next) {
         if (client->isurgent)
-            urg |= client->tags;
+            urgent |= client->tags;
         for (int i = 0; i < LENGTH(tags); i += 1) {
             if (client->icon && client->tags & (1 << i))
                 icontagclient[i] = client;
@@ -870,10 +868,10 @@ draw_bar(Monitor *monitor) {
         }
         tagw[i] = w = TEXT_PIXELS(tagdisp);
         drw_setscheme(drw, scheme[monitor->tagset[monitor->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-        drw_text(drw, x, 0, w, bar_height, lrpad / 2, tagdisp, urg & 1 << i);
+        drw_text(drw, x, 0, w, bar_height, lrpad / 2, tagdisp, urgent & 1 << i);
         x += w;
         if (client) {
-            drw_text(drw, x, 0, client->icon_width + lrpad/2, bar_height, 0, " ", urg & 1 << i);
+            drw_text(drw, x, 0, client->icon_width + lrpad/2, bar_height, 0, " ", urgent & 1 << i);
             drw_pic(drw,
                     x, (bar_height - client->icon_height) / 2,
                     client->icon_width, client->icon_height,
@@ -887,6 +885,9 @@ draw_bar(Monitor *monitor) {
     x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - tw - x) > bar_height) {
+        int boxs = drw->fonts->h / 9;
+        int boxw = drw->fonts->h / 6 + 2;
+
         if (monitor->selected_client) {
             drw_setscheme(drw, scheme[monitor == current_monitor ? SchemeSel : SchemeNorm]);
             drw_text(drw, x, 0, w, bar_height, lrpad / 2, monitor->selected_client->name, 0);
@@ -2362,7 +2363,7 @@ send_event(Client *client, Atom proto) {
     int n;
     Atom *protocols;
     bool exists = false;
-    XEvent ev;
+    XEvent event;
 
     if (XGetWMProtocols(display, client->win, &protocols, &n)) {
         while (!exists && n--)
@@ -2370,13 +2371,13 @@ send_event(Client *client, Atom proto) {
         XFree(protocols);
     }
     if (exists) {
-        ev.type = ClientMessage;
-        ev.xclient.window = client->win;
-        ev.xclient.message_type = wmatom[WMProtocols];
-        ev.xclient.format = 32;
-        ev.xclient.data.l[0] = proto;
-        ev.xclient.data.l[1] = CurrentTime;
-        XSendEvent(display, client->win, False, NoEventMask, &ev);
+        event.type = ClientMessage;
+        event.xclient.window = client->win;
+        event.xclient.message_type = wmatom[WMProtocols];
+        event.xclient.format = 32;
+        event.xclient.data.l[0] = proto;
+        event.xclient.data.l[1] = CurrentTime;
+        XSendEvent(display, client->win, False, NoEventMask, &event);
     }
     return exists;
 }
@@ -2589,13 +2590,13 @@ setup(void) {
 }
 
 void
-set_urgent(Client *client, int urg) {
+set_urgent(Client *client, int urgent) {
     XWMHints *wm_hints;
 
-    client->isurgent = urg;
+    client->isurgent = urgent;
     if (!(wm_hints = XGetWMHints(display, client->win)))
         return;
-    wm_hints->flags = urg ? (wm_hints->flags | XUrgencyHint) : (wm_hints->flags & ~XUrgencyHint);
+    wm_hints->flags = urgent ? (wm_hints->flags | XUrgencyHint) : (wm_hints->flags & ~XUrgencyHint);
     XSetWMHints(display, client->win, wm_hints);
     XFree(wm_hints);
     return;
