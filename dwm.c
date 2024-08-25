@@ -1362,10 +1362,10 @@ gapless_grid(Monitor *m) {
         cx = m->win_x + cn*cw;
         cy = m->win_y + rn*ch;
         resize(client, cx, cy, cw - 2 * client->border_width, ch - 2 * client->border_width, False);
-        rn++;
+        rn += 1;
         if (rn >= rows) {
             rn = 0;
-            cn++;
+            cn += 1;
         }
         i += 1;
     }
@@ -1490,7 +1490,7 @@ get_icon_property(Window win, uint *picw, uint *pich) {
     *picw = icon_width; *pich = icon_height;
 
     uint32 i, *bstp32 = (uint32 *)bstp;
-    for (sz = w * h, i = 0; i < sz; ++i)
+    for (sz = w * h, i = 0; i < sz; i += 1)
         bstp32[i] = prealpha(bstp[i]);
 
     Picture ret = drw_picture_create_resized(drw, (char *)bstp, w, h, icon_width, icon_height);
@@ -1558,9 +1558,9 @@ grab_buttons(Client *client, int focused) {
         XGrabButton(display, AnyButton, AnyModifier, client->win, False,
                     BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
     }
-    for (int i = 0; i < LENGTH(buttons); i++) {
+    for (int i = 0; i < LENGTH(buttons); i += 1) {
         if (buttons[i].click == ClickClientWin) {
-            for (int j = 0; j < LENGTH(modifiers); j++) {
+            for (int j = 0; j < LENGTH(modifiers); j += 1) {
                 XGrabButton(display, (uint) buttons[i].button,
                             buttons[i].mask | modifiers[j],
                             client->win, False, BUTTONMASK,
@@ -1584,11 +1584,11 @@ grab_keys(void) {
     syms = XGetKeyboardMapping(display, (uchar) start, (uchar) end - start + 1, &skip);
     if (!syms)
         return;
-    for (int k = start; k <= end; k++) {
-        for (int i = 0; i < LENGTH(keys); i++) {
+    for (int k = start; k <= end; k += 1) {
+        for (int i = 0; i < LENGTH(keys); i += 1) {
             /* skip modifier codes, we do that ourselves */
             if (keys[i].keysym == syms[(k - start) * skip]) {
-                for (int j = 0; j < LENGTH(modifiers); j++)
+                for (int j = 0; j < LENGTH(modifiers); j += 1)
                     XGrabKey(display, k, (uint) keys[i].mod | modifiers[j],
                              root, True, GrabModeAsync, GrabModeAsync);
             }
@@ -1600,12 +1600,15 @@ grab_keys(void) {
 
 void
 inc_number_masters(const Arg *arg) {
-    int nslave = 0;
+    int nslave = -1;
     int new_number_masters;
     uint current_tag;
-    Client *client = current_monitor->clients;
 
-    for (client = nexttiled(client->next); client; client = nexttiled(client->next), nslave++);
+    for (Client *client = current_monitor->clients;
+                 client;
+                 client = nexttiled(client->next)) {
+        nslave += 1;
+    }
 
     new_number_masters = MAX(MIN(current_monitor->nmaster + arg->i, nslave + 1), 0);
     current_tag = current_monitor->pertag->current_tag;
@@ -1618,10 +1621,11 @@ inc_number_masters(const Arg *arg) {
 #ifdef XINERAMA
 static int
 isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
-    while (n--)
+    while (n--) {
         if (unique[n].x_org == info->x_org && unique[n].y_org == info->y_org
         && unique[n].width == info->width && unique[n].height == info->height)
             return 0;
+    }
     return 1;
 }
 #endif /* XINERAMA */
