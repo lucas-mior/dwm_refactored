@@ -105,16 +105,20 @@ typedef struct Client Client;
 struct Client {
     char name[256];
     float min_a, max_a;
+
     int x, y, w, h;
     int stored_fx, stored_fy, stored_fw, stored_fh;
     int old_x, old_y, old_w, old_h;
     int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
     int border_width, oldbw;
     uint tags;
-    int isfixed, isfloating, isurgent;
-    int neverfocus, oldstate, isfullscreen, isfakefullscreen;
+
+    bool isfixed, isfloating, isurgent;
+    bool neverfocus, oldstate, isfullscreen, isfakefullscreen;
+
     uint icon_width, icon_height;
     Picture icon;
+
     Client *next;
     Client *snext;
     Client *allnext;
@@ -2493,7 +2497,8 @@ void
 col(Monitor *m) {
     uint i;
     int n = 0;
-    uint h, w, x, y, mon_w;
+    uint x, y, w, h;
+    uint mon_w;
     Client *client;
 
     for (Client *client_aux = next_tiled(m->clients);
@@ -2988,8 +2993,8 @@ update_size_hints(Client *client) {
     } else
         client->minw = client->minh = 0;
     if (size.flags & PAspect) {
-        client->min_a = (float)size.min_aspect.y / size.min_aspect.x;
-        client->max_a = (float)size.max_aspect.x / size.max_aspect.y;
+        client->min_a = (float)size.min_aspect.y / (float)size.min_aspect.x;
+        client->max_a = (float)size.max_aspect.x / (float)size.max_aspect.y;
     } else
         client->max_a = client->min_a = 0.0;
     client->isfixed = (client->maxw && client->maxh && client->maxw == client->minw && client->maxh == client->minh);
@@ -3097,7 +3102,7 @@ view(const Arg *arg) {
         monitor->tagset[monitor->seltags] = arg->ui & TAGMASK;
         monitor->pertag->previous_tag = monitor->pertag->current_tag;
 
-        if (arg->ui == ~0) {
+        if (arg->ui == (uint) ~0) {
             monitor->pertag->current_tag = 0;
         } else {
             int i;
