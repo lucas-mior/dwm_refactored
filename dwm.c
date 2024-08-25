@@ -1999,10 +1999,11 @@ quit(const Arg *arg) {
 
 Monitor *
 recttomon(int x, int y, int w, int h) {
-    Monitor *m, *r = current_monitor;
-    int a, area = 0;
+    Monitor *r = current_monitor;
+    int a;
+    int area = 0;
 
-    for (m = monitors; m; m = m->next) {
+    for (Monitor *m = monitors; m; m = m->next) {
         if ((a = INTERSECT(x, y, w, h, m)) > area) {
             area = a;
             r = m;
@@ -2053,7 +2054,7 @@ void
 resize_mouse(const Arg *arg) {
     int ocx, ocy;
     Client *client;
-    Monitor *m;
+    Monitor *monitor;
     XEvent ev;
     Time lasttime = 0;
     (void) arg;
@@ -2121,9 +2122,10 @@ resize_mouse(const Arg *arg) {
     XUngrabPointer(display, CurrentTime);
     while (XCheckMaskEvent(display, EnterWindowMask, &ev));
 
-    if ((m = recttomon(client->x, client->y, client->w, client->h)) != current_monitor) {
-        send_monitor(client, m);
-        current_monitor = m;
+    monitor = recttomon(client->x, client->y, client->w, client->h);
+    if (monitor != current_monitor) {
+        send_monitor(client, monitor);
+        current_monitor = monitor;
         focus(NULL);
     }
     return;
