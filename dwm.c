@@ -226,7 +226,7 @@ static void map_request(XEvent *e);
 static void monocle(Monitor *monitor);
 static void motion_notify(XEvent *e);
 static void move_mouse(const Arg *arg);
-static Client *nexttiled(Client *client);
+static Client *next_tiled(Client *client);
 static void pop(Client *client);
 static void property_notify(XEvent *e);
 static void quit(const Arg *arg);
@@ -1333,12 +1333,13 @@ focus_urgent(const Arg *arg) {
 void
 gapless_grid(Monitor *m) {
     uint n = 0;
-    uint cols, rows, cn, rn, cx, cy, cw, ch;
+    uint cols, rows;
+    uint cn, rn, cx, cy, cw, ch;
     uint i = 0;
 
-    for (Client *client = nexttiled(m->clients);
+    for (Client *client = next_tiled(m->clients);
          client;
-         client = nexttiled(client->next), n += 1);
+         client = next_tiled(client->next), n += 1);
     if (n == 0)
         return;
 
@@ -1355,7 +1356,7 @@ gapless_grid(Monitor *m) {
     cw = cols ? m->win_w / cols : m->win_w;
     cn = 0; /* current column number */
     rn = 0; /* current row number */
-    for (Client *client = nexttiled(m->clients); client; client = nexttiled(client->next)) {
+    for (Client *client = next_tiled(m->clients); client; client = next_tiled(client->next)) {
         if (i/rows + 1 > cols - n%cols)
             rows = n/cols + 1;
         ch = rows ? m->win_h / rows : m->win_h;
@@ -1575,26 +1576,26 @@ void
 grab_keys(void) {
     uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
     int start, end, skip;
-    KeySym *syms;
+    KeySym *key_sym;
 
     update_numlock_mask();
 
     XUngrabKey(display, AnyKey, AnyModifier, root);
     XDisplayKeycodes(display, &start, &end);
-    syms = XGetKeyboardMapping(display, (uchar) start, (uchar) end - start + 1, &skip);
-    if (!syms)
+    key_sym = XGetKeyboardMapping(display, (uchar) start, (uchar) end - start + 1, &skip);
+    if (!key_sym)
         return;
     for (int k = start; k <= end; k += 1) {
         for (int i = 0; i < LENGTH(keys); i += 1) {
             /* skip modifier codes, we do that ourselves */
-            if (keys[i].keysym == syms[(k - start) * skip]) {
+            if (keys[i].keysym == key_sym[(k - start) * skip]) {
                 for (int j = 0; j < LENGTH(modifiers); j += 1)
                     XGrabKey(display, k, (uint) keys[i].mod | modifiers[j],
                              root, True, GrabModeAsync, GrabModeAsync);
             }
         }
     }
-    XFree(syms);
+    XFree(key_sym);
     return;
 }
 
@@ -1606,7 +1607,7 @@ inc_number_masters(const Arg *arg) {
 
     for (Client *client = current_monitor->clients;
                  client;
-                 client = nexttiled(client->next)) {
+                 client = next_tiled(client->next)) {
         nslave += 1;
     }
 
@@ -1788,9 +1789,9 @@ monocle(Monitor *monitor) {
     if (n > 0) /* override layout symbol */
         snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
 
-    for (Client *client = nexttiled(monitor->clients);
+    for (Client *client = next_tiled(monitor->clients);
                  client;
-                 client = nexttiled(client->next)) {
+                 client = next_tiled(client->next)) {
         int new_x = monitor->win_x;
         int new_y = monitor->win_y;
         int new_w = monitor->win_w - 2 * client->border_width;
@@ -1883,7 +1884,7 @@ move_mouse(const Arg *arg) {
 }
 
 Client *
-nexttiled(Client *client) {
+next_tiled(Client *client) {
     for (; client && (client->isfloating || !ISVISIBLE(client)); client = client->next);
     return client;
 }
@@ -1980,9 +1981,9 @@ resize_client(Client *client, int x, int y, int w, int h) {
     client->old_h = client->h; client->h = window_changes.height = h;
     window_changes.border_width = client->border_width;
 
-    for (Client *client = nexttiled(current_monitor->clients);
+    for (Client *client = next_tiled(current_monitor->clients);
                  client;
-                 client = nexttiled(client->next)) {
+                 client = next_tiled(client->next)) {
         n += 1;
     }
 
@@ -2449,7 +2450,7 @@ col(Monitor *m) {
     uint i, n, h, w, x, y, mon_w;
     Client *client;
 
-    for (n = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), n++);
+    for (n = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), n++);
     if (n == 0)
         return;
 
@@ -2457,7 +2458,7 @@ col(Monitor *m) {
         mon_w = m->nmaster ? m->win_w * m->master_fact : 0;
     else
         mon_w = m->win_w;
-    for (i = x = y = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++) {
+    for (i = x = y = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++) {
         if (i < m->nmaster) {
             w = (mon_w - x) / (MIN(n, m->nmaster) - i);
             resize(client, x + m->win_x, m->win_y, w - (2 * client->border_width), m->win_h - (2 * client->border_width), 0);
@@ -2476,7 +2477,7 @@ tile(Monitor *m) {
     uint i, n, h, mon_w, mon_y, ty;
     Client *client;
 
-    for (n = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), n++);
+    for (n = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), n++);
     if (n == 0)
         return;
 
@@ -2484,7 +2485,7 @@ tile(Monitor *m) {
         mon_w = m->nmaster ? m->win_w * m->master_fact : 0;
     else
         mon_w = m->win_w;
-    for (i = mon_y = ty = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++)
+    for (i = mon_y = ty = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++)
         if (i < m->nmaster) {
             h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
             resize(client, m->win_x, m->win_y + mon_y, mon_w - (2*client->border_width), h - (2*client->border_width), 0);
@@ -3182,7 +3183,7 @@ zoom(const Arg *arg) {
 
     if (!monitor->layout[monitor->layout_index]->arrange || !client || client->isfloating)
         return;
-    if (client == nexttiled(monitor->clients) && !(client = nexttiled(client->next)))
+    if (client == next_tiled(monitor->clients) && !(client = next_tiled(client->next)))
         return;
     pop(client);
     return;
