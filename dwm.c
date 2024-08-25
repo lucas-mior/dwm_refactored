@@ -1000,7 +1000,7 @@ direction_to_mon(int dir) {
 }
 
 void
-draw_bar(Monitor *m) {
+draw_bar(Monitor *monitor) {
     int x, w, tw = 0, extra_status_width = 0;
     int boxs = drw->fonts->h / 9;
     int boxw = drw->fonts->h / 6 + 2;
@@ -1009,11 +1009,11 @@ draw_bar(Monitor *m) {
     char *masterclientontag[LENGTH(tags)];
     Client *icontagclient[LENGTH(tags)] = {0};
 
-    if (!m->showbar)
+    if (!monitor->showbar)
         return;
 
     /* draw status first so it can be overdrawn by tags later */
-    if (m == current_monitor) { /* status is only drawn on selected monitor */
+    if (monitor == current_monitor) { /* status is only drawn on selected monitor */
         char *text, *s, ch;
         drw_setscheme(drw, scheme[SchemeNorm]);
 
@@ -1023,14 +1023,14 @@ draw_bar(Monitor *m) {
                 ch = *s;
                 *s = '\0';
                 tw = TEXTW(text) - lrpad;
-                drw_text(drw, m->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
+                drw_text(drw, monitor->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
                 x += tw;
                 *s = ch;
                 text = s + 1;
             }
         }
         tw = TEXTW(text) - lrpad + 2;
-        drw_text(drw, m->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
+        drw_text(drw, monitor->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
         tw = statusw;
     }
 
@@ -1039,7 +1039,7 @@ draw_bar(Monitor *m) {
         icontagclient[i] = NULL;
     }
 
-    for (Client *client = m->clients; client; client = client->next) {
+    for (Client *client = monitor->clients; client; client = client->next) {
         if (client->isurgent)
             urg |= client->tags;
         for (int i = 0; i < LENGTH(tags); i += 1) {
@@ -1067,7 +1067,7 @@ draw_bar(Monitor *m) {
             snprintf(tagdisp, TAGWIDTH, tag_empty_format, tags[i]);
         }
         tagw[i] = w = TEXTW(tagdisp);
-        drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+        drw_setscheme(drw, scheme[monitor->tagset[monitor->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
         drw_text(drw, x, 0, w, bar_height, lrpad / 2, tagdisp, urg & 1 << i);
         x += w;
         if (client) {
@@ -1080,30 +1080,30 @@ draw_bar(Monitor *m) {
             tagw[i] += client->icon_width + lrpad/2;
         }
     }
-    w = TEXTW(m->layout_symbol);
+    w = TEXTW(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNorm]);
-    x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->layout_symbol, 0);
+    x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
 
-    if ((w = m->win_w - tw - x) > bar_height) {
-        if (m->selected_client) {
-            drw_setscheme(drw, scheme[m == current_monitor ? SchemeSel : SchemeNorm]);
-            drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->selected_client->name, 0);
-            if (m->selected_client->isfloating)
-                drw_rect(drw, x + boxs, boxs, boxw, boxw, m->selected_client->isfixed, 0);
+    if ((w = monitor->win_w - tw - x) > bar_height) {
+        if (monitor->selected_client) {
+            drw_setscheme(drw, scheme[monitor == current_monitor ? SchemeSel : SchemeNorm]);
+            drw_text(drw, x, 0, w, bar_height, lrpad / 2, monitor->selected_client->name, 0);
+            if (monitor->selected_client->isfloating)
+                drw_rect(drw, x + boxs, boxs, boxw, boxw, monitor->selected_client->isfixed, 0);
         } else {
             drw_setscheme(drw, scheme[SchemeNorm]);
             drw_rect(drw, x, 0, w, bar_height, 1, 1);
         }
     }
-    drw_map(drw, m->barwin, 0, 0, m->win_w, bar_height);
+    drw_map(drw, monitor->barwin, 0, 0, monitor->win_w, bar_height);
 
-    if (m == current_monitor) { /* extra status is only drawn on selected monitor */
+    if (monitor == current_monitor) { /* extra status is only drawn on selected monitor */
         drw_setscheme(drw, scheme[SchemeNorm]);
         /* clear default bar draw buffer by drawing a blank rectangle */
-        drw_rect(drw, 0, 0, m->win_w, bar_height, 1, 1);
+        drw_rect(drw, 0, 0, monitor->win_w, bar_height, 1, 1);
         extra_status_width = TEXTW(extra_status);
         drw_text(drw, 0, 0, extra_status_width, bar_height, 0, extra_status, 0);
-        drw_map(drw, m->extrabarwin, 0, 0, m->win_w, bar_height);
+        drw_map(drw, monitor->extrabarwin, 0, 0, monitor->win_w, bar_height);
     }
     return;
 }
@@ -2768,8 +2768,10 @@ toggle_view(const Arg *arg) {
         monitor->nmaster = monitor->pertag->nmasters[current_tag];
         monitor->master_fact = monitor->pertag->master_facts[current_tag];
         monitor->layout_index = monitor->pertag->selected_layouts[current_tag];
-        monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
-        monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
+        monitor->layout[monitor->layout_index]
+            = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
+        monitor->layout[monitor->layout_index^1]
+            = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
         if (monitor->showbar != monitor->pertag->showbars[current_tag])
             toggle_bar(NULL);
