@@ -107,7 +107,8 @@ struct Client {
     int x, y, w, h;
     int stored_fx, stored_fy, stored_fw, stored_fh;
     int old_x, old_y, old_w, old_h;
-    int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
+    int basew, baseh;
+    int incw, inch, maxw, maxh, minw, minh, hintsvalid;
     int border_width, oldbw;
     uint tags;
 
@@ -3286,11 +3287,15 @@ window_to_monitor(Window window) {
 /* to be displayed is matched to the focused window tag list. */
 void
 window_view(const Arg* arg) {
-    Window window, root_return, parent_return, *children_return;
+    Window window;
+    Window root_return;
+    Window parent_return;
+    Window *children_return;
     uint nchildren_return;
     int unused;
-    Client* client;
+    Client *client;
     Arg view_arg;
+
     (void) arg;
 
     if (!XGetInputFocus(display, &window, &unused))
