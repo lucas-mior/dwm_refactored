@@ -2126,38 +2126,40 @@ restack(Monitor *m) {
 
 void
 run(void) {
-    XEvent ev;
+    XEvent event;
     XSync(display, False);
-    while (running && !XNextEvent(display, &ev)) {
-        if (handler[ev.type])
-            handler[ev.type](&ev);
+
+    while (running && !XNextEvent(display, &event)) {
+        if (handler[event.type])
+            handler[event.type](&event);
     }
     return;
 }
 
 void
 scan(void) {
+    Window d1, d2;
+    Window *children_return = NULL;
     uint nchildren_return;
-    Window d1, d2, *wins = NULL;
     XWindowAttributes window_attributes;
 
-    if (XQueryTree(display, root, &d1, &d2, &wins, &nchildren_return)) {
+    if (XQueryTree(display, root, &d1, &d2, &children_return, &nchildren_return)) {
         for (uint i = 0; i < nchildren_return; i += 1) {
-            if (!XGetWindowAttributes(display, wins[i], &window_attributes)
-            || window_attributes.override_redirect || XGetTransientForHint(display, wins[i], &d1))
+            if (!XGetWindowAttributes(display, children_return[i], &window_attributes)
+            || window_attributes.override_redirect || XGetTransientForHint(display, children_return[i], &d1))
                 continue;
-            if (window_attributes.map_state == IsViewable || get_state(wins[i]) == IconicState)
-                manage(wins[i], &window_attributes);
+            if (window_attributes.map_state == IsViewable || get_state(children_return[i]) == IconicState)
+                manage(children_return[i], &window_attributes);
         }
         for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
-            if (!XGetWindowAttributes(display, wins[i], &window_attributes))
+            if (!XGetWindowAttributes(display, children_return[i], &window_attributes))
                 continue;
-            if (XGetTransientForHint(display, wins[i], &d1)
-            && (window_attributes.map_state == IsViewable || get_state(wins[i]) == IconicState))
-                manage(wins[i], &window_attributes);
+            if (XGetTransientForHint(display, children_return[i], &d1)
+            && (window_attributes.map_state == IsViewable || get_state(children_return[i]) == IconicState))
+                manage(children_return[i], &window_attributes);
         }
-        if (wins)
-            XFree(wins);
+        if (children_return)
+            XFree(children_return);
     }
     return;
 }
@@ -2715,6 +2717,7 @@ toggle_scratch(const Arg *arg) {
         current_monitor->tagset[current_monitor->seltags] |= scrath_tag;
         spawn(&scratchpad_arg);
     }
+    return;
 }
 
 void
