@@ -2582,34 +2582,36 @@ toggle_extra_bar(const Arg *arg) {
 
     monitor->extrabar = !monitor->extrabar;
     update_bar_pos(monitor);
-    XMoveResizeWindow(display, monitor->extrabarwin, monitor->win_x, monitor->extra_bar_y, monitor->win_w, bh);
+    XMoveResizeWindow(display, monitor->extrabarwin,
+                      monitor->win_x, monitor->extra_bar_y, monitor->win_w, bh);
     arrange(monitor);
     return;
 }
 
 void
 toggle_floating(const Arg *arg) {
+    Monitor *monitor = current_monitor;
     (void) arg;
-    if (!current_monitor->selected_client)
+
+    if (!monitor->selected_client)
         return;
-    if (current_monitor->selected_client->isfullscreen && !current_monitor->selected_client->isfakefullscreen) /* no support for fullscreen windows */
+    if (monitor->selected_client->isfullscreen && !monitor->selected_client->isfakefullscreen) /* no support for fullscreen windows */
         return;
-    current_monitor->selected_client->isfloating = !current_monitor->selected_client->isfloating || current_monitor->selected_client->isfixed;
-    if (current_monitor->selected_client->isfloating) {
-        resize(current_monitor->selected_client, current_monitor->selected_client->stored_fx, current_monitor->selected_client->stored_fy,
-               current_monitor->selected_client->stored_fw, current_monitor->selected_client->stored_fh, False);
+    monitor->selected_client->isfloating = !monitor->selected_client->isfloating || monitor->selected_client->isfixed;
+    if (monitor->selected_client->isfloating) {
+        resize(monitor->selected_client, monitor->selected_client->stored_fx, monitor->selected_client->stored_fy,
+               monitor->selected_client->stored_fw, monitor->selected_client->stored_fh, False);
     } else {
-        /*save last known float dimensions*/
-        current_monitor->selected_client->stored_fx = current_monitor->selected_client->x;
-        current_monitor->selected_client->stored_fy = current_monitor->selected_client->y;
-        current_monitor->selected_client->stored_fw = current_monitor->selected_client->w;
-        current_monitor->selected_client->stored_fh = current_monitor->selected_client->h;
+        monitor->selected_client->stored_fx = monitor->selected_client->x;
+        monitor->selected_client->stored_fy = monitor->selected_client->y;
+        monitor->selected_client->stored_fw = monitor->selected_client->w;
+        monitor->selected_client->stored_fh = monitor->selected_client->h;
     }
 
-    current_monitor->selected_client->x = current_monitor->selected_client->monitor->mon_x + (current_monitor->selected_client->monitor->mon_w - WIDTH(current_monitor->selected_client)) / 2;
-    current_monitor->selected_client->y = current_monitor->selected_client->monitor->mon_y + (current_monitor->selected_client->monitor->mon_h - HEIGHT(current_monitor->selected_client)) / 2;
+    monitor->selected_client->x = monitor->selected_client->monitor->mon_x + (monitor->selected_client->monitor->mon_w - WIDTH(monitor->selected_client)) / 2;
+    monitor->selected_client->y = monitor->selected_client->monitor->mon_y + (monitor->selected_client->monitor->mon_h - HEIGHT(monitor->selected_client)) / 2;
 
-    arrange(current_monitor);
+    arrange(monitor);
     return;
 }
 
