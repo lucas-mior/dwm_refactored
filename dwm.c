@@ -1339,7 +1339,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     ulong extra;
     ulong *p = NULL;
     ulong *bstp = NULL;
-    uint32 w, h, sz;
+    uint32 w, h;
+    uint32 sz = 0;
     Atom real;
 
     if (XGetWindowProperty(display, win, netatom[NetWMIcon],
