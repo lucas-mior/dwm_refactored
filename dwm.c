@@ -2356,18 +2356,21 @@ setup(void) {
     grab_keys();
 
     focus(NULL);
-    for (Monitor *m = monitors; m; m = m->next) {
-        unfocus(current_monitor->selected_client, 0);
-        current_monitor = m;
-        focus(NULL);
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Arg lay_monocle = {.v = &layouts[2]};
         Arg lay_grid = {.v = &layouts[3]};
         Arg tag8 = {.ui = 1 << 5};
         Arg tag1 = {.ui = 1 << 0};
         Arg tag0 = {.ui = ~0};
+
+        unfocus(current_monitor->selected_client, 0);
+        current_monitor = monitor;
+        focus(NULL);
+
         view(&tag8);
         set_layout(&lay_monocle);
         toggle_bar(0);
+
         view(&tag0);
         set_layout(&lay_grid);
         view(&tag1);
