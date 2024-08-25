@@ -1885,6 +1885,7 @@ move_mouse(const Arg *arg) {
         return;
     if (!get_root_pointer(&x, &y))
         return;
+
     do {
         XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
         switch (event.type) {
@@ -1953,9 +1954,13 @@ property_notify(XEvent *event) {
 
     if ((property_event->window == root) && (property_event->atom == XA_WM_NAME)) {
         update_status();
-    } else if (property_event->state == PropertyDelete) {
-        return; /* ignore */
-    } else if ((client = window_to_client(property_event->window))) {
+        return;
+    }
+    if (property_event->state == PropertyDelete) {
+        return;
+    }
+
+    if ((client = window_to_client(property_event->window))) {
         switch (property_event->atom) {
         default:
             break;
