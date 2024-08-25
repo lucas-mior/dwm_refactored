@@ -1172,7 +1172,7 @@ layout_gapless_grid(Monitor *monitor) {
     uint n = 0;
     uint cols = 0;
     uint rows;
-    uint cn, rn, cx, cy, cw, ch;
+    uint cn, rn, cw, ch;
     uint i = 0;
 
     for (Client *client = next_tiled(monitor->clients);
@@ -1202,10 +1202,8 @@ layout_gapless_grid(Monitor *monitor) {
         if (i/rows + 1 > cols - n%cols)
             rows = n/cols + 1;
         ch = rows ? monitor->win_h / rows : monitor->win_h;
-        cx = monitor->win_x + cn*cw;
-        cy = monitor->win_y + rn*ch;
         resize(client,
-               cx, cy,
+               monitor->win_x + cn*cw, monitor->win_y + rn*ch,
                cw - 2*client->border_width, ch - 2*client->border_width,
                False);
         rn += 1;
@@ -1293,13 +1291,15 @@ Atom
 get_atom_property(Client *client, Atom property) {
     int di;
     ulong dl;
-    uchar *p = NULL;
-    Atom da, atom = None;
+    Atom da;
+    Atom atom = None;
+    Atom *atom_aux = NULL;
 
-    if (XGetWindowProperty(display, client->win, property, 0L, sizeof(atom), False, XA_ATOM,
-                           &da, &di, &dl, &dl, &p) == Success && p) {
-        atom = *(Atom *)p;
-        XFree(p);
+    if (XGetWindowProperty(display, client->win, property,
+                           0L, sizeof(atom), False, XA_ATOM,
+                           &da, &di, &dl, &dl, (uchar **) &atom_aux) == Success && atom_aux) {
+        atom = *atom_aux;
+        XFree(atom_aux);
     }
     return atom;
 }
