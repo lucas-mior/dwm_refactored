@@ -795,13 +795,17 @@ detach(Client *client) {
 void
 detach_stack(Client *client) {
     Client **tc;
-    Client *t;
 
-    for (tc = &client->monitor->stack; *tc && *tc != client; tc = &(*tc)->snext);
+    for (tc = &client->monitor->stack;
+         *tc && *tc != client;
+         tc = &(*tc)->snext);
     *tc = client->snext;
 
     if (client == client->monitor->selected_client) {
-        for (t = client->monitor->stack; t && !ISVISIBLE(t); t = t->snext);
+        Client *t;
+        for (t = client->monitor->stack;
+             t && !ISVISIBLE(t);
+             t = t->snext);
         client->monitor->selected_client = t;
     }
     return;
@@ -3146,36 +3150,40 @@ update_size_hints(Client *client) {
 void
 update_status(void) {
     char text[768];
+    char *s;
+    char *text2;
+    char *l;
+
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
         statusw = TEXT_PIXELS(stext) - lrpad + 2;
         extra_status[0] = '\0';
-    } else {
-        char *s;
-        char *text2;
-        char *l = strchr(text, statussep);
-        if (l) {
-            *l = '\0'; l++;
-            strncpy(extra_status, l, sizeof(extra_status) - 1);
-        } else {
-            extra_status[0] = '\0';
-        }
-
-        strncpy(stext, text, sizeof(stext) - 1);
-        statusw = 0;
-        for (text2 = s = stext; *s; s++) {
-            char ch;
-            if ((uchar)(*s) < ' ') {
-                ch = *s;
-                *s = '\0';
-                statusw += TEXT_PIXELS(text2) - lrpad;
-                *s = ch;
-                text2 = s + 1;
-            }
-        }
-        statusw += TEXT_PIXELS(text2) - lrpad + 2;
-
+        draw_bar(current_monitor);
+        return;
     }
+
+    l = strchr(text, statussep);
+    if (l) {
+        *l = '\0'; l++;
+        strncpy(extra_status, l, sizeof(extra_status) - 1);
+    } else {
+        extra_status[0] = '\0';
+    }
+
+    strncpy(stext, text, sizeof(stext) - 1);
+    statusw = 0;
+    for (text2 = s = stext; *s; s++) {
+        char ch;
+        if ((uchar)(*s) < ' ') {
+            ch = *s;
+            *s = '\0';
+            statusw += TEXT_PIXELS(text2) - lrpad;
+            *s = ch;
+            text2 = s + 1;
+        }
+    }
+    statusw += TEXT_PIXELS(text2) - lrpad + 2;
+
     draw_bar(current_monitor);
     return;
 }
