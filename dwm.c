@@ -1358,9 +1358,9 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         const ulong *end = propreturn + n;
         uint32 bstd = UINT32_MAX;
         uint32 d;
-        uint32 m;
 
         for (i = propreturn; i < (end - 1); i += sz) {
+            uint32 m;
             if ((w = (uint32)*i++) >= 16384 || (h = (uint32)*i++) >= 16384) {
                 XFree(propreturn);
                 return None;
@@ -1397,13 +1397,16 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         return None;
     }
 
-    uint32 icon_width, icon_height;
+    uint32 icon_width;
+    uint32 icon_height;
     if (w <= h) {
-        icon_height = ICONSIZE; icon_width = w*ICONSIZE / h;
+        icon_height = ICONSIZE;
+        icon_width = w*ICONSIZE / h;
         if (icon_width == 0)
             icon_width = 1;
     } else {
-        icon_width = ICONSIZE; icon_height = h*ICONSIZE / w;
+        icon_width = ICONSIZE;
+        icon_height = h*ICONSIZE / w;
         if (icon_height == 0)
             icon_height = 1;
     }
