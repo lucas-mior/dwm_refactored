@@ -295,7 +295,7 @@ static int statussig;
 static pid_t statuspid = -1;
 static int screen;
 static int screen_width, screen_height;           /* X display screen geometry width, height */
-static int bh;               /* bar height */
+static int bar_height;               /* bar height */
 static int lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlockmask = 0;
@@ -512,10 +512,10 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
             *y = monitor->win_y;
     }
 
-    if (*h < bh)
-        *h = bh;
-    if (*w < bh)
-        *w = bh;
+    if (*h < bar_height)
+        *h = bar_height;
+    if (*w < bar_height)
+        *w = bar_height;
 
     if (resizehints
         || client->isfloating
@@ -653,13 +653,15 @@ button_press(XEvent *event) {
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
             arg.ui = 1 << i;
-        } else if (button_event->x < x + (int) TEXTW(current_monitor->layout_symbol)) {
+        } else if (button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
         } else if (button_event->x > current_monitor->win_w - statusw) {
             char *s;
+
             x = current_monitor->win_w - statusw;
             click = ClickStatusText;
             statussig = 0;
+
             for (char *text = s = stext; *s && x <= button_event->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
@@ -710,7 +712,7 @@ button_press(XEvent *event) {
 
 void
 cleanup(void) {
-    Arg a = {.ui = ~0};
+    Arg a = {.ui = (uint) ~0};
     Layout layout = { "", NULL };
 
     view(&a);
@@ -805,15 +807,15 @@ configure_notify(XEvent *e) {
         screen_width = event->width;
         screen_height = event->height;
         if (update_geometry() || dirty) {
-            drw_resize(drw, screen_width, bh);
+            drw_resize(drw, (uint) screen_width, (uint) bar_height);
             update_bars();
             for (Monitor *m = monitors; m; m = m->next) {
                 for (Client *client = m->clients; client; client = client->next) {
                     if (client->isfullscreen && !client->isfakefullscreen)
                         resize_client(client, m->mon_x, m->mon_y, m->mon_w, m->mon_h);
                 }
-                XMoveResizeWindow(display, m->barwin, m->win_x, m->bar_y, m->win_w, bh);
-                XMoveResizeWindow(display, m->extrabarwin, m->win_x, m->extra_bar_y, m->win_w, bh);
+                XMoveResizeWindow(display, m->barwin, m->win_x, m->bar_y, m->win_w, bar_height);
+                XMoveResizeWindow(display, m->extrabarwin, m->win_x, m->extra_bar_y, m->win_w, bar_height);
             }
             focus(NULL);
             arrange(NULL);
@@ -1013,14 +1015,14 @@ draw_bar(Monitor *m) {
                 ch = *s;
                 *s = '\0';
                 tw = TEXTW(text) - lrpad;
-                drw_text(drw, m->win_w - statusw + x, 0, tw, bh, 0, text, 0);
+                drw_text(drw, m->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
                 x += tw;
                 *s = ch;
                 text = s + 1;
             }
         }
         tw = TEXTW(text) - lrpad + 2;
-        drw_text(drw, m->win_w - statusw + x, 0, tw, bh, 0, text, 0);
+        drw_text(drw, m->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
         tw = statusw;
     }
 
@@ -1058,39 +1060,39 @@ draw_bar(Monitor *m) {
         }
         tagw[i] = w = TEXTW(tagdisp);
         drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-        drw_text(drw, x, 0, w, bh, lrpad / 2, tagdisp, urg & 1 << i);
+        drw_text(drw, x, 0, w, bar_height, lrpad / 2, tagdisp, urg & 1 << i);
         x += w;
         if (client) {
-            drw_text(drw, x, 0, client->icon_width + lrpad/2, bh, 0, " ", urg & 1 << i);
-            drw_pic(drw, x, (bh - client->icon_height) / 2, client->icon_width, client->icon_height, client->icon);
+            drw_text(drw, x, 0, client->icon_width + lrpad/2, bar_height, 0, " ", urg & 1 << i);
+            drw_pic(drw, x, (bar_height - client->icon_height) / 2, client->icon_width, client->icon_height, client->icon);
             x += client->icon_width + lrpad/2;
             tagw[i] += client->icon_width + lrpad/2;
         }
     }
     w = TEXTW(m->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNorm]);
-    x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->layout_symbol, 0);
+    x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->layout_symbol, 0);
 
-    if ((w = m->win_w - tw - x) > bh) {
+    if ((w = m->win_w - tw - x) > bar_height) {
         if (m->selected_client) {
             drw_setscheme(drw, scheme[m == current_monitor ? SchemeSel : SchemeNorm]);
-            drw_text(drw, x, 0, w, bh, lrpad / 2, m->selected_client->name, 0);
+            drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->selected_client->name, 0);
             if (m->selected_client->isfloating)
                 drw_rect(drw, x + boxs, boxs, boxw, boxw, m->selected_client->isfixed, 0);
         } else {
             drw_setscheme(drw, scheme[SchemeNorm]);
-            drw_rect(drw, x, 0, w, bh, 1, 1);
+            drw_rect(drw, x, 0, w, bar_height, 1, 1);
         }
     }
-    drw_map(drw, m->barwin, 0, 0, m->win_w, bh);
+    drw_map(drw, m->barwin, 0, 0, m->win_w, bar_height);
 
     if (m == current_monitor) { /* extra status is only drawn on selected monitor */
         drw_setscheme(drw, scheme[SchemeNorm]);
         /* clear default bar draw buffer by drawing a blank rectangle */
-        drw_rect(drw, 0, 0, m->win_w, bh, 1, 1);
+        drw_rect(drw, 0, 0, m->win_w, bar_height, 1, 1);
         extra_status_width = TEXTW(extra_status);
-        drw_text(drw, 0, 0, extra_status_width, bh, 0, extra_status, 0);
-        drw_map(drw, m->extrabarwin, 0, 0, m->win_w, bh);
+        drw_text(drw, 0, 0, extra_status_width, bar_height, 0, extra_status, 0);
+        drw_map(drw, m->extrabarwin, 0, 0, m->win_w, bar_height);
     }
     return;
 }
@@ -2327,7 +2329,7 @@ setup(void) {
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
         die("no fonts could be loaded.");
     lrpad = drw->fonts->h / 2;
-    bh = drw->fonts->h + 2;
+    bar_height = drw->fonts->h + 2;
     update_geometry();
 
     /* init atoms */
@@ -2593,7 +2595,7 @@ toggle_bar(const Arg *arg) {
 
     monitor->showbar = monitor->pertag->showbars[monitor->pertag->current_tag] = !monitor->showbar;
     update_bar_pos(monitor);
-    XMoveResizeWindow(display, monitor->barwin, monitor->win_x, monitor->bar_y, monitor->win_w, bh);
+    XMoveResizeWindow(display, monitor->barwin, monitor->win_x, monitor->bar_y, monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -2606,7 +2608,7 @@ toggle_extra_bar(const Arg *arg) {
     monitor->extrabar = !monitor->extrabar;
     update_bar_pos(monitor);
     XMoveResizeWindow(display, monitor->extrabarwin,
-                      monitor->win_x, monitor->extra_bar_y, monitor->win_w, bh);
+                      monitor->win_x, monitor->extra_bar_y, monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -2838,7 +2840,7 @@ update_bars(void) {
     XClassHint ch = {"dwm", "dwm"};
     for (Monitor *m = monitors; m; m = m->next) {
         if (!m->barwin) {
-            m->barwin = XCreateWindow(display, root, m->win_x, m->bar_y, m->win_w, bh, 0, depth,
+            m->barwin = XCreateWindow(display, root, m->win_x, m->bar_y, m->win_w, bar_height, 0, depth,
                     InputOutput, visual,
                     CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &window_attributes);
             XDefineCursor(display, m->barwin, cursor[CursorNormal]->cursor);
@@ -2846,7 +2848,7 @@ update_bars(void) {
             XSetClassHint(display, m->barwin, &ch);
         }
         if (!m->extrabarwin) {
-            m->extrabarwin = XCreateWindow(display, root, m->win_x, m->extra_bar_y, m->win_w, bh, 0, depth,
+            m->extrabarwin = XCreateWindow(display, root, m->win_x, m->extra_bar_y, m->win_w, bar_height, 0, depth,
                     InputOutput, visual,
                     CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &window_attributes);
             XDefineCursor(display, m->extrabarwin, cursor[CursorNormal]->cursor);
@@ -2862,18 +2864,18 @@ update_bar_pos(Monitor *monitor) {
     monitor->win_y = monitor->mon_y;
     monitor->win_h = monitor->mon_h;
     if (monitor->showbar) {
-        monitor->win_h -= bh;
+        monitor->win_h -= bar_height;
         monitor->bar_y = monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
-        monitor->win_y = monitor->topbar ? monitor->win_y + bh : monitor->win_y;
+        monitor->win_y = monitor->topbar ? monitor->win_y + bar_height : monitor->win_y;
     } else {
-        monitor->bar_y = -bh;
+        monitor->bar_y = -bar_height;
     }
     if (monitor->extrabar) {
-        monitor->win_h -= bh;
+        monitor->win_h -= bar_height;
         monitor->extra_bar_y = !monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
-        monitor->win_y = !monitor->topbar ? monitor->win_y + bh : monitor->win_y;
+        monitor->win_y = !monitor->topbar ? monitor->win_y + bar_height : monitor->win_y;
     } else
-        monitor->extra_bar_y = -bh;
+        monitor->extra_bar_y = -bar_height;
     return;
 }
 
