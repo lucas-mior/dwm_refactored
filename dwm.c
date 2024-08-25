@@ -416,7 +416,8 @@ alt_tab(const Arg *arg) {
             break;
         case ButtonPress:
             button_event = &(event.xbutton);
-            if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
+            monitor = window_to_monitor(button_event->window);
+            if (monitor && (monitor != current_monitor)) {
                 unfocus(current_monitor->selected_client, 1);
                 current_monitor = monitor;
                 focus(NULL);
@@ -466,9 +467,12 @@ apply_rules(Client *client) {
                 client->y = client->monitor->win_y + (client->monitor->win_h / 2 - HEIGHT(client) / 2);
             }
 
-            for (monitor = monitors; monitor && monitor->num != r->monitor; monitor = monitor->next);
+            for (monitor = monitors;
+                 monitor && monitor->num != r->monitor;
+                 monitor = monitor->next);
             if (monitor)
                 client->monitor = monitor;
+
             if (r->switchtotag) {
                 Arg a = { .ui = r->tags };
                 view(&a);
