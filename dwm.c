@@ -2473,10 +2473,15 @@ tag_monitor(const Arg *arg) {
 void
 col(Monitor *m) {
     uint i;
-    uint n, h, w, x, y, mon_w;
+    uint n = 0;
+    uint h, w, x, y, mon_w;
     Client *client;
 
-    for (n = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), n++);
+    for (Client *client_aux = next_tiled(m->clients);
+                 client_aux;
+                 client_aux = next_tiled(client_aux->next)) {
+        n += 1;
+    }
     if (n == 0)
         return;
 
@@ -2651,36 +2656,37 @@ toggle_tag(const Arg *arg) {
 
 void
 toggle_view(const Arg *arg) {
-    uint newtagset = current_monitor->tagset[current_monitor->seltags] ^ (arg->ui & TAGMASK);
+    Monitor *monitor = current_monitor;
+    uint newtagset = monitor->tagset[monitor->seltags] ^ (arg->ui & TAGMASK);
     int i;
 
     if (newtagset) {
-        current_monitor->tagset[current_monitor->seltags] = newtagset;
+        monitor->tagset[monitor->seltags] = newtagset;
 
         if (newtagset == ~0) {
-            current_monitor->pertag->previous_tag = current_monitor->pertag->current_tag;
-            current_monitor->pertag->current_tag = 0;
+            monitor->pertag->previous_tag = monitor->pertag->current_tag;
+            monitor->pertag->current_tag = 0;
         }
 
         /* test if the user did not select the same tag */
-        if (!(newtagset & 1 << (current_monitor->pertag->current_tag - 1))) {
-            current_monitor->pertag->previous_tag = current_monitor->pertag->current_tag;
+        if (!(newtagset & 1 << (monitor->pertag->current_tag - 1))) {
+            monitor->pertag->previous_tag = monitor->pertag->current_tag;
             for (i = 0; !(newtagset & 1 << i); i++) ;
-            current_monitor->pertag->current_tag = i + 1;
+            monitor->pertag->current_tag = i + 1;
         }
 
         /* apply settings for this view */
-        current_monitor->nmaster = current_monitor->pertag->nmasters[current_monitor->pertag->current_tag];
-        current_monitor->master_fact = current_monitor->pertag->master_facts[current_monitor->pertag->current_tag];
-        current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag];
-        current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->layout_tags_indexes[current_monitor->pertag->current_tag][current_monitor->layout_index];
-        current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->layout_tags_indexes[current_monitor->pertag->current_tag][current_monitor->layout_index^1];
+        monitor->nmaster = monitor->pertag->nmasters[monitor->pertag->current_tag];
+        monitor->master_fact = monitor->pertag->master_facts[monitor->pertag->current_tag];
+        monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag];
+        monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index];
+        monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index^1];
 
-        if (current_monitor->showbar != current_monitor->pertag->showbars[current_monitor->pertag->current_tag])
+        if (monitor->showbar != monitor->pertag->showbars[monitor->pertag->current_tag])
             toggle_bar(NULL);
 
         focus(NULL);
-        arrange(current_monitor);
+        arrange(monitor);
     }
     return;
 }
