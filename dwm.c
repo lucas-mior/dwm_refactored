@@ -2339,7 +2339,6 @@ set_master_fact(const Arg *arg) {
 
 void
 setup(void) {
-    int i;
     XSetWindowAttributes window_attributes;
     Atom utf8string;
     struct sigaction sa;
@@ -2392,7 +2391,7 @@ setup(void) {
 
     /* init appearance */
     scheme = ecalloc(LENGTH(colors), sizeof(*scheme));
-    for (i = 0; i < LENGTH(colors); i++)
+    for (int i = 0; i < LENGTH(colors); i += 1)
         scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
 
     /* init bars */
@@ -2429,7 +2428,7 @@ setup(void) {
         Arg lay_grid = {.v = &layouts[3]};
         Arg tag8 = {.ui = 1 << 5};
         Arg tag1 = {.ui = 1 << 0};
-        Arg tag0 = {.ui = ~0};
+        Arg tag0 = {.ui = (uint) ~0};
 
         unfocus(current_monitor->selected_client, 0);
         current_monitor = monitor;
@@ -2580,12 +2579,11 @@ col(Monitor *m) {
 
 void
 tile(Monitor *m) {
-    int i;
     int n = 0;
-    uint h;
-    uint mon_w;
-    int mon_y, ty;
-    Client *client;
+    int i = 0;
+    uint mon_w = 0;
+    int mon_y = 0;
+    int ty = 0;
 
     for (Client *client_aux = next_tiled(m->clients);
                  client_aux;
@@ -2600,7 +2598,10 @@ tile(Monitor *m) {
     else
         mon_w = m->win_w;
 
-    for (i = mon_y = ty = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next)) {
+    for (Client *client = next_tiled(m->clients);
+                 client;
+                 client = next_tiled(client->next)) {
+        uint h;
         if (i < m->nmaster) {
             h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
             resize(client,
