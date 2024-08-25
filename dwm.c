@@ -2575,7 +2575,6 @@ layout_columns(Monitor *monitor) {
     int n = 0;
     uint x = 0;
     uint y = 0;
-    uint w, h;
     uint mon_w;
 
     for (Client *client_aux = next_tiled(monitor->clients);
@@ -2591,7 +2590,10 @@ layout_columns(Monitor *monitor) {
     else
         mon_w = (uint) monitor->win_w;
 
-    for (Client *client = next_tiled(monitor->clients); client; client = next_tiled(client->next)) {
+    for (Client *client = next_tiled(monitor->clients);
+                 client;
+                 client = next_tiled(client->next)) {
+        uint w, h;
         if (i < monitor->nmaster) {
             w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
             resize(client,
