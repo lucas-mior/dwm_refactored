@@ -1137,11 +1137,12 @@ focus_urgent(const Arg *arg) {
              client = client->next);
 
         if (client) {
-            int i;
+            int i = 0;
             unfocus(current_monitor->selected_client, 0);
             current_monitor = monitor;
 
-            for (i = 0; i < LENGTH(tags) && !((1 << i) & client->tags); i += 1);
+            while (i < LENGTH(tags) && !((1 << i) & client->tags))
+                i += 1;
             if (i < LENGTH(tags)) {
                 const Arg a = {.ui = 1 << i};
                 view(&a);
@@ -3152,7 +3153,7 @@ update_status(void) {
     char text[768];
     char *s;
     char *text2;
-    char *l;
+    char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
@@ -3162,10 +3163,10 @@ update_status(void) {
         return;
     }
 
-    l = strchr(text, statussep);
-    if (l) {
-        *l = '\0'; l++;
-        strncpy(extra_status, l, sizeof(extra_status) - 1);
+    separator = strchr(text, statussep);
+    if (separator) {
+        *separator = '\0'; separator++;
+        strncpy(extra_status, separator, sizeof(extra_status) - 1);
     } else {
         extra_status[0] = '\0';
     }
