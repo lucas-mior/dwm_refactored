@@ -1221,10 +1221,10 @@ focus_direction(const Arg *arg) {
 
 /* there are some broken focus acquiring clients needing extra handling */
 void
-focus_in(XEvent *e) {
-    XFocusChangeEvent *ev = &e->xfocus;
+focus_in(XEvent *event) {
+    XFocusChangeEvent *focus_change_event = &event->xfocus;
 
-    if (current_monitor->selected_client && ev->window != current_monitor->selected_client->win)
+    if (current_monitor->selected_client && focus_change_event->window != current_monitor->selected_client->win)
         set_focus(current_monitor->selected_client);
     return;
 }
@@ -3043,7 +3043,7 @@ view(const Arg *arg) {
     monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
     monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
-    if (monitor->showbar != monitor->pertag->showbars[monitor->pertag->current_tag])
+    if (monitor->showbar != monitor->pertag->showbars[current_tag])
         toggle_bar(NULL);
 
     focus(NULL);
