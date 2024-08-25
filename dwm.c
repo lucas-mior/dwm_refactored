@@ -2606,25 +2606,31 @@ toggle_extra_bar(const Arg *arg) {
 void
 toggle_floating(const Arg *arg) {
     Monitor *monitor = current_monitor;
+    Client *client = monitor->selected_client;
     (void) arg;
 
     if (!monitor->selected_client)
         return;
-    if (monitor->selected_client->isfullscreen && !monitor->selected_client->isfakefullscreen) /* no support for fullscreen windows */
+
+    /* no support for fullscreen windows */
+    if (client->isfullscreen && !client->isfakefullscreen)
         return;
-    monitor->selected_client->isfloating = !monitor->selected_client->isfloating || monitor->selected_client->isfixed;
-    if (monitor->selected_client->isfloating) {
-        resize(monitor->selected_client, monitor->selected_client->stored_fx, monitor->selected_client->stored_fy,
-               monitor->selected_client->stored_fw, monitor->selected_client->stored_fh, False);
+
+    client->isfloating = !client->isfloating || client->isfixed;
+    if (client->isfloating) {
+        resize(client,
+               client->stored_fx, client->stored_fy,
+               client->stored_fw, client->stored_fh,
+               False);
     } else {
-        monitor->selected_client->stored_fx = monitor->selected_client->x;
-        monitor->selected_client->stored_fy = monitor->selected_client->y;
-        monitor->selected_client->stored_fw = monitor->selected_client->w;
-        monitor->selected_client->stored_fh = monitor->selected_client->h;
+        client->stored_fx = client->x;
+        client->stored_fy = client->y;
+        client->stored_fw = client->w;
+        client->stored_fh = client->h;
     }
 
-    monitor->selected_client->x = monitor->selected_client->monitor->mon_x + (monitor->selected_client->monitor->mon_w - WIDTH(monitor->selected_client)) / 2;
-    monitor->selected_client->y = monitor->selected_client->monitor->mon_y + (monitor->selected_client->monitor->mon_h - HEIGHT(monitor->selected_client)) / 2;
+    client->x = client->monitor->mon_x + (client->monitor->mon_w - WIDTH(client)) / 2;
+    client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
 
     arrange(monitor);
     return;
