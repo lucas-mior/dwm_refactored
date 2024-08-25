@@ -1628,6 +1628,134 @@ handler_focus_in(XEvent *event) {
     return;
 }
 
+void
+handler_expose(XEvent *event) {
+    Monitor *monitor;
+    XExposeEvent *expose_event = &event->xexpose;
+
+    if (expose_event->count != 0)
+        return;
+    if ((monitor = window_to_monitor(expose_event->window)))
+        draw_bar(monitor);
+    return;
+}
+
+void
+handler_mapping_notify(XEvent *event) {
+    XMappingEvent *mapping_event = &event->xmapping;
+
+    XRefreshKeyboardMapping(mapping_event);
+    if (mapping_event->request == MappingKeyboard)
+        grab_keys();
+    return;
+}
+
+void
+handler_map_request(XEvent *event) {
+    static XWindowAttributes window_attributes;
+    XMapRequestEvent *map_request_event = &event->xmaprequest;
+
+    if (!XGetWindowAttributes(display, map_request_event->window, &window_attributes)
+        || window_attributes.override_redirect)
+        return;
+    if (!window_to_client(map_request_event->window))
+        manage(map_request_event->window, &window_attributes);
+    return;
+}
+
+void
+handler_motion_notify(XEvent *event) {
+    static Monitor *monitor = NULL;
+    Monitor *m;
+    XMotionEvent *motion_event = &event->xmotion;
+
+    if (motion_event->window != root)
+        return;
+    if ((m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1)) != monitor && monitor) {
+        unfocus(current_monitor->selected_client, 1);
+        current_monitor = m;
+        focus(NULL);
+    }
+    monitor = m;
+    return;
+}
+
+void
+handler_property_notify(XEvent *event) {
+    Client *client;
+    Window trans;
+    XPropertyEvent *property_event = &event->xproperty;
+
+    if ((property_event->window == root) && (property_event->atom == XA_WM_NAME)) {
+        update_status();
+        return;
+    }
+    if (property_event->state == PropertyDelete) {
+        return;
+    }
+
+    if ((client = window_to_client(property_event->window))) {
+        switch (property_event->atom) {
+        default:
+            break;
+        case XA_WM_TRANSIENT_FOR:
+            if (!client->isfloating && (XGetTransientForHint(display, client->win, &trans)) &&
+                (client->isfloating = (window_to_client(trans)) != NULL))
+                arrange(client->monitor);
+            break;
+        case XA_WM_NORMAL_HINTS:
+            client->hintsvalid = 0;
+            break;
+        case XA_WM_HINTS:
+            updatewm_hints(client);
+            draw_bars();
+            break;
+        }
+        if (property_event->atom == XA_WM_NAME || property_event->atom == netatom[NetWMName]) {
+            update_title(client);
+            if (client == client->monitor->selected_client)
+                draw_bar(client->monitor);
+        }
+        else if (property_event->atom == netatom[NetWMIcon]) {
+            update_icon(client);
+            if (client == client->monitor->selected_client)
+                draw_bar(client->monitor);
+        }
+        if (property_event->atom == netatom[NetWMWindowType])
+            update_window_type(client);
+    }
+    return;
+}
+
+void
+handler_key_press(XEvent *event) {
+    KeySym keysym;
+    XKeyEvent *key_event = &event->xkey;
+    keysym = XKeycodeToKeysym(display, (KeyCode)key_event->keycode, 0);
+
+    for (uint i = 0; i < LENGTH(keys); i += 1) {
+        if (keysym == keys[i].keysym
+            && CLEANMASK(keys[i].mod) == CLEANMASK(key_event->state)
+            && keys[i].func) {
+            keys[i].func(&(keys[i].arg));
+        }
+    }
+    return;
+}
+
+void
+handler_unmap_notify(XEvent *event) {
+    Client *client;
+    XUnmapEvent *unmap_event = &event->xunmap;
+
+    if ((client = window_to_client(unmap_event->window))) {
+        if (unmap_event->send_event)
+            set_client_state(client, WithdrawnState);
+        else
+            unmanage(client, 0);
+    }
+    return;
+}
 
 void
 inc_number_masters(const Arg *arg) {
@@ -1660,22 +1788,6 @@ is_unique_geometry(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *inf
     return 1;
 }
 #endif /* XINERAMA */
-
-void
-handler_key_press(XEvent *event) {
-    KeySym keysym;
-    XKeyEvent *key_event = &event->xkey;
-    keysym = XKeycodeToKeysym(display, (KeyCode)key_event->keycode, 0);
-
-    for (uint i = 0; i < LENGTH(keys); i += 1) {
-        if (keysym == keys[i].keysym
-            && CLEANMASK(keys[i].mod) == CLEANMASK(key_event->state)
-            && keys[i].func) {
-            keys[i].func(&(keys[i].arg));
-        }
-    }
-    return;
-}
 
 void
 kill_client(const Arg *arg) {
@@ -1784,28 +1896,6 @@ manage(Window win, XWindowAttributes *window_attributes) {
     return;
 }
 
-void
-handler_mapping_notify(XEvent *event) {
-    XMappingEvent *mapping_event = &event->xmapping;
-
-    XRefreshKeyboardMapping(mapping_event);
-    if (mapping_event->request == MappingKeyboard)
-        grab_keys();
-    return;
-}
-
-void
-handler_map_request(XEvent *event) {
-    static XWindowAttributes window_attributes;
-    XMapRequestEvent *map_request_event = &event->xmaprequest;
-
-    if (!XGetWindowAttributes(display, map_request_event->window, &window_attributes)
-        || window_attributes.override_redirect)
-        return;
-    if (!window_to_client(map_request_event->window))
-        manage(map_request_event->window, &window_attributes);
-    return;
-}
 
 void
 layout_monocle(Monitor *monitor) {
@@ -1828,23 +1918,6 @@ layout_monocle(Monitor *monitor) {
         int new_h = monitor->win_h - 2*client->border_width;
         resize(client, new_x, new_y, new_w, new_h, 0);
     }
-    return;
-}
-
-void
-handler_motion_notify(XEvent *event) {
-    static Monitor *monitor = NULL;
-    Monitor *m;
-    XMotionEvent *motion_event = &event->xmotion;
-
-    if (motion_event->window != root)
-        return;
-    if ((m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1)) != monitor && monitor) {
-        unfocus(current_monitor->selected_client, 1);
-        current_monitor = m;
-        focus(NULL);
-    }
-    monitor = m;
     return;
 }
 
@@ -1932,53 +2005,6 @@ pop(Client *client) {
     attach(client);
     focus(client);
     arrange(client->monitor);
-    return;
-}
-
-void
-handler_property_notify(XEvent *event) {
-    Client *client;
-    Window trans;
-    XPropertyEvent *property_event = &event->xproperty;
-
-    if ((property_event->window == root) && (property_event->atom == XA_WM_NAME)) {
-        update_status();
-        return;
-    }
-    if (property_event->state == PropertyDelete) {
-        return;
-    }
-
-    if ((client = window_to_client(property_event->window))) {
-        switch (property_event->atom) {
-        default:
-            break;
-        case XA_WM_TRANSIENT_FOR:
-            if (!client->isfloating && (XGetTransientForHint(display, client->win, &trans)) &&
-                (client->isfloating = (window_to_client(trans)) != NULL))
-                arrange(client->monitor);
-            break;
-        case XA_WM_NORMAL_HINTS:
-            client->hintsvalid = 0;
-            break;
-        case XA_WM_HINTS:
-            updatewm_hints(client);
-            draw_bars();
-            break;
-        }
-        if (property_event->atom == XA_WM_NAME || property_event->atom == netatom[NetWMName]) {
-            update_title(client);
-            if (client == client->monitor->selected_client)
-                draw_bar(client->monitor);
-        }
-        else if (property_event->atom == netatom[NetWMIcon]) {
-            update_icon(client);
-            if (client == client->monitor->selected_client)
-                draw_bar(client->monitor);
-        }
-        if (property_event->atom == netatom[NetWMWindowType])
-            update_window_type(client);
-    }
     return;
 }
 
@@ -2858,32 +2884,6 @@ unmanage(Client *client, int destroyed) {
     focus(NULL);
     update_client_list();
     arrange(monitor);
-    return;
-}
-
-void
-handler_expose(XEvent *event) {
-    Monitor *monitor;
-    XExposeEvent *expose_event = &event->xexpose;
-
-    if (expose_event->count != 0)
-        return;
-    if ((monitor = window_to_monitor(expose_event->window)))
-        draw_bar(monitor);
-    return;
-}
-
-void
-handler_unmap_notify(XEvent *event) {
-    Client *client;
-    XUnmapEvent *unmap_event = &event->xunmap;
-
-    if ((client = window_to_client(unmap_event->window))) {
-        if (unmap_event->send_event)
-            set_client_state(client, WithdrawnState);
-        else
-            unmanage(client, 0);
-    }
     return;
 }
 
