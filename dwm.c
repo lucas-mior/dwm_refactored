@@ -1632,17 +1632,17 @@ isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
 
 void
 key_press(XEvent *e) {
-    uint i;
     KeySym keysym;
     XKeyEvent *ev;
 
     ev = &e->xkey;
     keysym = XKeycodeToKeysym(display, (KeyCode)ev->keycode, 0);
-    for (i = 0; i < LENGTH(keys); i++) {
+    for (uint i = 0; i < LENGTH(keys); i += 1) {
         if (keysym == keys[i].keysym
-        && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
-        && keys[i].func)
+            && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
+            && keys[i].func) {
             keys[i].func(&(keys[i].arg));
+        }
     }
     return;
 }
