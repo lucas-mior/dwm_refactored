@@ -245,8 +245,8 @@ static void set_fullscreen(Client *, int fullscreen);
 static void set_layout(const Arg *arg);
 static void set_master_fact(const Arg *arg);
 static void setup(void);
-static void seturgent(Client *, int urg);
-static void showhide(Client *);
+static void set_urgent(Client *, int urg);
+static void show_hide(Client *);
 static void signal_status_bar(const Arg *arg);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
@@ -564,10 +564,10 @@ void
 arrange(Monitor *monitor) {
     XEvent event;
     if (monitor) {
-        showhide(monitor->stack);
+        show_hide(monitor->stack);
     } else {
         for (monitor = monitors; monitor; monitor = monitor->next)
-            showhide(monitor->stack);
+            show_hide(monitor->stack);
     }
     if (monitor) {
         arrange_monitor(monitor);
@@ -926,7 +926,7 @@ focus(Client *client) {
         if (client->monitor != current_monitor)
             current_monitor = client->monitor;
         if (client->isurgent)
-            seturgent(client, 0);
+            set_urgent(client, 0);
         detach_stack(client);
         attach_stack(client);
         grab_buttons(client, 1);
@@ -1490,7 +1490,7 @@ handler_client_message(XEvent *e) {
                                       && (!client->isfullscreen || client->isfakefullscreen))));
     } else if (cme->message_type == netatom[NetActiveWindow]) {
         if (client != current_monitor->selected_client && !client->isurgent)
-            seturgent(client, 1);
+            set_urgent(client, 1);
     }
     return;
 }
@@ -1641,6 +1641,22 @@ handler_expose(XEvent *event) {
 }
 
 void
+handler_key_press(XEvent *event) {
+    KeySym keysym;
+    XKeyEvent *key_event = &event->xkey;
+    keysym = XKeycodeToKeysym(display, (KeyCode)key_event->keycode, 0);
+
+    for (uint i = 0; i < LENGTH(keys); i += 1) {
+        if (keysym == keys[i].keysym
+            && CLEANMASK(keys[i].mod) == CLEANMASK(key_event->state)
+            && keys[i].func) {
+            keys[i].func(&(keys[i].arg));
+        }
+    }
+    return;
+}
+
+void
 handler_mapping_notify(XEvent *event) {
     XMappingEvent *mapping_event = &event->xmapping;
 
@@ -1723,22 +1739,6 @@ handler_property_notify(XEvent *event) {
         }
         if (property_event->atom == netatom[NetWMWindowType])
             update_window_type(client);
-    }
-    return;
-}
-
-void
-handler_key_press(XEvent *event) {
-    KeySym keysym;
-    XKeyEvent *key_event = &event->xkey;
-    keysym = XKeycodeToKeysym(display, (KeyCode)key_event->keycode, 0);
-
-    for (uint i = 0; i < LENGTH(keys); i += 1) {
-        if (keysym == keys[i].keysym
-            && CLEANMASK(keys[i].mod) == CLEANMASK(key_event->state)
-            && keys[i].func) {
-            keys[i].func(&(keys[i].arg));
-        }
     }
     return;
 }
@@ -2480,7 +2480,7 @@ setup(void) {
 }
 
 void
-seturgent(Client *client, int urg) {
+set_urgent(Client *client, int urg) {
     XWMHints *wm_hints;
 
     client->isurgent = urg;
@@ -2493,7 +2493,7 @@ seturgent(Client *client, int urg) {
 }
 
 void
-showhide(Client *client) {
+show_hide(Client *client) {
     if (!client)
         return;
     if (ISVISIBLE(client)) {
@@ -2506,10 +2506,10 @@ showhide(Client *client) {
         if ((!client->monitor->layout[client->monitor->layout_index]->arrange || client->isfloating)
                 && (!client->isfullscreen || client->isfakefullscreen))
             resize(client, client->x, client->y, client->w, client->h, 0);
-        showhide(client->snext);
+        show_hide(client->snext);
     } else {
         /* hide clients bottom up */
-        showhide(client->snext);
+        show_hide(client->snext);
         XMoveWindow(display, client->win, -2*WIDTH(client), client->y);
     }
     return;
