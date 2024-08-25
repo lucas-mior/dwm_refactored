@@ -586,7 +586,9 @@ arrange(Monitor *monitor) {
 
 void
 arrange_monitor(Monitor *monitor) {
-    strncpy(monitor->layout_symbol, monitor->layout[monitor->layout_index]->symbol, sizeof(monitor->layout_symbol));
+    strncpy(monitor->layout_symbol,
+            monitor->layout[monitor->layout_index]->symbol,
+            sizeof(monitor->layout_symbol));
     if (monitor->layout[monitor->layout_index]->arrange)
         monitor->layout[monitor->layout_index]->arrange(monitor);
     return;
@@ -1306,12 +1308,20 @@ void
 focus_stack(const Arg *arg) {
     Client *client = NULL;
 
-    if (!current_monitor->selected_client || (current_monitor->selected_client->isfullscreen && lockfullscreen))
+    if (!current_monitor->selected_client)
         return;
+    if (current_monitor->selected_client->isfullscreen && lockfullscreen)
+        return;
+
     if (arg->i > 0) {
-        for (client = current_monitor->selected_client->next; client && !ISVISIBLE(client); client = client->next);
-        if (!client)
-            for (client = current_monitor->clients; client && !ISVISIBLE(client); client = client->next);
+        for (client = current_monitor->selected_client->next;
+             client && !ISVISIBLE(client);
+             client = client->next);
+        if (!client) {
+            for (client = current_monitor->clients;
+                 client && !ISVISIBLE(client);
+                 client = client->next);
+        }
     } else {
         Client *client_aux;
         for (client_aux = current_monitor->clients;
