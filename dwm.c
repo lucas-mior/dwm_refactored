@@ -345,7 +345,7 @@ struct Pertag {
     int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
 
-static uint tagw[LENGTH(tags)];
+static uint tag_width[LENGTH(tags)];
 
 /* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
@@ -803,7 +803,10 @@ direction_to_monitor(int dir) {
 
 void
 draw_bar(Monitor *monitor) {
-    int x, w, tw = 0, extra_status_width = 0;
+    int x;
+    int w;
+    int text_pixels = 0;
+    int extra_status_width = 0;
     uint urgent = 0;
     char tagdisp[TAGWIDTH];
     char *masterclientontag[LENGTH(tags)];
@@ -822,16 +825,16 @@ draw_bar(Monitor *monitor) {
             if ((uchar)(*s) < ' ') {
                 ch = *s;
                 *s = '\0';
-                tw = TEXT_PIXELS(text) - lrpad;
-                drw_text(drw, monitor->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
-                x += tw;
+                text_pixels = TEXT_PIXELS(text) - lrpad;
+                drw_text(drw, monitor->win_w - statusw + x, 0, text_pixels, bar_height, 0, text, 0);
+                x += text_pixels;
                 *s = ch;
                 text = s + 1;
             }
         }
-        tw = TEXT_PIXELS(text) - lrpad + 2;
-        drw_text(drw, monitor->win_w - statusw + x, 0, tw, bar_height, 0, text, 0);
-        tw = statusw;
+        text_pixels = TEXT_PIXELS(text) - lrpad + 2;
+        drw_text(drw, monitor->win_w - statusw + x, 0, text_pixels, bar_height, 0, text, 0);
+        text_pixels = statusw;
     }
 
     for (int i = 0; i < LENGTH(tags); i += 1) {
@@ -866,7 +869,7 @@ draw_bar(Monitor *monitor) {
         } else {
             snprintf(tagdisp, TAGWIDTH, tag_empty_format, tags[i]);
         }
-        tagw[i] = w = TEXT_PIXELS(tagdisp);
+        tag_width[i] = w = TEXT_PIXELS(tagdisp);
         drw_setscheme(drw, scheme[monitor->tagset[monitor->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
         drw_text(drw, x, 0, w, bar_height, lrpad / 2, tagdisp, urgent & 1 << i);
         x += w;
@@ -877,14 +880,14 @@ draw_bar(Monitor *monitor) {
                     client->icon_width, client->icon_height,
                     client->icon);
             x += client->icon_width + lrpad/2;
-            tagw[i] += client->icon_width + lrpad/2;
+            tag_width[i] += client->icon_width + lrpad/2;
         }
     }
     w = TEXT_PIXELS(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNorm]);
     x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
 
-    if ((w = monitor->win_w - tw - x) > bar_height) {
+    if ((w = monitor->win_w - text_pixels - x) > bar_height) {
         int boxs = drw->fonts->h / 9;
         int boxw = drw->fonts->h / 6 + 2;
 
@@ -1548,7 +1551,7 @@ handler_button_press(XEvent *event) {
         uint x = 0;
 
         do {
-            x += tagw[i];
+            x += tag_width[i];
         } while ((uint) button_event->x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
@@ -3222,7 +3225,7 @@ view(const Arg *arg) {
         if (arg->ui == (uint) ~0) {
             monitor->pertag->current_tag = 0;
         } else {
-            int i;
+            uint i;
             for (i = 0; !(arg->ui & 1 << i); i++);
             monitor->pertag->current_tag = i + 1;
         }
