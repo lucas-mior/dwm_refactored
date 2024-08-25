@@ -611,6 +611,7 @@ aspect_resize(const Arg *arg) {
 
     if (!client || !arg)
         return;
+
     if (!client->isfloating
         && current_monitor->layout[current_monitor->layout_index]->arrange) {
         return;
@@ -673,7 +674,6 @@ cleanup(void) {
 
 void
 cleanup_monitor(Monitor *monitor) {
-
     if (monitor == monitors) {
         monitors = monitors->next;
     } else {
