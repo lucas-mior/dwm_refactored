@@ -351,6 +351,8 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 void
 alt_tab(const Arg *arg) {
+    int grabbed = 1;
+    int grabbed_keyboard = 1000;
     (void) arg;
     if (allclients == NULL)
         return;
@@ -359,8 +361,6 @@ alt_tab(const Arg *arg) {
         view(&(Arg){ .ui = (uint) ~0 });
     focus_next(&(Arg){ .i = alt_tab_direction });
 
-    int grabbed = 1;
-    int grabbed_keyboard = 1000;
     for (int i = 0; i < 100; i += 1) {
         struct timespec ts;
         ts.tv_sec = 0;
@@ -381,12 +381,13 @@ alt_tab(const Arg *arg) {
             grabbed = 0;
     }
 
-    XEvent event;
-    Client *client;
-    Monitor *monitor;
-    XButtonPressedEvent *button_event;
 
     while (grabbed) {
+        XEvent event;
+        XButtonPressedEvent *button_event;
+        Client *client;
+        Monitor *monitor;
+
         XNextEvent(display, &event);
         switch (event.type) {
         case KeyPress:
@@ -580,11 +581,9 @@ arrange_monitor(Monitor *monitor) {
 
 void
 aspect_resize(const Arg *arg) {
-    /* only floating windows can be moved */
-    Client *client;
-    client = current_monitor->selected_client;
     float ratio;
     int w, h,nw, nh;
+    Client *client = current_monitor->selected_client;
 
     if (!client || !arg)
         return;
@@ -593,7 +592,7 @@ aspect_resize(const Arg *arg) {
 
     ratio = (float)client->w / (float)client->h;
     h = arg->i;
-    w = (int)(ratio * h);
+    w = (int)(ratio * (float)h);
 
     nw = client->w + w;
     nh = client->h + h;
