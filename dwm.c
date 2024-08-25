@@ -228,7 +228,7 @@ static Client *next_tiled(Client *client);
 static void pop(Client *client);
 static void property_notify(XEvent *e);
 static void quit(const Arg *arg);
-static Monitor *recttomon(int x, int y, int w, int h);
+static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *client, int x, int y, int w, int h, int interact);
 static void resize_client(Client *client, int x, int y, int w, int h);
 static void resize_mouse(const Arg *arg);
@@ -276,7 +276,7 @@ static void updatewm_hints(Client *client);
 static void view(const Arg *arg);
 static Client *window_to_client(Window win);
 static Monitor *window_to_monitor(Window win);
-static void winview(const Arg* arg);
+static void window_view(const Arg* arg);
 static int xerror(Display *display, XErrorEvent *ee);
 static int xerrordummy(Display *display, XErrorEvent *ee);
 static int xerrorstart(Display *display, XErrorEvent *ee);
@@ -409,7 +409,7 @@ alt_tab(const Arg *arg) {
                 XUngrabButton(display, AnyButton, AnyModifier, None);
                 grabbed = 0;
                 alt_tab_direction = !alt_tab_direction;
-                winview(0);
+                window_view(0);
             }
             break;
         case ButtonPress:
@@ -428,7 +428,7 @@ alt_tab(const Arg *arg) {
             XUngrabButton(display, AnyButton, AnyModifier, None);
             grabbed = 0;
             alt_tab_direction = !alt_tab_direction;
-            winview(0);
+            window_view(0);
             break;
         default:
             break;
@@ -1848,7 +1848,7 @@ motion_notify(XEvent *event) {
 
     if (motion_event->window != root)
         return;
-    if ((m = recttomon(motion_event->x_root, motion_event->y_root, 1, 1)) != monitor && monitor) {
+    if ((m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1)) != monitor && monitor) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = m;
         focus(NULL);
@@ -1919,7 +1919,7 @@ move_mouse(const Arg *arg) {
 
     XUngrabPointer(display, CurrentTime);
 
-    monitor = recttomon(client->x, client->y, client->w, client->h);
+    monitor = rectangle_to_monitor(client->x, client->y, client->w, client->h);
     if (monitor != current_monitor) {
         send_monitor(client, monitor);
         current_monitor = monitor;
@@ -1995,7 +1995,7 @@ quit(const Arg *arg) {
 }
 
 Monitor *
-recttomon(int x, int y, int w, int h) {
+rectangle_to_monitor(int x, int y, int w, int h) {
     Monitor *r = current_monitor;
     int a;
     int max_area = 0;
@@ -2125,7 +2125,7 @@ resize_mouse(const Arg *arg) {
     XUngrabPointer(display, CurrentTime);
     while (XCheckMaskEvent(display, EnterWindowMask, &ev));
 
-    monitor = recttomon(client->x, client->y, client->w, client->h);
+    monitor = rectangle_to_monitor(client->x, client->y, client->w, client->h);
     if (monitor != current_monitor) {
         send_monitor(client, monitor);
         current_monitor = monitor;
@@ -3237,7 +3237,7 @@ window_to_monitor(Window window) {
     Client *client;
 
     if (window == root && get_root_pointer(&x, &y))
-        return recttomon(x, y, 1, 1);
+        return rectangle_to_monitor(x, y, 1, 1);
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         if (window == monitor->barwin || window == monitor->extrabarwin)
             return monitor;
@@ -3250,7 +3250,7 @@ window_to_monitor(Window window) {
 /* Selects for the view of the focused window. The list of tags */
 /* to be displayed is matched to the focused window tag list. */
 void
-winview(const Arg* arg) {
+window_view(const Arg* arg) {
     Window window, root_return, parent_return, *children_return;
     uint nchildren_return;
     int unused;

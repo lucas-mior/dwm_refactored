@@ -141,7 +141,7 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_3,                      5)
 	{ MODKEY|ControlMask|ShiftMask, XK_q,      quit,           {.i = 0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_r,      quit,           {.i = 1} },
-	{ MODKEY,                       XK_g,      winview,        {0}},
+	{ MODKEY,                       XK_g,      window_view,        {0}},
 	{ Mod1Mask,                     XK_Tab,    alt_tab,         {0} },
 	{ 0,                            XK_F11,    toggle_fullscreen,  {0}},
 };
