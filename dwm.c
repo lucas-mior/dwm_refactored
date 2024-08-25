@@ -1335,7 +1335,9 @@ get_status_bar_pid(void) {
 Picture
 get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     int format;
-    ulong n, extra, *p = NULL;
+    ulong n;
+    ulong extra;
+    ulong *p = NULL;
     ulong *bstp = NULL;
     uint32 w, h, sz;
     Atom real;
@@ -1405,9 +1407,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     *picture_width = icon_width;
     *picture_height = icon_height;
 
-    uint32 i;
     uint32 *bstp32 = (uint32 *)bstp;
-    for (sz = w*h, i = 0; i < sz; i += 1) {
+    for (uint32 i = 0; i < w*h; i += 1) {
         uint32 pixel = (uint32) bstp[i];
         uint8 a = pixel >> 24u;
         uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
