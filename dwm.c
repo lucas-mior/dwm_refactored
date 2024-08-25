@@ -524,10 +524,10 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         }
         /* adjust for aspect limits */
         if (client->min_a > 0 && client->max_a > 0) {
-            if (client->max_a < (float)*w / *h)
-                *w = *h * client->max_a + 0.5;
-            else if (client->min_a < (float)*h / *w)
-                *h = *w * client->min_a + 0.5;
+            if (client->max_a < (float)*w / (float)*h)
+                *w = *h * (int) (client->max_a + 0.5f);
+            else if (client->min_a < (float)*h / (float) *w)
+                *h = *w * (int) (client->min_a + 0.5f);
         }
         if (baseismin) { /* increment calculation requires this */
             *w -= client->basew;
@@ -1224,7 +1224,10 @@ void
 focus_in(XEvent *event) {
     XFocusChangeEvent *focus_change_event = &event->xfocus;
 
-    if (current_monitor->selected_client && focus_change_event->window != current_monitor->selected_client->win)
+    if (!(current_monitor->selected_client))
+        return;
+
+    if (focus_change_event->window != current_monitor->selected_client->win)
         set_focus(current_monitor->selected_client);
     return;
 }
