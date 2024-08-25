@@ -183,7 +183,6 @@ static void attach(Client *);
 static void attach_stack(Client *);
 static void cleanup(void);
 static void cleanup_monitor(Monitor *);
-static void layout_columns(Monitor *);
 static void configure(Client *);
 static Monitor *createmon(void);
 static void debug_dwm(char *message, ...);
@@ -198,7 +197,6 @@ static void focus_monitor(const Arg *arg);
 static void focus_next(const Arg *arg);
 static void focus_stack(const Arg *arg);
 static void focus_urgent(const Arg *arg);
-static void layout_gapless_grid(Monitor *);
 static Atom get_atom_property(Client *, Atom );
 static Picture get_icon_property(Window, uint *icon_width, uint *icon_height);
 static int get_root_pointer(int *x, int *y);
@@ -223,8 +221,11 @@ static void handler_property_notify(XEvent *);
 static void handler_unmap_notify(XEvent *);
 static void inc_number_masters(const Arg *arg);
 static void kill_client(const Arg *arg);
-static void manage(Window, XWindowAttributes *window_attributes);
+static void layout_columns(Monitor *);
+static void layout_gapless_grid(Monitor *);
 static void layout_monocle(Monitor *);
+static void layout_tile(Monitor *);
+static void manage(Window, XWindowAttributes *window_attributes);
 static void move_mouse(const Arg *arg);
 static Client *next_tiled(Client *);
 static void pop(Client *);
@@ -251,7 +252,6 @@ static void signal_status_bar(const Arg *arg);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tag_monitor(const Arg *arg);
-static void layout_tile(Monitor *);
 static void toggle_bar(const Arg *arg);
 static void toggle_extra_bar(const Arg *arg);
 static void toggle_floating(const Arg *arg);
@@ -1123,9 +1123,55 @@ focus_urgent(const Arg *arg) {
 }
 
 void
+layout_columns(Monitor *monitor) {
+    int i = 0;
+    int n = 0;
+    uint x = 0;
+    uint y = 0;
+    uint mon_w;
+
+    for (Client *client_aux = next_tiled(monitor->clients);
+                 client_aux;
+                 client_aux = next_tiled(client_aux->next)) {
+        n += 1;
+    }
+    if (n == 0)
+        return;
+
+    if (n > monitor->nmaster)
+        mon_w = (uint) (monitor->nmaster ? (float)monitor->win_w*monitor->master_fact : 0);
+    else
+        mon_w = (uint) monitor->win_w;
+
+    for (Client *client = next_tiled(monitor->clients);
+                 client;
+                 client = next_tiled(client->next)) {
+        uint w, h;
+        if (i < monitor->nmaster) {
+            w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
+            resize(client,
+                   x + monitor->win_x, monitor->win_y,
+                   w - (2*client->border_width),
+                   monitor->win_h - (2*client->border_width), 0);
+            x += WIDTH(client);
+        } else {
+            h = (monitor->win_h - y) / (n - i);
+            resize(client,
+                   x + monitor->win_x, monitor->win_y + y,
+                   monitor->win_w - x - (2*client->border_width),
+                   h - (2*client->border_width), 0);
+            y += HEIGHT(client);
+        }
+        i += 1;
+    }
+    return;
+}
+
+void
 layout_gapless_grid(Monitor *monitor) {
     uint n = 0;
-    uint cols, rows;
+    uint cols = 0;
+    uint rows;
     uint cn, rn, cx, cy, cw, ch;
     uint i = 0;
 
@@ -1166,6 +1212,78 @@ layout_gapless_grid(Monitor *monitor) {
     }
     return;
 }
+
+void
+layout_tile(Monitor *m) {
+    int n = 0;
+    int i = 0;
+    uint mon_w = 0;
+    int mon_y = 0;
+    int ty = 0;
+
+    for (Client *client_aux = next_tiled(m->clients);
+                 client_aux;
+                 client_aux = next_tiled(client_aux->next)) {
+        n += 1;
+    }
+    if (n == 0)
+        return;
+
+    if (n > m->nmaster)
+        mon_w = (uint) (m->nmaster ? (float)m->win_w*m->master_fact : 0);
+    else
+        mon_w = m->win_w;
+
+    for (Client *client = next_tiled(m->clients);
+                 client;
+                 client = next_tiled(client->next)) {
+        uint h;
+        if (i < m->nmaster) {
+            h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
+            resize(client,
+                   m->win_x, m->win_y + mon_y,
+                   mon_w - (2*client->border_width),
+                   h - (2*client->border_width), 0);
+            if (mon_y + HEIGHT(client) < m->win_h)
+                mon_y += HEIGHT(client);
+        } else {
+            h = (m->win_h - ty) / (n - i);
+            resize(client,
+                   m->win_x + mon_w, m->win_y + ty,
+                   m->win_w - mon_w - (2*client->border_width),
+                   h - (2*client->border_width), 0);
+            if (ty + HEIGHT(client) < m->win_h)
+                ty += HEIGHT(client);
+        }
+        i += 1;
+    }
+    return;
+}
+
+void
+layout_monocle(Monitor *monitor) {
+    uint n = 0;
+
+    for (Client *client = monitor->clients; client; client = client->next) {
+        if (ISVISIBLE(client))
+            n += 1;
+    }
+
+    if (n > 0) /* override layout symbol */
+        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
+
+    for (Client *client = next_tiled(monitor->clients);
+                 client;
+                 client = next_tiled(client->next)) {
+        int new_x = monitor->win_x;
+        int new_y = monitor->win_y;
+        int new_w = monitor->win_w - 2*client->border_width;
+        int new_h = monitor->win_h - 2*client->border_width;
+        resize(client, new_x, new_y, new_w, new_h, 0);
+    }
+    return;
+}
+
 
 Atom
 get_atom_property(Client *client, Atom property) {
@@ -1897,30 +2015,6 @@ manage(Window win, XWindowAttributes *window_attributes) {
 }
 
 void
-layout_monocle(Monitor *monitor) {
-    uint n = 0;
-
-    for (Client *client = monitor->clients; client; client = client->next) {
-        if (ISVISIBLE(client))
-            n += 1;
-    }
-
-    if (n > 0) /* override layout symbol */
-        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
-
-    for (Client *client = next_tiled(monitor->clients);
-                 client;
-                 client = next_tiled(client->next)) {
-        int new_x = monitor->win_x;
-        int new_y = monitor->win_y;
-        int new_w = monitor->win_w - 2*client->border_width;
-        int new_h = monitor->win_h - 2*client->border_width;
-        resize(client, new_x, new_y, new_w, new_h, 0);
-    }
-    return;
-}
-
-void
 move_mouse(const Arg *arg) {
     int x, y;
     int ocx, ocy;
@@ -2566,98 +2660,6 @@ tag_monitor(const Arg *arg) {
     focus_monitor(arg);
     toggle_floating(NULL);
     toggle_floating(NULL);
-    return;
-}
-
-void
-layout_columns(Monitor *monitor) {
-    int i = 0;
-    int n = 0;
-    uint x = 0;
-    uint y = 0;
-    uint mon_w;
-
-    for (Client *client_aux = next_tiled(monitor->clients);
-                 client_aux;
-                 client_aux = next_tiled(client_aux->next)) {
-        n += 1;
-    }
-    if (n == 0)
-        return;
-
-    if (n > monitor->nmaster)
-        mon_w = (uint) (monitor->nmaster ? (float)monitor->win_w*monitor->master_fact : 0);
-    else
-        mon_w = (uint) monitor->win_w;
-
-    for (Client *client = next_tiled(monitor->clients);
-                 client;
-                 client = next_tiled(client->next)) {
-        uint w, h;
-        if (i < monitor->nmaster) {
-            w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
-            resize(client,
-                   x + monitor->win_x, monitor->win_y,
-                   w - (2*client->border_width),
-                   monitor->win_h - (2*client->border_width), 0);
-            x += WIDTH(client);
-        } else {
-            h = (monitor->win_h - y) / (n - i);
-            resize(client,
-                   x + monitor->win_x, monitor->win_y + y,
-                   monitor->win_w - x - (2*client->border_width),
-                   h - (2*client->border_width), 0);
-            y += HEIGHT(client);
-        }
-        i += 1;
-    }
-    return;
-}
-
-void
-layout_tile(Monitor *m) {
-    int n = 0;
-    int i = 0;
-    uint mon_w = 0;
-    int mon_y = 0;
-    int ty = 0;
-
-    for (Client *client_aux = next_tiled(m->clients);
-                 client_aux;
-                 client_aux = next_tiled(client_aux->next)) {
-        n += 1;
-    }
-    if (n == 0)
-        return;
-
-    if (n > m->nmaster)
-        mon_w = (uint) (m->nmaster ? (float)m->win_w*m->master_fact : 0);
-    else
-        mon_w = m->win_w;
-
-    for (Client *client = next_tiled(m->clients);
-                 client;
-                 client = next_tiled(client->next)) {
-        uint h;
-        if (i < m->nmaster) {
-            h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
-            resize(client,
-                   m->win_x, m->win_y + mon_y,
-                   mon_w - (2*client->border_width),
-                   h - (2*client->border_width), 0);
-            if (mon_y + HEIGHT(client) < m->win_h)
-                mon_y += HEIGHT(client);
-        } else {
-            h = (m->win_h - ty) / (n - i);
-            resize(client,
-                   m->win_x + mon_w, m->win_y + ty,
-                   m->win_w - mon_w - (2*client->border_width),
-                   h - (2*client->border_width), 0);
-            if (ty + HEIGHT(client) < m->win_h)
-                ty += HEIGHT(client);
-        }
-        i += 1;
-    }
     return;
 }
 
