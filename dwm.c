@@ -59,8 +59,8 @@ typedef unsigned char uchar;
     (mask & ~(numlockmask|LockMask) \
     & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define INTERSECT(x,y,w,h,m)    \
-    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
-     * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
+    (MAX(0, MIN((x)+(w),(m)->win_x+(m)->win_w) - MAX((x),(m)->win_x)) \
+     * MAX(0, MIN((y)+(h),(m)->win_y+(m)->win_h) - MAX((y),(m)->win_y)))
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->seltags]))
 #define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
@@ -144,7 +144,7 @@ struct Monitor {
     int bar_y;               /* bar geometry */
     int extra_bar_y;              /* extra bar geometry */
     int mx, my, mw, mh;   /* screen size */
-    int wx, wy, ww, wh;   /* window area  */
+    int win_x, win_y, win_w, win_h;   /* window area  */
     uint seltags;
     uint layout_index;
     uint tagset[2];
@@ -458,8 +458,8 @@ apply_rules(Client *client) {
             client->isfakefullscreen = r->isfakefullscreen;
             client->tags |= r->tags;
             if ((r->tags & SPTAGMASK) && r->isfloating) {
-                client->x = client->monitor->wx + (client->monitor->ww / 2 - WIDTH(client) / 2);
-                client->y = client->monitor->wy + (client->monitor->wh / 2 - HEIGHT(client) / 2);
+                client->x = client->monitor->win_x + (client->monitor->win_w / 2 - WIDTH(client) / 2);
+                client->y = client->monitor->win_y + (client->monitor->win_h / 2 - HEIGHT(client) / 2);
             }
 
             for (monitor = monitors; monitor && monitor->num != r->monitor; monitor = monitor->next);
@@ -500,14 +500,14 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         if (*y + *h + 2 * client->border_width < 0)
             *y = 0;
     } else {
-        if (*x >= monitor->wx + monitor->ww)
-            *x = monitor->wx + monitor->ww - WIDTH(client);
-        if (*y >= monitor->wy + monitor->wh)
-            *y = monitor->wy + monitor->wh - HEIGHT(client);
-        if (*x + *w + 2 * client->border_width <= monitor->wx)
-            *x = monitor->wx;
-        if (*y + *h + 2 * client->border_width <= monitor->wy)
-            *y = monitor->wy;
+        if (*x >= monitor->win_x + monitor->win_w)
+            *x = monitor->win_x + monitor->win_w - WIDTH(client);
+        if (*y >= monitor->win_y + monitor->win_h)
+            *y = monitor->win_y + monitor->win_h - HEIGHT(client);
+        if (*x + *w + 2 * client->border_width <= monitor->win_x)
+            *x = monitor->win_x;
+        if (*y + *h + 2 * client->border_width <= monitor->win_y)
+            *y = monitor->win_y;
     }
     if (*h < bh)
         *h = bh;
@@ -646,9 +646,9 @@ button_press(XEvent *e) {
             arg.ui = 1 << i;
         } else if (ev->x < x + TEXTW(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
-        } else if (ev->x > current_monitor->ww - statusw) {
+        } else if (ev->x > current_monitor->win_w - statusw) {
             char *s;
-            x = current_monitor->ww - statusw;
+            x = current_monitor->win_w - statusw;
             click = ClickStatusText;
             statussig = 0;
             for (char *text = s = stext; *s && x <= ev->x; s++) {
@@ -802,8 +802,8 @@ configure_notify(XEvent *e) {
                     if (client->isfullscreen && !client->isfakefullscreen)
                         resize_client(client, m->mx, m->my, m->mw, m->mh);
                 }
-                XMoveResizeWindow(display, m->barwin, m->wx, m->bar_y, m->ww, bh);
-                XMoveResizeWindow(display, m->extrabarwin, m->wx, m->extra_bar_y, m->ww, bh);
+                XMoveResizeWindow(display, m->barwin, m->win_x, m->bar_y, m->win_w, bh);
+                XMoveResizeWindow(display, m->extrabarwin, m->win_x, m->extra_bar_y, m->win_w, bh);
             }
             focus(NULL);
             arrange(NULL);
@@ -1002,14 +1002,14 @@ draw_bar(Monitor *m) {
                 ch = *s;
                 *s = '\0';
                 tw = TEXTW(text) - lrpad;
-                drw_text(drw, m->ww - statusw + x, 0, tw, bh, 0, text, 0);
+                drw_text(drw, m->win_w - statusw + x, 0, tw, bh, 0, text, 0);
                 x += tw;
                 *s = ch;
                 text = s + 1;
             }
         }
         tw = TEXTW(text) - lrpad + 2;
-        drw_text(drw, m->ww - statusw + x, 0, tw, bh, 0, text, 0);
+        drw_text(drw, m->win_w - statusw + x, 0, tw, bh, 0, text, 0);
         tw = statusw;
     }
 
@@ -1063,7 +1063,7 @@ draw_bar(Monitor *m) {
     drw_setscheme(drw, scheme[SchemeNorm]);
     x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->layout_symbol, 0);
 
-    if ((w = m->ww - tw - x) > bh) {
+    if ((w = m->win_w - tw - x) > bh) {
         if (m->selected_client) {
             drw_setscheme(drw, scheme[m == current_monitor ? SchemeSel : SchemeNorm]);
             drw_text(drw, x, 0, w, bh, lrpad / 2, m->selected_client->name, 0);
@@ -1074,15 +1074,15 @@ draw_bar(Monitor *m) {
             drw_rect(drw, x, 0, w, bh, 1, 1);
         }
     }
-    drw_map(drw, m->barwin, 0, 0, m->ww, bh);
+    drw_map(drw, m->barwin, 0, 0, m->win_w, bh);
 
     if (m == current_monitor) { /* extra status is only drawn on selected monitor */
         drw_setscheme(drw, scheme[SchemeNorm]);
         /* clear default bar draw buffer by drawing a blank rectangle */
-        drw_rect(drw, 0, 0, m->ww, bh, 1, 1);
+        drw_rect(drw, 0, 0, m->win_w, bh, 1, 1);
         extra_status_width = TEXTW(extra_status);
         drw_text(drw, 0, 0, extra_status_width, bh, 0, extra_status, 0);
-        drw_map(drw, m->extrabarwin, 0, 0, m->ww, bh);
+        drw_map(drw, m->extrabarwin, 0, 0, m->win_w, bh);
     }
     return;
 }
@@ -1178,26 +1178,26 @@ focus_direction(const Arg *arg) {
         case 0: // left
             dist = s->x - client->x - client->w;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->ww)) +
+                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_w)) +
                 abs(s->y - client->y);
             break;
         case 1: // right
             dist = client->x - s->x - s->w;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->ww)) +
+                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_w)) +
                 abs(client->y - s->y);
             break;
         case 2: // up
             dist = s->y - client->y - client->h;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->wh)) +
+                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_h)) +
                 abs(s->x - client->x);
             break;
         default:
         case 3: // down
             dist = client->y - s->y - s->h;
             client_score =
-                dirweight * MIN(abs(dist), abs(dist + s->monitor->wh)) +
+                dirweight * MIN(abs(dist), abs(dist + s->monitor->win_h)) +
                 abs(client->x - s->x);
             break;
         }
@@ -1342,15 +1342,15 @@ gapless_grid(Monitor *m) {
     rows = n/cols;
 
     /* window geometries */
-    cw = cols ? m->ww / cols : m->ww;
+    cw = cols ? m->win_w / cols : m->win_w;
     cn = 0; /* current column number */
     rn = 0; /* current row number */
     for (i = 0, client = nexttiled(m->clients); client; i++, client = nexttiled(client->next)) {
         if (i/rows + 1 > cols - n%cols)
             rows = n/cols + 1;
-        ch = rows ? m->wh / rows : m->wh;
-        cx = m->wx + cn*cw;
-        cy = m->wy + rn*ch;
+        ch = rows ? m->win_h / rows : m->win_h;
+        cx = m->win_x + cn*cw;
+        cy = m->win_y + rn*ch;
         resize(client, cx, cy, cw - 2 * client->border_width, ch - 2 * client->border_width, False);
         rn++;
         if (rn >= rows) {
@@ -1664,12 +1664,12 @@ manage(Window win, XWindowAttributes *wa) {
         apply_rules(client);
     }
 
-    if (client->x + WIDTH(client) > client->monitor->wx + client->monitor->ww)
-        client->x = client->monitor->wx + client->monitor->ww - WIDTH(client);
-    if (client->y + HEIGHT(client) > client->monitor->wy + client->monitor->wh)
-        client->y = client->monitor->wy + client->monitor->wh - HEIGHT(client);
-    client->x = MAX(client->x, client->monitor->wx);
-    client->y = MAX(client->y, client->monitor->wy);
+    if (client->x + WIDTH(client) > client->monitor->win_x + client->monitor->win_w)
+        client->x = client->monitor->win_x + client->monitor->win_w - WIDTH(client);
+    if (client->y + HEIGHT(client) > client->monitor->win_y + client->monitor->win_h)
+        client->y = client->monitor->win_y + client->monitor->win_h - HEIGHT(client);
+    client->x = MAX(client->x, client->monitor->win_x);
+    client->y = MAX(client->y, client->monitor->win_y);
     client->border_width = border_pixels;
 
     wc.border_width = client->border_width;
@@ -1760,7 +1760,7 @@ monocle(Monitor *m) {
     if (n > 0) /* override layout symbol */
         snprintf(m->layout_symbol, sizeof(m->layout_symbol), "[%d]", n);
     for (client = nexttiled(m->clients); client; client = nexttiled(client->next))
-        resize(client, m->wx, m->wy, m->ww - 2 * client->border_width, m->wh - 2 * client->border_width, 0);
+        resize(client, m->win_x, m->win_y, m->win_w - 2 * client->border_width, m->win_h - 2 * client->border_width, 0);
     return;
 }
 
@@ -1817,14 +1817,14 @@ movemouse(const Arg *arg) {
 
             nx = ocx + (ev.xmotion.x - x);
             ny = ocy + (ev.xmotion.y - y);
-            if (abs(current_monitor->wx - nx) < snap)
-                nx = current_monitor->wx;
-            else if (abs((current_monitor->wx + current_monitor->ww) - (nx + WIDTH(client))) < snap)
-                nx = current_monitor->wx + current_monitor->ww - WIDTH(client);
-            if (abs(current_monitor->wy - ny) < snap)
-                ny = current_monitor->wy;
-            else if (abs((current_monitor->wy + current_monitor->wh) - (ny + HEIGHT(client))) < snap)
-                ny = current_monitor->wy + current_monitor->wh - HEIGHT(client);
+            if (abs(current_monitor->win_x - nx) < snap)
+                nx = current_monitor->win_x;
+            else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < snap)
+                nx = current_monitor->win_x + current_monitor->win_w - WIDTH(client);
+            if (abs(current_monitor->win_y - ny) < snap)
+                ny = current_monitor->win_y;
+            else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < snap)
+                ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
             if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
             && (abs(nx - client->x) > snap || abs(ny - client->y) > snap))
                 togglefloating(NULL);
@@ -1992,8 +1992,8 @@ resize_mouse(const Arg *arg) {
 
             nw = MAX(ev.xmotion.x - ocx - 2 * client->border_width + 1, 1);
             nh = MAX(ev.xmotion.y - ocy - 2 * client->border_width + 1, 1);
-            if (client->monitor->wx + nw >= current_monitor->wx && client->monitor->wx + nw <= current_monitor->wx + current_monitor->ww
-            && client->monitor->wy + nh >= current_monitor->wy && client->monitor->wy + nh <= current_monitor->wy + current_monitor->wh) {
+            if (client->monitor->win_x + nw >= current_monitor->win_x && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
+            && client->monitor->win_y + nh >= current_monitor->win_y && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
                 if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
                 && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
                     togglefloating(NULL);
@@ -2321,8 +2321,8 @@ showhide(Client *client) {
         return;
     if (ISVISIBLE(client)) {
         if ((client->tags & SPTAGMASK) && client->isfloating) {
-            client->x = client->monitor->wx + (client->monitor->ww / 2 - WIDTH(client) / 2);
-            client->y = client->monitor->wy + (client->monitor->wh / 2 - HEIGHT(client) / 2);
+            client->x = client->monitor->win_x + (client->monitor->win_w / 2 - WIDTH(client) / 2);
+            client->y = client->monitor->win_y + (client->monitor->win_h / 2 - HEIGHT(client) / 2);
         }
         /* show clients top down */
         XMoveWindow(display, client->win, client->x, client->y);
@@ -2401,17 +2401,17 @@ col(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mw = m->nmaster ? m->ww * m->master_fact : 0;
+        mw = m->nmaster ? m->win_w * m->master_fact : 0;
     else
-        mw = m->ww;
+        mw = m->win_w;
     for (i = x = y = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++) {
         if (i < m->nmaster) {
             w = (mw - x) / (MIN(n, m->nmaster) - i);
-            resize(client, x + m->wx, m->wy, w - (2 * client->border_width), m->wh - (2 * client->border_width), 0);
+            resize(client, x + m->win_x, m->win_y, w - (2 * client->border_width), m->win_h - (2 * client->border_width), 0);
             x += WIDTH(client);
         } else {
-            h = (m->wh - y) / (n - i);
-            resize(client, x + m->wx, m->wy + y, m->ww - x - (2 * client->border_width), h - (2 * client->border_width), 0);
+            h = (m->win_h - y) / (n - i);
+            resize(client, x + m->win_x, m->win_y + y, m->win_w - x - (2 * client->border_width), h - (2 * client->border_width), 0);
             y += HEIGHT(client);
         }
     }
@@ -2428,19 +2428,19 @@ tile(Monitor *m) {
         return;
 
     if (n > m->nmaster)
-        mw = m->nmaster ? m->ww * m->master_fact : 0;
+        mw = m->nmaster ? m->win_w * m->master_fact : 0;
     else
-        mw = m->ww;
+        mw = m->win_w;
     for (i = my = ty = 0, client = nexttiled(m->clients); client; client = nexttiled(client->next), i++)
         if (i < m->nmaster) {
-            h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-            resize(client, m->wx, m->wy + my, mw - (2*client->border_width), h - (2*client->border_width), 0);
-            if (my + HEIGHT(client) < m->wh)
+            h = (m->win_h - my) / (MIN(n, m->nmaster) - i);
+            resize(client, m->win_x, m->win_y + my, mw - (2*client->border_width), h - (2*client->border_width), 0);
+            if (my + HEIGHT(client) < m->win_h)
                 my += HEIGHT(client);
         } else {
-            h = (m->wh - ty) / (n - i);
-            resize(client, m->wx + mw, m->wy + ty, m->ww - mw - (2*client->border_width), h - (2*client->border_width), 0);
-            if (ty + HEIGHT(client) < m->wh)
+            h = (m->win_h - ty) / (n - i);
+            resize(client, m->win_x + mw, m->win_y + ty, m->win_w - mw - (2*client->border_width), h - (2*client->border_width), 0);
+            if (ty + HEIGHT(client) < m->win_h)
                 ty += HEIGHT(client);
         }
     return;
@@ -2451,7 +2451,7 @@ togglebar(const Arg *arg) {
     (void) arg;
     current_monitor->showbar = current_monitor->pertag->showbars[current_monitor->pertag->current_tag] = !current_monitor->showbar;
     update_bar_pos(current_monitor);
-    XMoveResizeWindow(display, current_monitor->barwin, current_monitor->wx, current_monitor->bar_y, current_monitor->ww, bh);
+    XMoveResizeWindow(display, current_monitor->barwin, current_monitor->win_x, current_monitor->bar_y, current_monitor->win_w, bh);
     arrange(current_monitor);
     return;
 }
@@ -2460,7 +2460,7 @@ void
 toggleextrabar(const Arg *arg) {
     current_monitor->extrabar = !current_monitor->extrabar;
     update_bar_pos(current_monitor);
-    XMoveResizeWindow(display, current_monitor->extrabarwin, current_monitor->wx, current_monitor->extra_bar_y, current_monitor->ww, bh);
+    XMoveResizeWindow(display, current_monitor->extrabarwin, current_monitor->win_x, current_monitor->extra_bar_y, current_monitor->win_w, bh);
     arrange(current_monitor);
 }
 
@@ -2677,7 +2677,7 @@ update_bars(void) {
     XClassHint ch = {"dwm", "dwm"};
     for (m = monitors; m; m = m->next) {
         if (!m->barwin) {
-            m->barwin = XCreateWindow(display, root, m->wx, m->bar_y, m->ww, bh, 0, depth,
+            m->barwin = XCreateWindow(display, root, m->win_x, m->bar_y, m->win_w, bh, 0, depth,
                     InputOutput, visual,
                     CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
             XDefineCursor(display, m->barwin, cursor[CursorNormal]->cursor);
@@ -2685,7 +2685,7 @@ update_bars(void) {
             XSetClassHint(display, m->barwin, &ch);
         }
         if (!m->extrabarwin) {
-            m->extrabarwin = XCreateWindow(display, root, m->wx, m->extra_bar_y, m->ww, bh, 0, depth,
+            m->extrabarwin = XCreateWindow(display, root, m->win_x, m->extra_bar_y, m->win_w, bh, 0, depth,
                     InputOutput, visual,
                     CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
             XDefineCursor(display, m->extrabarwin, cursor[CursorNormal]->cursor);
@@ -2698,19 +2698,19 @@ update_bars(void) {
 
 void
 update_bar_pos(Monitor *m) {
-    m->wy = m->my;
-    m->wh = m->mh;
+    m->win_y = m->my;
+    m->win_h = m->mh;
     if (m->showbar) {
-        m->wh -= bh;
-        m->bar_y = m->topbar ? m->wy : m->wy + m->wh;
-        m->wy = m->topbar ? m->wy + bh : m->wy;
+        m->win_h -= bh;
+        m->bar_y = m->topbar ? m->win_y : m->win_y + m->win_h;
+        m->win_y = m->topbar ? m->win_y + bh : m->win_y;
     } else {
         m->bar_y = -bh;
     }
     if (m->extrabar) {
-        m->wh -= bh;
-        m->extra_bar_y = !m->topbar ? m->wy : m->wy + m->wh;
-        m->wy = !m->topbar ? m->wy + bh : m->wy;
+        m->win_h -= bh;
+        m->extra_bar_y = !m->topbar ? m->win_y : m->win_y + m->win_h;
+        m->win_y = !m->topbar ? m->win_y + bh : m->win_y;
     } else
         m->extra_bar_y = -bh;
     return;
@@ -2766,10 +2766,10 @@ update_geometry(void) {
             || unique[i].width != monitor->mw || unique[i].height != monitor->mh) {
                 dirty = 1;
                 monitor->num = i;
-                monitor->mx = monitor->wx = unique[i].x_org;
-                monitor->my = monitor->wy = unique[i].y_org;
-                monitor->mw = monitor->ww = unique[i].width;
-                monitor->mh = monitor->wh = unique[i].height;
+                monitor->mx = monitor->win_x = unique[i].x_org;
+                monitor->my = monitor->win_y = unique[i].y_org;
+                monitor->mw = monitor->win_w = unique[i].width;
+                monitor->mh = monitor->win_h = unique[i].height;
                 update_bar_pos(monitor);
             }
         /* removed monitors if n > nn */
@@ -2796,8 +2796,8 @@ update_geometry(void) {
             monitors = createmon();
         if (monitors->mw != sw || monitors->mh != sh) {
             dirty = 1;
-            monitors->mw = monitors->ww = sw;
-            monitors->mh = monitors->wh = sh;
+            monitors->mw = monitors->win_w = sw;
+            monitors->mh = monitors->win_h = sh;
             update_bar_pos(monitors);
         }
     }
@@ -2957,7 +2957,6 @@ updatewm_hintsints(Client *client) {
 
 void
 view(const Arg *arg) {
-    int i;
     uint tmptag;
     Monitor *monitor = current_monitor;
 
@@ -2971,6 +2970,7 @@ view(const Arg *arg) {
         if (arg->ui == ~0) {
             monitor->pertag->current_tag = 0;
         } else {
+            int i;
             for (i = 0; !(arg->ui & 1 << i); i++);
             monitor->pertag->current_tag = i + 1;
         }
