@@ -194,7 +194,7 @@ static void debug_dwm(char *message, ...);
 static void destroy_notify(XEvent *e);
 static void detach(Client *client);
 static void detach_stack(Client *client);
-static Monitor *direction_to_mon(int dir);
+static Monitor *direction_to_monitor(int dir);
 static void draw_bar(Monitor *monitor);
 static void draw_bars(void);
 static void enter_notify(XEvent *e);
@@ -984,7 +984,7 @@ detach_stack(Client *client) {
 }
 
 Monitor *
-direction_to_mon(int dir) {
+direction_to_monitor(int dir) {
     Monitor *m = NULL;
 
     if (dir > 0) {
@@ -1261,7 +1261,7 @@ focus_monitor(const Arg *arg) {
 
     if (!monitors->next)
         return;
-    if ((monitor = direction_to_mon(arg->i)) == current_monitor)
+    if ((monitor = direction_to_monitor(arg->i)) == current_monitor)
         return;
     unfocus(current_monitor->selected_client, 0);
     current_monitor = monitor;
@@ -2528,7 +2528,7 @@ tag(const Arg *arg) {
 
 void
 tag_monitor(const Arg *arg) {
-    Monitor *monitor = direction_to_mon(arg->i);
+    Monitor *monitor = direction_to_monitor(arg->i);
 
     if (!current_monitor->selected_client || !monitors->next)
         return;
@@ -3232,12 +3232,14 @@ window_to_client(Window win) {
 
 Monitor *
 window_to_monitor(Window window) {
-    int x;
-    int y;
     Client *client;
 
-    if (window == root && get_root_pointer(&x, &y))
-        return rectangle_to_monitor(x, y, 1, 1);
+    if (window == root) {
+        int x;
+        int y;
+        if (get_root_pointer(&x, &y))
+            return rectangle_to_monitor(x, y, 1, 1);
+    }
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         if (window == monitor->barwin || window == monitor->extrabarwin)
             return monitor;
@@ -3260,6 +3262,7 @@ window_view(const Arg* arg) {
 
     if (!XGetInputFocus(display, &window, &unused))
         return;
+
     while (XQueryTree(display, window,
                       &root_return, &parent_return, &children_return,
                       &nchildren_return) && parent_return != root_return) {
