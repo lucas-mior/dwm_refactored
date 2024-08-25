@@ -147,7 +147,7 @@ struct Monitor {
     int bar_y;               /* bar geometry */
     int extra_bar_y;              /* extra bar geometry */
     int mon_x, mon_y, mon_w, mon_h;   /* screen size */
-    int win_x, win_y, win_w, win_h;   /* window area  */
+    int win_x, win_y, win_w, win_h;   /* window area */
     uint seltags;
     uint layout_index;
     uint tagset[2];
@@ -343,7 +343,7 @@ struct Pertag {
     int nmasters[LENGTH(tags) + 1]; /* number of windows in master area */
     float master_facts[LENGTH(tags) + 1]; /* master_facts per tag */
     uint selected_layouts[LENGTH(tags) + 1]; /* selected layouts */
-    const Layout *layout_tags_indexes[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
+    const Layout *layout_tags_indexes[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes */
     int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
 
@@ -2060,8 +2060,11 @@ resize_mouse(const Arg *arg) {
 
     if (!(client = current_monitor->selected_client))
         return;
-    if (client->isfullscreen && !client->isfakefullscreen) /* no support resizing fullscreen windows by mouse */
+
+    /* no support resizing fullscreen windows by mouse */
+    if (client->isfullscreen && !client->isfakefullscreen)
         return;
+
     restack(current_monitor);
     ocx = client->x;
     ocy = client->y;
@@ -3098,7 +3101,7 @@ update_status(void) {
         }
 
         strncpy(stext, text, sizeof(stext) - 1);
-        statusw  = 0;
+        statusw = 0;
         for (text2 = s = stext; *s; s++) {
             char ch;
             if ((uchar)(*s) < ' ') {
