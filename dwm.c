@@ -1550,7 +1550,7 @@ grab_buttons(Client *client, int focused) {
     for (int i = 0; i < LENGTH(buttons); i++) {
         if (buttons[i].click == ClickClientWin) {
             for (int j = 0; j < LENGTH(modifiers); j++) {
-                XGrabButton(display, buttons[i].button,
+                XGrabButton(display, (uint) buttons[i].button,
                             buttons[i].mask | modifiers[j],
                             client->win, False, BUTTONMASK,
                             GrabModeAsync, GrabModeSync, None, None);
@@ -1788,7 +1788,6 @@ motion_notify(XEvent *e) {
 
 void
 move_mouse(const Arg *arg) {
-    (void) arg;
     int x, y;
     int ocx, ocy;
     int nx, ny;
@@ -1796,6 +1795,7 @@ move_mouse(const Arg *arg) {
     Monitor *m;
     XEvent ev;
     Time lasttime = 0;
+    (void) arg;
 
     if (!(client = current_monitor->selected_client))
         return;
@@ -1968,12 +1968,13 @@ resize_client(Client *client, int x, int y, int w, int h) {
 
 void
 resize_mouse(const Arg *arg) {
-    (void) arg;
-    int ocx, ocy, nw, nh;
+    int ocx, ocy;
+    int nw, nh;
     Client *client;
     Monitor *m;
     XEvent ev;
     Time lasttime = 0;
+    (void) arg;
 
     if (!(client = current_monitor->selected_client))
         return;
@@ -2009,6 +2010,8 @@ resize_mouse(const Arg *arg) {
             }
             if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->isfloating)
                 resize(client, client->x, client->y, nw, nh, 1);
+            break;
+        default:
             break;
         }
     } while (ev.type != ButtonRelease);
@@ -2187,15 +2190,18 @@ setfullscreen(Client *client, int fullscreen) {
 
 void
 set_layout(const Arg *arg) {
-    if (!arg || !arg->v || arg->v != current_monitor->layout[current_monitor->layout_index])
-        current_monitor->layout_index = current_monitor->pertag->selected_layouts[current_monitor->pertag->current_tag] ^= 1;
+    Layout *layout = arg->v;
+    Monitor *monitor = current_monitor;
+
+    if (!arg || !arg->v || arg->v != monitor->layout[monitor->layout_index])
+        monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag] ^= 1;
     if (arg && arg->v)
-        current_monitor->layout[current_monitor->layout_index] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index] = (Layout *)arg->v;
-    strncpy(current_monitor->layout_symbol, current_monitor->layout[current_monitor->layout_index]->symbol, sizeof(current_monitor->layout_symbol));
-    if (current_monitor->selected_client)
-        arrange(current_monitor);
+        monitor->layout[monitor->layout_index] = monitor->pertag->ltidxs[monitor->pertag->current_tag][monitor->layout_index] = layout;
+    strncpy(monitor->layout_symbol, monitor->layout[monitor->layout_index]->symbol, sizeof(monitor->layout_symbol));
+    if (monitor->selected_client)
+        arrange(monitor);
     else
-        draw_bar(current_monitor);
+        draw_bar(monitor);
     return;
 }
 
