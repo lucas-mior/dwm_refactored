@@ -2853,12 +2853,12 @@ unmanage(Client *client, int destroyed) {
 }
 
 void
-unmap_notify(XEvent *e) {
+unmap_notify(XEvent *event) {
     Client *client;
-    XUnmapEvent *ev = &e->xunmap;
+    XUnmapEvent *unmap_event = &event->xunmap;
 
-    if ((client = window_to_client(ev->window))) {
-        if (ev->send_event)
+    if ((client = window_to_client(unmap_event->window))) {
+        if (unmap_event->send_event)
             set_client_state(client, WithdrawnState);
         else
             unmanage(client, 0);
@@ -2927,15 +2927,14 @@ update_bar_pos(Monitor *monitor) {
 
 void
 update_client_list(void) {
-    Client *client;
-    Monitor *m;
-
     XDeleteProperty(display, root, netatom[NetClientList]);
-    for (m = monitors; m; m = m->next) {
-        for (client = m->clients; client; client = client->next)
+
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+        for (Client *client = monitor->clients; client; client = client->next) {
             XChangeProperty(display, root, netatom[NetClientList],
                             XA_WINDOW, 32, PropModeAppend,
                             (uchar *) &(client->win), 1);
+        }
     }
     return;
 }
