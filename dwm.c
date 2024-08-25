@@ -250,7 +250,7 @@ static void showhide(Client *client);
 static void signal_status_bar(const Arg *arg);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
-static void tagmon(const Arg *arg);
+static void tag_monitor(const Arg *arg);
 static void tile(Monitor *monitor);
 static void toggle_bar(const Arg *arg);
 static void toggle_extra_bar(const Arg *arg);
@@ -2257,12 +2257,12 @@ set_master_fact(const Arg *arg) {
     if (!current_monitor->layout[current_monitor->layout_index]->arrange)
         return;
 
-    if (arg->f < 1.0)
+    if (arg->f < 1.0f)
         factor = arg->f + current_monitor->master_fact;
     else
-        factor = arg->f - 1.0;
+        factor = arg->f - 1.0f;
 
-    if (factor < 0.05 || factor > 0.95)
+    if (factor < 0.05f || factor > 0.95f)
         return;
 
     current_monitor->master_fact = current_monitor->pertag->master_facts[current_tag] = factor;
@@ -2298,6 +2298,7 @@ setup(void) {
     lrpad = drw->fonts->h / 2;
     bh = drw->fonts->h + 2;
     update_geometry();
+
     /* init atoms */
     utf8string = XInternAtom(display, "UTF8_STRING", False);
     wmatom[WMProtocols] = XInternAtom(display, "WM_PROTOCOLS", False);
@@ -2315,17 +2316,21 @@ setup(void) {
     netatom[NetWMWindowTypeDialog] = XInternAtom(display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
     netatom[NetClientList] = XInternAtom(display, "_NET_CLIENT_LIST", False);
     netatom[NetClientInfo] = XInternAtom(display, "_NET_CLIENT_INFO", False);
+
     /* init cursors */
     cursor[CursorNormal] = drw_cur_create(drw, XC_left_ptr);
     cursor[CursorResize] = drw_cur_create(drw, XC_sizing);
     cursor[CursorMove] = drw_cur_create(drw, XC_fleur);
+
     /* init appearance */
     scheme = ecalloc(LENGTH(colors), sizeof(*scheme));
     for (i = 0; i < LENGTH(colors); i++)
         scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
+
     /* init bars */
     update_bars();
     update_status();
+
     /* supporting window for NetWMCheck */
     wmcheckwin = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
     XChangeProperty(display, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32,
@@ -2334,11 +2339,13 @@ setup(void) {
         PropModeReplace, (uchar *) "dwm", 3);
     XChangeProperty(display, root, netatom[NetWMCheck], XA_WINDOW, 32,
         PropModeReplace, (uchar *) &wmcheckwin, 1);
+
     /* EWMH support per view */
     XChangeProperty(display, root, netatom[NetSupported], XA_ATOM, 32,
         PropModeReplace, (uchar *) netatom, NetLast);
     XDeleteProperty(display, root, netatom[NetClientList]);
     XDeleteProperty(display, root, netatom[NetClientInfo]);
+
     /* select events */
     window_attributes.cursor = cursor[CursorNormal]->cursor;
     window_attributes.event_mask = SubstructureRedirectMask|SubstructureNotifyMask
@@ -2347,6 +2354,7 @@ setup(void) {
     XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &window_attributes);
     XSelectInput(display, root, window_attributes.event_mask);
     grab_keys();
+
     focus(NULL);
     for (Monitor *m = monitors; m; m = m->next) {
         unfocus(current_monitor->selected_client, 0);
@@ -2438,14 +2446,17 @@ tag(const Arg *arg) {
 }
 
 void
-tagmon(const Arg *arg) {
+tag_monitor(const Arg *arg) {
+    Monitor *monitor = direction_to_mon(arg->i);
+
     if (!current_monitor->selected_client || !monitors->next)
         return;
-    Monitor *monitor = direction_to_mon(arg->i);
+
     if (current_monitor->selected_client->isfloating) {
         current_monitor->selected_client->x += monitor->mon_x - current_monitor->mon_x;
         current_monitor->selected_client->y += monitor->mon_y - current_monitor->mon_y;
     }
+
     send_monitor(current_monitor->selected_client, monitor);
     usleep(50);
     focus(NULL);

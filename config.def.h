@@ -129,8 +129,8 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,         XK_apostrophe, tag,            {.ui = ~0 } },
 	{ MODKEY|ControlMask,           XK_k,      focus_monitor,       {.i = -1 } },
 	{ MODKEY|ControlMask,           XK_l,      focus_monitor,       {.i = +1 } },
-	{ MODKEY|ShiftMask,             XK_k,      tagmon,         {.i = -1 } },
-	{ MODKEY|ShiftMask,             XK_l,      tagmon,         {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_k,      tag_monitor,         {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_l,      tag_monitor,         {.i = +1 } },
 	{ MODKEY,            			XK_equal,  toggle_scratch,  {.ui = 0 } },
 	{ MODKEY,            			XK_Return, toggle_scratch,  {.ui = 1 } },
 	TAGKEYS(                        XK_F1,                     0)
