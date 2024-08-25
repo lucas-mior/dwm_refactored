@@ -1072,7 +1072,10 @@ draw_bar(Monitor *m) {
         x += w;
         if (client) {
             drw_text(drw, x, 0, client->icon_width + lrpad/2, bar_height, 0, " ", urg & 1 << i);
-            drw_pic(drw, x, (bar_height - client->icon_height) / 2, client->icon_width, client->icon_height, client->icon);
+            drw_pic(drw,
+                    x, (bar_height - client->icon_height) / 2,
+                    client->icon_width, client->icon_height,
+                    client->icon);
             x += client->icon_width + lrpad/2;
             tagw[i] += client->icon_width + lrpad/2;
         }
@@ -1825,14 +1828,14 @@ monocle(Monitor *monitor) {
 }
 
 void
-motion_notify(XEvent *e) {
+motion_notify(XEvent *event) {
     static Monitor *monitor = NULL;
     Monitor *m;
-    XMotionEvent *ev = &e->xmotion;
+    XMotionEvent *motion_event = &event->xmotion;
 
-    if (ev->window != root)
+    if (motion_event->window != root)
         return;
-    if ((m = recttomon(ev->x_root, ev->y_root, 1, 1)) != monitor && monitor) {
+    if ((m = recttomon(motion_event->x_root, motion_event->y_root, 1, 1)) != monitor && monitor) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = m;
         focus(NULL);
@@ -3160,8 +3163,10 @@ view(const Arg *arg) {
     monitor->nmaster = monitor->pertag->nmasters[current_tag];
     monitor->master_fact = monitor->pertag->master_facts[current_tag];
     monitor->layout_index = monitor->pertag->selected_layouts[current_tag];
-    monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
-    monitor->layout[monitor->layout_index^1] = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
+    monitor->layout[monitor->layout_index]
+        = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
+    monitor->layout[monitor->layout_index^1]
+        = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
     if (monitor->showbar != monitor->pertag->showbars[current_tag])
         toggle_bar(NULL);
