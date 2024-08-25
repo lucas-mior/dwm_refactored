@@ -181,27 +181,19 @@ static void arrange_monitor(Monitor *);
 static void aspect_resize(const Arg *arg);
 static void attach(Client *);
 static void attach_stack(Client *);
-static void handler_button_press(XEvent *);
 static void cleanup(void);
 static void cleanup_monitor(Monitor *);
-static void handler_client_message(XEvent *);
 static void layout_columns(Monitor *);
 static void configure(Client *);
-static void handler_configure_notify(XEvent *);
-static void handler_configure_request(XEvent *);
 static Monitor *createmon(void);
 static void debug_dwm(char *message, ...);
-static void handler_destroy_notify(XEvent *);
 static void detach(Client *);
 static void detach_stack(Client *);
 static Monitor *direction_to_monitor(int dir);
 static void draw_bar(Monitor *);
 static void draw_bars(void);
-static void handler_enter_notify(XEvent *);
-static void handler_expose(XEvent *);
 static void focus(Client *);
 static void focus_direction(const Arg *arg);
-static void handler_focus_in(XEvent *);
 static void focus_monitor(const Arg *arg);
 static void focus_next(const Arg *arg);
 static void focus_stack(const Arg *arg);
@@ -215,18 +207,27 @@ static pid_t get_status_bar_pid(void);
 static int get_text_property(Window, Atom atom, char *text, uint size);
 static void grab_buttons(Client *, int focused);
 static void grab_keys(void);
-static void inc_number_masters(const Arg *arg);
+static void handler_button_press(XEvent *);
+static void handler_client_message(XEvent *);
+static void handler_configure_notify(XEvent *);
+static void handler_configure_request(XEvent *);
+static void handler_destroy_notify(XEvent *);
+static void handler_enter_notify(XEvent *);
+static void handler_expose(XEvent *);
+static void handler_focus_in(XEvent *);
 static void handler_key_press(XEvent *);
-static void kill_client(const Arg *arg);
-static void manage(Window, XWindowAttributes *window_attributes);
 static void handler_mapping_notify(XEvent *);
 static void handler_map_request(XEvent *);
-static void layout_monocle(Monitor *);
 static void handler_motion_notify(XEvent *);
+static void handler_property_notify(XEvent *);
+static void handler_unmap_notify(XEvent *);
+static void inc_number_masters(const Arg *arg);
+static void kill_client(const Arg *arg);
+static void manage(Window, XWindowAttributes *window_attributes);
+static void layout_monocle(Monitor *);
 static void move_mouse(const Arg *arg);
 static Client *next_tiled(Client *);
 static void pop(Client *);
-static void handler_property_notify(XEvent *);
 static void quit(const Arg *arg);
 static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *, int x, int y, int w, int h, int interact);
@@ -261,7 +262,6 @@ static void toggle_view(const Arg *arg);
 static void free_icon(Client *);
 static void unfocus(Client *, int set_focus);
 static void unmanage(Client *, int destroyed);
-static void handler_unmap_notify(XEvent *);
 static void update_bar_pos(Monitor *);
 static void update_bars(void);
 static void update_client_list(void);
@@ -631,88 +631,6 @@ attach_stack(Client *client) {
 }
 
 void
-handler_button_press(XEvent *event) {
-    uint click;
-    Arg arg = {0};
-    Client *client;
-    Monitor *monitor;
-    XButtonPressedEvent *button_event = &event->xbutton;
-
-    click = ClickRootWin;
-    /* focus monitor if necessary */
-    if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
-        unfocus(current_monitor->selected_client, 1);
-        current_monitor = monitor;
-        focus(NULL);
-    }
-    if (button_event->window == current_monitor->barwin) {
-        uint i = 0;
-        uint x = 0;
-
-        do {
-            x += tagw[i];
-        } while ((uint) button_event->x >= x && ++i < LENGTH(tags));
-        if (i < LENGTH(tags)) {
-            click = ClickTagBar;
-            arg.ui = 1 << i;
-        } else if ((uint) button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
-            click = ClickLayoutSymbol;
-        } else if (button_event->x > current_monitor->win_w - statusw) {
-            char *s;
-
-            x = (uint) (current_monitor->win_w - statusw);
-            click = ClickStatusText;
-            statussig = 0;
-
-            for (char *text = s = stext; *s && (int) x <= button_event->x; s += 1) {
-                if ((uchar)(*s) < ' ') {
-                    char ch = *s;
-                    *s = '\0';
-                    x += TEXTW(text) - lrpad;
-                    *s = ch;
-                    text = s + 1;
-                    if ((int) x >= button_event->x)
-                        break;
-                    statussig = ch;
-                }
-            }
-        } else {
-            click = ClickWinTitle;
-        }
-    } else if (button_event->window == current_monitor->extrabarwin) {
-        int x = 0;
-        char *s = &extra_status[0];
-
-        click = ClickExtraBar;
-        statussig = 0;
-        for (char *text = s; *s && x <= button_event->x; s += 1) {
-            if ((uchar)(*s) < ' ') {
-                char ch = *s;
-                *s = '\0';
-                x += TEXTW(text) - lrpad;
-                *s = ch;
-                text = s + 1;
-                if (x >= button_event->x)
-                    break;
-                statussig = ch;
-            }
-        }
-    } else if ((client = window_to_client(button_event->window))) {
-        focus(client);
-        restack(current_monitor);
-        XAllowEvents(display, ReplayPointer, CurrentTime);
-        click = ClickClientWin;
-    }
-    for (uint i = 0; i < LENGTH(buttons); i += 1) {
-        if (click == buttons[i].click && buttons[i].func && buttons[i].button == button_event->button
-        && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state))
-            buttons[i].func(click == ClickTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
-    }
-
-    return;
-}
-
-void
 cleanup(void) {
     Arg a = {.ui = (uint) ~0};
     Layout layout = { "", NULL };
@@ -755,26 +673,6 @@ cleanup_monitor(Monitor *monitor) {
     XDestroyWindow(display, monitor->barwin);
     XDestroyWindow(display, monitor->extrabarwin);
     free(monitor);
-    return;
-}
-
-void
-handler_client_message(XEvent *e) {
-    XClientMessageEvent *cme = &e->xclient;
-    Client *client = window_to_client(cme->window);
-
-    if (!client)
-        return;
-    if (cme->message_type == netatom[NetWMState]) {
-        if ((ulong) cme->data.l[1] == netatom[NetWMFullscreen]
-        || (ulong) cme->data.l[2] == netatom[NetWMFullscreen])
-            set_fullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
-                      || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
-                                      && (!client->isfullscreen || client->isfakefullscreen))));
-    } else if (cme->message_type == netatom[NetActiveWindow]) {
-        if (client != current_monitor->selected_client && !client->isurgent)
-            seturgent(client, 1);
-    }
     return;
 }
 
@@ -1637,6 +1535,108 @@ grab_keys(void) {
         }
     }
     XFree(key_sym);
+    return;
+}
+
+void
+handler_button_press(XEvent *event) {
+    uint click;
+    Arg arg = {0};
+    Client *client;
+    Monitor *monitor;
+    XButtonPressedEvent *button_event = &event->xbutton;
+
+    click = ClickRootWin;
+    /* focus monitor if necessary */
+    if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
+        unfocus(current_monitor->selected_client, 1);
+        current_monitor = monitor;
+        focus(NULL);
+    }
+    if (button_event->window == current_monitor->barwin) {
+        uint i = 0;
+        uint x = 0;
+
+        do {
+            x += tagw[i];
+        } while ((uint) button_event->x >= x && ++i < LENGTH(tags));
+        if (i < LENGTH(tags)) {
+            click = ClickTagBar;
+            arg.ui = 1 << i;
+        } else if ((uint) button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
+            click = ClickLayoutSymbol;
+        } else if (button_event->x > current_monitor->win_w - statusw) {
+            char *s;
+
+            x = (uint) (current_monitor->win_w - statusw);
+            click = ClickStatusText;
+            statussig = 0;
+
+            for (char *text = s = stext; *s && (int) x <= button_event->x; s += 1) {
+                if ((uchar)(*s) < ' ') {
+                    char ch = *s;
+                    *s = '\0';
+                    x += TEXTW(text) - lrpad;
+                    *s = ch;
+                    text = s + 1;
+                    if ((int) x >= button_event->x)
+                        break;
+                    statussig = ch;
+                }
+            }
+        } else {
+            click = ClickWinTitle;
+        }
+    } else if (button_event->window == current_monitor->extrabarwin) {
+        int x = 0;
+        char *s = &extra_status[0];
+
+        click = ClickExtraBar;
+        statussig = 0;
+        for (char *text = s; *s && x <= button_event->x; s += 1) {
+            if ((uchar)(*s) < ' ') {
+                char ch = *s;
+                *s = '\0';
+                x += TEXTW(text) - lrpad;
+                *s = ch;
+                text = s + 1;
+                if (x >= button_event->x)
+                    break;
+                statussig = ch;
+            }
+        }
+    } else if ((client = window_to_client(button_event->window))) {
+        focus(client);
+        restack(current_monitor);
+        XAllowEvents(display, ReplayPointer, CurrentTime);
+        click = ClickClientWin;
+    }
+    for (uint i = 0; i < LENGTH(buttons); i += 1) {
+        if (click == buttons[i].click && buttons[i].func && buttons[i].button == button_event->button
+        && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state))
+            buttons[i].func(click == ClickTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+    }
+
+    return;
+}
+
+void
+handler_client_message(XEvent *e) {
+    XClientMessageEvent *cme = &e->xclient;
+    Client *client = window_to_client(cme->window);
+
+    if (!client)
+        return;
+    if (cme->message_type == netatom[NetWMState]) {
+        if ((ulong) cme->data.l[1] == netatom[NetWMFullscreen]
+        || (ulong) cme->data.l[2] == netatom[NetWMFullscreen])
+            set_fullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
+                      || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
+                                      && (!client->isfullscreen || client->isfakefullscreen))));
+    } else if (cme->message_type == netatom[NetActiveWindow]) {
+        if (client != current_monitor->selected_client && !client->isurgent)
+            seturgent(client, 1);
+    }
     return;
 }
 
