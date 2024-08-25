@@ -1778,24 +1778,25 @@ manage(Window win, XWindowAttributes *window_attributes) {
 }
 
 void
-mapping_notify(XEvent *e) {
-    XMappingEvent *ev = &e->xmapping;
+mapping_notify(XEvent *event) {
+    XMappingEvent *mapping_event = &event->xmapping;
 
-    XRefreshKeyboardMapping(ev);
-    if (ev->request == MappingKeyboard)
+    XRefreshKeyboardMapping(mapping_event);
+    if (mapping_event->request == MappingKeyboard)
         grab_keys();
     return;
 }
 
 void
-map_request(XEvent *e) {
+map_request(XEvent *event) {
     static XWindowAttributes window_attributes;
-    XMapRequestEvent *ev = &e->xmaprequest;
+    XMapRequestEvent *map_request_event = &event->xmaprequest;
 
-    if (!XGetWindowAttributes(display, ev->window, &window_attributes) || window_attributes.override_redirect)
+    if (!XGetWindowAttributes(display, map_request_event->window, &window_attributes)
+        || window_attributes.override_redirect)
         return;
-    if (!window_to_client(ev->window))
-        manage(ev->window, &window_attributes);
+    if (!window_to_client(map_request_event->window))
+        manage(map_request_event->window, &window_attributes);
     return;
 }
 
