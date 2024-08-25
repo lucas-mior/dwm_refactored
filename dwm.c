@@ -2045,9 +2045,9 @@ resize_mouse(const Arg *arg) {
             nw = MAX(ev.xmotion.x - ocx - 2*client->border_width + 1, 1);
             nh = MAX(ev.xmotion.y - ocy - 2*client->border_width + 1, 1);
 
-            if (client->monitor->win_x + nw >= current_monitor->win_x 
+            if (client->monitor->win_x + nw >= current_monitor->win_x
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
-                && client->monitor->win_y + nh >= current_monitor->win_y 
+                && client->monitor->win_y + nh >= current_monitor->win_y
                 && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
                 if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
                     && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
@@ -2060,9 +2060,14 @@ resize_mouse(const Arg *arg) {
             break;
         }
     } while (ev.type != ButtonRelease);
-    XWarpPointer(display, None, client->win, 0, 0, 0, 0, client->w + client->border_width - 1, client->h + client->border_width - 1);
+
+    XWarpPointer(display, None, client->win,
+                 0, 0, 0, 0,
+                 client->w + client->border_width - 1,
+                 client->h + client->border_width - 1);
     XUngrabPointer(display, CurrentTime);
     while (XCheckMaskEvent(display, EnterWindowMask, &ev));
+
     if ((m = recttomon(client->x, client->y, client->w, client->h)) != current_monitor) {
         send_monitor(client, m);
         current_monitor = m;
@@ -2211,7 +2216,10 @@ setfullscreen(Client *client, int fullscreen) {
         client->oldbw = client->border_width;
         client->border_width = 0;
         client->isfloating = 1;
-        resize_client(client, client->monitor->mon_x, client->monitor->mon_y, client->monitor->mon_w, client->monitor->mon_h);
+
+        resize_client(client,
+                      client->monitor->mon_x, client->monitor->mon_y,
+                      client->monitor->mon_w, client->monitor->mon_h);
         XRaiseWindow(display, client->win);
     } else if (!fullscreen && client->isfullscreen) {
         XChangeProperty(display, client->win, netatom[NetWMState], XA_ATOM, 32,
@@ -2240,8 +2248,11 @@ set_layout(const Arg *arg) {
 
     if (!arg || !arg->v || arg->v != monitor->layout[monitor->layout_index])
         monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag] ^= 1;
+
     if (arg && arg->v)
-        monitor->layout[monitor->layout_index] = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index] = layout;
+        monitor->layout[monitor->layout_index]
+            = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index]
+            = layout;
 
     strncpy(monitor->layout_symbol,
             monitor->layout[monitor->layout_index]->symbol,
@@ -2501,11 +2512,17 @@ col(Monitor *m) {
     for (i = x = y = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++) {
         if (i < m->nmaster) {
             w = (mon_w - x) / (MIN(n, m->nmaster) - i);
-            resize(client, x + m->win_x, m->win_y, w - (2*client->border_width), m->win_h - (2*client->border_width), 0);
+            resize(client,
+                   x + m->win_x, m->win_y,
+                   w - (2*client->border_width),
+                   m->win_h - (2*client->border_width), 0);
             x += WIDTH(client);
         } else {
             h = (m->win_h - y) / (n - i);
-            resize(client, x + m->win_x, m->win_y + y, m->win_w - x - (2*client->border_width), h - (2*client->border_width), 0);
+            resize(client,
+                   x + m->win_x, m->win_y + y,
+                   m->win_w - x - (2*client->border_width),
+                   h - (2*client->border_width), 0);
             y += HEIGHT(client);
         }
     }
