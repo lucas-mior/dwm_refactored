@@ -666,10 +666,11 @@ button_press(XEvent *e) {
             click = ClickWinTitle;
         }
     } else if (ev->window == current_monitor->extrabarwin) {
-        uint x = 0;
+        int x = 0;
+        char *s = &extra_status[0];
+
         click = ClickExtraBar;
         statussig = 0;
-        char *s = &extra_status[0];
         for (char *text = s; *s && x <= ev->x; s++) {
             if ((uchar)(*s) < ' ') {
                 char ch = *s;
@@ -751,8 +752,8 @@ client_message(XEvent *e) {
     if (!client)
         return;
     if (cme->message_type == netatom[NetWMState]) {
-        if (cme->data.l[1] == netatom[NetWMFullscreen]
-        || cme->data.l[2] == netatom[NetWMFullscreen])
+        if ((ulong) cme->data.l[1] == netatom[NetWMFullscreen]
+        || (ulong) cme->data.l[2] == netatom[NetWMFullscreen])
             setfullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
                       || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
                                       && (!client->isfullscreen || client->isfakefullscreen))));
@@ -858,7 +859,7 @@ configure_request(XEvent *e) {
         wc.border_width = ev->border_width;
         wc.sibling = ev->above;
         wc.stack_mode = ev->detail;
-        XConfigureWindow(display, ev->window, ev->value_mask, &wc);
+        XConfigureWindow(display, ev->window, (uint) ev->value_mask, &wc);
     }
     XSync(display, False);
     return;
@@ -983,9 +984,10 @@ draw_bar(Monitor *m) {
     int x, w, tw = 0, extra_status_width = 0;
     int boxs = drw->fonts->h / 9;
     int boxw = drw->fonts->h / 6 + 2;
-    uint occ = 0, urg = 0;
+    uint urg = 0;
     char tagdisp[TAGWIDTH];
     char *masterclientontag[LENGTH(tags)];
+    Client *icontagclient[LENGTH(tags)] = {0};
 
     if (!m->showbar)
         return;
@@ -1012,15 +1014,12 @@ draw_bar(Monitor *m) {
         tw = statusw;
     }
 
-    Client *icontagclient[LENGTH(tags)] = {0};
-
     for (int i = 0; i < LENGTH(tags); i++) {
         masterclientontag[i] = NULL;
         icontagclient[i] = NULL;
     }
 
     for (Client *client = m->clients; client; client = client->next) {
-        occ |= client->tags;
         if (client->isurgent)
             urg |= client->tags;
         for (int i = 0; i < LENGTH(tags); i++) {
@@ -1150,16 +1149,20 @@ focus(Client *client) {
 
 void
 focus_direction(const Arg *arg) {
-    Client *s = current_monitor->selected_client, *f = NULL, *client, *next;
-
-    if (!s)
-        return;
+    Client *s = current_monitor->selected_client;
+    Client *f = NULL;
+    Client *client;
+    Client *next;
 
     uint score = -1;
     uint client_score;
     int dist;
     int dirweight = 20;
     int isfloating = s->isfloating;
+
+    if (!s)
+        return;
+
 
     next = s->next;
     if (!next)
