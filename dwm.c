@@ -252,14 +252,14 @@ static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *monitor);
-static void togglebar(const Arg *arg);
-static void toggleextrabar(const Arg *arg);
-static void togglefloating(const Arg *arg);
-static void togglefullscr(const Arg *arg);
-static void togglescratch(const Arg *arg);
-static void toggletag(const Arg *arg);
-static void toggleview(const Arg *arg);
-static void freeicon(Client *client);
+static void toggle_bar(const Arg *arg);
+static void toggle_extra_bar(const Arg *arg);
+static void toggle_floating(const Arg *arg);
+static void toggle_fullscreen(const Arg *arg);
+static void toggle_scratch(const Arg *arg);
+static void toggle_tag(const Arg *arg);
+static void toggle_view(const Arg *arg);
+static void free_icon(Client *client);
 static void unfocus(Client *client, int set_focus);
 static void unmanage(Client *client, int destroyed);
 static void unmap_notify(XEvent *e);
@@ -273,10 +273,10 @@ static void update_status(void);
 static void update_title(Client *client);
 static void update_icon(Client *client);
 static void update_window_type(Client *client);
-static void updatewm_hintsints(Client *client);
+static void updatewm_hints(Client *client);
 static void view(const Arg *arg);
-static Client *wintoclient(Window win);
-static Monitor *wintomon(Window win);
+static Client *window_to_client(Window win);
+static Monitor *window_to_monitor(Window win);
 static void winview(const Arg* arg);
 static int xerror(Display *display, XErrorEvent *ee);
 static int xerrordummy(Display *display, XErrorEvent *ee);
@@ -292,7 +292,7 @@ static int statusw;
 static int statussig;
 static pid_t statuspid = -1;
 static int screen;
-static int sw, sh;           /* X display screen geometry width, height */
+static int screen_width, screen_height;           /* X display screen geometry width, height */
 static int bh;               /* bar height */
 static int lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
@@ -412,12 +412,12 @@ alt_tab(const Arg *arg) {
             break;
         case ButtonPress:
             button_event = &(event.xbutton);
-            if ((monitor = wintomon(button_event->window)) && monitor != current_monitor) {
+            if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
                 unfocus(current_monitor->selected_client, 1);
                 current_monitor = monitor;
                 focus(NULL);
             }
-            if ((client = wintoclient(button_event->window)))
+            if ((client = window_to_client(button_event->window)))
                 focus(client);
             XAllowEvents(display, AsyncBoth, CurrentTime);
             break;
@@ -491,10 +491,10 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
     *w = MAX(1, *w);
     *h = MAX(1, *h);
     if (interact) {
-        if (*x > sw)
-            *x = sw - WIDTH(client);
-        if (*y > sh)
-            *y = sh - HEIGHT(client);
+        if (*x > screen_width)
+            *x = screen_width - WIDTH(client);
+        if (*y > screen_height)
+            *y = screen_height - HEIGHT(client);
         if (*x + *w + 2 * client->border_width < 0)
             *x = 0;
         if (*y + *h + 2 * client->border_width < 0)
@@ -629,7 +629,7 @@ button_press(XEvent *e) {
 
     click = ClickRootWin;
     /* focus monitor if necessary */
-    if ((monitor = wintomon(ev->window)) && monitor != current_monitor) {
+    if ((monitor = window_to_monitor(ev->window)) && monitor != current_monitor) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = monitor;
         focus(NULL);
@@ -683,7 +683,7 @@ button_press(XEvent *e) {
                 statussig = ch;
             }
         }
-    } else if ((client = wintoclient(ev->window))) {
+    } else if ((client = window_to_client(ev->window))) {
         focus(client);
         restack(current_monitor);
         XAllowEvents(display, ReplayPointer, CurrentTime);
@@ -747,7 +747,7 @@ cleanup_monitor(Monitor *monitor) {
 void
 client_message(XEvent *e) {
     XClientMessageEvent *cme = &e->xclient;
-    Client *client = wintoclient(cme->window);
+    Client *client = window_to_client(cme->window);
 
     if (!client)
         return;
@@ -791,11 +791,11 @@ configure_notify(XEvent *e) {
 
     /* TODO: update_geometry handling sucks, needs to be simplified */
     if (ev->window == root) {
-        dirty = (sw != ev->width || sh != ev->height);
-        sw = ev->width;
-        sh = ev->height;
+        dirty = (screen_width != ev->width || screen_height != ev->height);
+        screen_width = ev->width;
+        screen_height = ev->height;
         if (update_geometry() || dirty) {
-            drw_resize(drw, sw, bh);
+            drw_resize(drw, screen_width, bh);
             update_bars();
             for (Monitor *m = monitors; m; m = m->next) {
                 for (Client *client = m->clients; client; client = client->next) {
@@ -819,7 +819,7 @@ configure_request(XEvent *e) {
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
     XWindowChanges wc;
 
-    if ((client = wintoclient(ev->window))) {
+    if ((client = window_to_client(ev->window))) {
         if (ev->value_mask & CWBorderWidth) {
             client->border_width = ev->border_width;
         } else if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
@@ -934,7 +934,7 @@ destroy_notify(XEvent *e) {
     Client *client;
     XDestroyWindowEvent *ev = &e->xdestroywindow;
 
-    if ((client = wintoclient(ev->window)))
+    if ((client = window_to_client(ev->window)))
         unmanage(client, 1);
     return;
 }
@@ -1102,8 +1102,8 @@ enter_notify(XEvent *event) {
 
     if ((crossing_event->mode != NotifyNormal || crossing_event->detail == NotifyInferior) && crossing_event->window != root)
         return;
-    client = wintoclient(crossing_event->window);
-    m = client ? client->monitor : wintomon(crossing_event->window);
+    client = window_to_client(crossing_event->window);
+    m = client ? client->monitor : window_to_monitor(crossing_event->window);
     if (m != current_monitor) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = m;
@@ -1119,7 +1119,7 @@ expose(XEvent *e) {
     Monitor *m;
     XExposeEvent *ev = &e->xexpose;
 
-    if (ev->count == 0 && (m = wintomon(ev->window)))
+    if (ev->count == 0 && (m = window_to_monitor(ev->window)))
         draw_bar(m);
     return;
 }
@@ -1656,7 +1656,7 @@ manage(Window win, XWindowAttributes *wa) {
 
     update_icon(client);
     update_title(client);
-    if (XGetTransientForHint(display, win, &trans) && (t = wintoclient(trans))) {
+    if (XGetTransientForHint(display, win, &trans) && (t = window_to_client(trans))) {
         client->monitor = t->monitor;
         client->tags = t->tags;
     } else {
@@ -1678,7 +1678,7 @@ manage(Window win, XWindowAttributes *wa) {
     configure(client); /* propagates border_width, if size doesn't change */
     update_window_type(client);
     update_size_hints(client);
-    updatewm_hintsints(client);
+    updatewm_hints(client);
     {
         int format;
         ulong *data, n, extra;
@@ -1715,7 +1715,7 @@ manage(Window win, XWindowAttributes *wa) {
     attach_stack(client);
     XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
         (uchar *) &(client->win), 1);
-    XMoveResizeWindow(display, client->win, client->x + 2 * sw, client->y, client->w, client->h); /* some windows require this */
+    XMoveResizeWindow(display, client->win, client->x + 2 * screen_width, client->y, client->w, client->h); /* some windows require this */
     set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
         unfocus(current_monitor->selected_client, 0);
@@ -1743,7 +1743,7 @@ map_request(XEvent *e) {
 
     if (!XGetWindowAttributes(display, ev->window, &wa) || wa.override_redirect)
         return;
-    if (!wintoclient(ev->window))
+    if (!window_to_client(ev->window))
         manage(ev->window, &wa);
     return;
 }
@@ -1827,7 +1827,7 @@ move_mouse(const Arg *arg) {
                 ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
             if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
             && (abs(nx - client->x) > snap || abs(ny - client->y) > snap))
-                togglefloating(NULL);
+                toggle_floating(NULL);
             if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->isfloating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
@@ -1867,20 +1867,20 @@ property_notify(XEvent *e) {
         update_status();
     } else if (ev->state == PropertyDelete) {
         return; /* ignore */
-    } else if ((client = wintoclient(ev->window))) {
+    } else if ((client = window_to_client(ev->window))) {
         switch (ev->atom) {
         default:
             break;
         case XA_WM_TRANSIENT_FOR:
             if (!client->isfloating && (XGetTransientForHint(display, client->win, &trans)) &&
-                (client->isfloating = (wintoclient(trans)) != NULL))
+                (client->isfloating = (window_to_client(trans)) != NULL))
                 arrange(client->monitor);
             break;
         case XA_WM_NORMAL_HINTS:
             client->hintsvalid = 0;
             break;
         case XA_WM_HINTS:
-            updatewm_hintsints(client);
+            updatewm_hints(client);
             draw_bars();
             break;
         }
@@ -1996,7 +1996,7 @@ resize_mouse(const Arg *arg) {
             && client->monitor->win_y + nh >= current_monitor->win_y && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
                 if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
                 && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
-                    togglefloating(NULL);
+                    toggle_floating(NULL);
             }
             if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->isfloating)
                 resize(client, client->x, client->y, nw, nh, 1);
@@ -2223,11 +2223,11 @@ setup(void) {
 
     /* init screen */
     screen = DefaultScreen(display);
-    sw = DisplayWidth(display, screen);
-    sh = DisplayHeight(display, screen);
+    screen_width = DisplayWidth(display, screen);
+    screen_height = DisplayHeight(display, screen);
     root = RootWindow(display, screen);
     xinitvisual();
-    drw = drw_create(display, screen, root, sw, sh, visual, depth, cmap);
+    drw = drw_create(display, screen, root, screen_width, screen_height, visual, depth, cmap);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
         die("no fonts could be loaded.");
     lrpad = drw->fonts->h / 2;
@@ -2294,7 +2294,7 @@ setup(void) {
         Arg tag0 = {.ui = ~0};
         view(&tag8);
         set_layout(&lay_monocle);
-        togglebar(0);
+        toggle_bar(0);
         view(&tag0);
         set_layout(&lay_grid);
         view(&tag1);
@@ -2386,8 +2386,8 @@ tagmon(const Arg *arg) {
     focus(NULL);
     usleep(50);
     focus_monitor(arg);
-    togglefloating(NULL);
-    togglefloating(NULL);
+    toggle_floating(NULL);
+    toggle_floating(NULL);
     return;
 }
 
@@ -2447,7 +2447,7 @@ tile(Monitor *m) {
 }
 
 void
-togglebar(const Arg *arg) {
+toggle_bar(const Arg *arg) {
     (void) arg;
     current_monitor->showbar = current_monitor->pertag->showbars[current_monitor->pertag->current_tag] = !current_monitor->showbar;
     update_bar_pos(current_monitor);
@@ -2457,7 +2457,7 @@ togglebar(const Arg *arg) {
 }
 
 void
-toggleextrabar(const Arg *arg) {
+toggle_extra_bar(const Arg *arg) {
     current_monitor->extrabar = !current_monitor->extrabar;
     update_bar_pos(current_monitor);
     XMoveResizeWindow(display, current_monitor->extrabarwin, current_monitor->win_x, current_monitor->extra_bar_y, current_monitor->win_w, bh);
@@ -2466,7 +2466,7 @@ toggleextrabar(const Arg *arg) {
 
 
 void
-togglefloating(const Arg *arg) {
+toggle_floating(const Arg *arg) {
     (void) arg;
     if (!current_monitor->selected_client)
         return;
@@ -2491,7 +2491,7 @@ togglefloating(const Arg *arg) {
 }
 
 void
-togglefullscr(const Arg *arg) {
+toggle_fullscreen(const Arg *arg) {
     (void) arg;
     if (current_monitor->selected_client)
         setfullscreen(current_monitor->selected_client, !current_monitor->selected_client->isfullscreen);
@@ -2518,7 +2518,7 @@ spawn(const Arg *arg) {
 }
 
 void
-togglescratch(const Arg *arg) {
+toggle_scratch(const Arg *arg) {
     Client *client;
     uint found = 0;
     uint scratchtag = SPTAG(arg->ui);
@@ -2550,7 +2550,7 @@ togglescratch(const Arg *arg) {
 }
 
 void
-toggletag(const Arg *arg) {
+toggle_tag(const Arg *arg) {
     uint newtags;
 
     if (!current_monitor->selected_client)
@@ -2566,7 +2566,7 @@ toggletag(const Arg *arg) {
 }
 
 void
-toggleview(const Arg *arg) {
+toggle_view(const Arg *arg) {
     uint newtagset = current_monitor->tagset[current_monitor->seltags] ^ (arg->ui & TAGMASK);
     int i;
 
@@ -2593,7 +2593,7 @@ toggleview(const Arg *arg) {
         current_monitor->layout[current_monitor->layout_index^1] = current_monitor->pertag->ltidxs[current_monitor->pertag->current_tag][current_monitor->layout_index^1];
 
         if (current_monitor->showbar != current_monitor->pertag->showbars[current_monitor->pertag->current_tag])
-            togglebar(NULL);
+            toggle_bar(NULL);
 
         focus(NULL);
         arrange(current_monitor);
@@ -2602,7 +2602,7 @@ toggleview(const Arg *arg) {
 }
 
 void
-freeicon(Client *client) {
+free_icon(Client *client) {
     if (client->icon) {
         XRenderFreePicture(display, client->icon);
         client->icon = None;
@@ -2630,7 +2630,7 @@ unmanage(Client *client, int destroyed) {
 
     detach(client);
     detach_stack(client);
-    freeicon(client);
+    free_icon(client);
     if (!destroyed) {
         wc.border_width = client->oldbw;
         XGrabServer(display); /* avoid race conditions */
@@ -2655,7 +2655,7 @@ unmap_notify(XEvent *e) {
     Client *client;
     XUnmapEvent *ev = &e->xunmap;
 
-    if ((client = wintoclient(ev->window))) {
+    if ((client = window_to_client(ev->window))) {
         if (ev->send_event)
             set_client_state(client, WithdrawnState);
         else
@@ -2794,16 +2794,16 @@ update_geometry(void) {
     { /* default monitor setup */
         if (!monitors)
             monitors = createmon();
-        if (monitors->mw != sw || monitors->mh != sh) {
+        if (monitors->mw != screen_width || monitors->mh != screen_height) {
             dirty = 1;
-            monitors->mw = monitors->win_w = sw;
-            monitors->mh = monitors->win_h = sh;
+            monitors->mw = monitors->win_w = screen_width;
+            monitors->mh = monitors->win_h = screen_height;
             update_bar_pos(monitors);
         }
     }
     if (dirty) {
         current_monitor = monitors;
-        current_monitor = wintomon(root);
+        current_monitor = window_to_monitor(root);
     }
     return dirty;
 }
@@ -2916,7 +2916,7 @@ update_title(Client *client) {
 
 void
 update_icon(Client *client) {
-    freeicon(client);
+    free_icon(client);
     client->icon = get_icon_prop(client->win, &client->icon_width, &client->icon_height);
     return;
 }
@@ -2934,7 +2934,7 @@ update_window_type(Client *client) {
 }
 
 void
-updatewm_hintsints(Client *client) {
+updatewm_hints(Client *client) {
     XWMHints *wm_hints;
 
     if ((wm_hints = XGetWMHints(display, client->win))) {
@@ -2987,7 +2987,7 @@ view(const Arg *arg) {
     monitor->layout[monitor->layout_index^1] = monitor->pertag->ltidxs[monitor->pertag->current_tag][monitor->layout_index^1];
 
     if (monitor->showbar != monitor->pertag->showbars[monitor->pertag->current_tag])
-        togglebar(NULL);
+        toggle_bar(NULL);
 
     focus(NULL);
     arrange(monitor);
@@ -2995,7 +2995,7 @@ view(const Arg *arg) {
 }
 
 Client *
-wintoclient(Window win) {
+window_to_client(Window win) {
     for (Monitor *m = monitors; m; m = m->next) {
         for (Client *client = m->clients; client; client = client->next) {
             if (client->win == win)
@@ -3006,7 +3006,7 @@ wintoclient(Window win) {
 }
 
 Monitor *
-wintomon(Window window) {
+window_to_monitor(Window window) {
     int x, y;
     Client *client;
     Monitor *monitor;
@@ -3016,7 +3016,7 @@ wintomon(Window window) {
     for (monitor = monitors; monitor; monitor = monitor->next)
         if (window == monitor->barwin || window == monitor->extrabarwin)
             return monitor;
-    if ((client = wintoclient(window)))
+    if ((client = window_to_client(window)))
         return client->monitor;
     return current_monitor;
 }
@@ -3040,7 +3040,7 @@ winview(const Arg* arg) {
         window = parent_return;
     }
 
-    if (!(client = wintoclient(window)))
+    if (!(client = window_to_client(window)))
         return;
 
     view_arg.ui = client->tags;

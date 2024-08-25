@@ -97,16 +97,16 @@ static const Layout layouts[] = {
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
+	{ MODKEY|ControlMask,           KEY,      toggle_view,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
+	{ MODKEY|ControlMask|ShiftMask, KEY,      toggle_tag,      {.ui = 1 << TAG} },
 
 #define STATUSBAR "dwmblocks2"
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
-	{ MODKEY|ControlMask,             XK_b,    toggleextrabar, {0} },
+	{ MODKEY|ShiftMask,             XK_b,      toggle_bar,      {0} },
+	{ MODKEY|ControlMask,             XK_b,    toggle_extra_bar, {0} },
 	{ MODKEY,                       XK_k,      focus_stack,     {.i = +1 } },
 	{ MODKEY,                       XK_l,      focus_stack,     {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_u,      focus_urgent,    {0} },
@@ -124,15 +124,15 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_m,      set_layout,      {.v = &layouts[2]} },
 	{ MODKEY|ShiftMask,             XK_g,      set_layout,      {.v = &layouts[3]} },
 	{ MODKEY|ShiftMask,             XK_c,      set_layout,      {.v = &layouts[4]} },
-	{ MODKEY,                       XK_space,  togglefloating, {0} },
+	{ MODKEY,                       XK_space,  toggle_floating, {0} },
 	{ MODKEY,                   XK_apostrophe, view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,         XK_apostrophe, tag,            {.ui = ~0 } },
 	{ MODKEY|ControlMask,           XK_k,      focus_monitor,       {.i = -1 } },
 	{ MODKEY|ControlMask,           XK_l,      focus_monitor,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_k,      tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_l,      tagmon,         {.i = +1 } },
-	{ MODKEY,            			XK_equal,  togglescratch,  {.ui = 0 } },
-	{ MODKEY,            			XK_Return, togglescratch,  {.ui = 1 } },
+	{ MODKEY,            			XK_equal,  toggle_scratch,  {.ui = 0 } },
+	{ MODKEY,            			XK_Return, toggle_scratch,  {.ui = 1 } },
 	TAGKEYS(                        XK_F1,                     0)
 	TAGKEYS(                        XK_F2,                     1)
 	TAGKEYS(                        XK_F3,                     2)
@@ -143,7 +143,7 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask|ShiftMask, XK_r,      quit,           {.i = 1} },
 	{ MODKEY,                       XK_g,      winview,        {0}},
 	{ Mod1Mask,                     XK_Tab,    alt_tab,         {0} },
-	{ 0,                            XK_F11,    togglefullscr,  {0}},
+	{ 0,                            XK_F11,    toggle_fullscreen,  {0}},
 };
 
 /* button definitions */
@@ -154,7 +154,7 @@ static const Button buttons[] = {
 	{ ClickLayoutSymbol,          0,              Button3,        set_layout,      {.v = &layouts[2]} },
 	{ ClickWinTitle,          0,              Button2,        zoom,           {0} },
 	{ ClickClientWin,         MODKEY,         Button1,        move_mouse,      {0} },
-	{ ClickClientWin,         MODKEY,         Button2,        togglefloating, {0} },
+	{ ClickClientWin,         MODKEY,         Button2,        toggle_floating, {0} },
 	{ ClickClientWin,         MODKEY,         Button3,        resize_mouse,    {0} },
 	{ ClickStatusText,        0,              Button1,        signal_status_bar,   {.i = 1} },
 	{ ClickStatusText,        0,              Button2,        signal_status_bar,   {.i = 2} },
@@ -171,8 +171,8 @@ static const Button buttons[] = {
 	{ ClickExtraBar,        ShiftMask,      Button1,        signal_status_bar,   {.i = 6} },
 	{ ClickExtraBar,        ControlMask,    Button1,        signal_status_bar,   {.i = 7} },
 	{ ClickTagBar,            0,              Button1,        view,           {0} },
-	{ ClickTagBar,            0,              Button3,        toggleview,     {0} },
+	{ ClickTagBar,            0,              Button3,        toggle_view,     {0} },
 	{ ClickTagBar,            MODKEY,         Button1,        tag,            {0} },
-	{ ClickTagBar,            MODKEY,         Button3,        toggletag,      {0} },
+	{ ClickTagBar,            MODKEY,         Button3,        toggle_tag,      {0} },
 };
 
