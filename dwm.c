@@ -3098,11 +3098,11 @@ update_icon(Client *client) {
 void
 update_window_type(Client *client) {
     Atom state = get_atom_property(client, netatom[NetWMState]);
-    Atom wtype = get_atom_property(client, netatom[NetWMWindowType]);
+    Atom window_type = get_atom_property(client, netatom[NetWMWindowType]);
 
     if (state == netatom[NetWMFullscreen])
         set_fullscreen(client, 1);
-    if (wtype == netatom[NetWMWindowTypeDialog])
+    if (window_type == netatom[NetWMWindowTypeDialog])
         client->isfloating = 1;
     return;
 }
@@ -3186,13 +3186,13 @@ window_to_monitor(Window window) {
     int x;
     int y;
     Client *client;
-    Monitor *monitor;
 
     if (window == root && get_root_pointer(&x, &y))
         return recttomon(x, y, 1, 1);
-    for (monitor = monitors; monitor; monitor = monitor->next)
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         if (window == monitor->barwin || window == monitor->extrabarwin)
             return monitor;
+    }
     if ((client = window_to_client(window)))
         return client->monitor;
     return current_monitor;
