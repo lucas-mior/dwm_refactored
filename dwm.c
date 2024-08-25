@@ -214,17 +214,17 @@ static int get_root_pointer(int *x, int *y);
 static long get_state(Window win);
 static pid_t get_status_bar_pid(void);
 static int get_text_prop(Window win, Atom atom, char *text, uint size);
-static void grabbuttons(Client *client, int focused);
-static void grabkeys(void);
-static void incnmaster(const Arg *arg);
+static void grab_buttons(Client *client, int focused);
+static void grab_keys(void);
+static void inc_number_masters(const Arg *arg);
 static void key_press(XEvent *e);
-static void killclient(const Arg *arg);
+static void kill_client(const Arg *arg);
 static void manage(Window win, XWindowAttributes *wa);
 static void mapping_notify(XEvent *e);
 static void map_request(XEvent *e);
 static void monocle(Monitor *monitor);
 static void motion_notify(XEvent *e);
-static void movemouse(const Arg *arg);
+static void move_mouse(const Arg *arg);
 static Client *nexttiled(Client *client);
 static void pop(Client *client);
 static void property_notify(XEvent *e);
@@ -236,8 +236,8 @@ static void resize_mouse(const Arg *arg);
 static void restack(Monitor *monitor);
 static void run(void);
 static void scan(void);
-static int sendevent(Client *client, Atom proto);
-static void sendmon(Client *client, Monitor *monitor);
+static int send_event(Client *client, Atom proto);
+static void send_monitor(Client *client, Monitor *monitor);
 static void set_client_state(Client *client, long state);
 static void set_client_tag_prop(Client *client);
 static void set_focus(Client *client);
@@ -984,7 +984,7 @@ draw_bar(Monitor *m) {
     int x, w, tw = 0, extra_status_width = 0;
     int boxs = drw->fonts->h / 9;
     int boxw = drw->fonts->h / 6 + 2;
-    uint i, occ = 0, urg = 0;
+    uint occ = 0, urg = 0;
     char tagdisp[TAGWIDTH];
     char *masterclientontag[LENGTH(tags)];
 
@@ -1015,7 +1015,7 @@ draw_bar(Monitor *m) {
 
     Client *icontagclient[LENGTH(tags)] = {0};
 
-    for (i = 0; i < LENGTH(tags); i++) {
+    for (int i = 0; i < LENGTH(tags); i++) {
         masterclientontag[i] = NULL;
         icontagclient[i] = NULL;
     }
@@ -1024,7 +1024,7 @@ draw_bar(Monitor *m) {
         occ |= client->tags;
         if (client->isurgent)
             urg |= client->tags;
-        for (i = 0; i < LENGTH(tags); i++) {
+        for (int i = 0; i < LENGTH(tags); i++) {
             if (client->icon && client->tags & (1 << i))
                 icontagclient[i] = client;
             if (!masterclientontag[i] && client->tags & (1<<i)) {
@@ -1035,7 +1035,7 @@ draw_bar(Monitor *m) {
         }
     }
     x = 0;
-    for (i = 0; i < LENGTH(tags); i++) {
+    for (int i = 0; i < LENGTH(tags); i++) {
         Client *client = icontagclient[i];
 
         if (masterclientontag[i]) {
@@ -1137,7 +1137,7 @@ focus(Client *client) {
             seturgent(client, 0);
         detach_stack(client);
         attach_stack(client);
-        grabbuttons(client, 1);
+        grab_buttons(client, 1);
         XSetWindowBorder(display, client->win, scheme[SchemeSel][ColBorder].pixel);
         set_focus(client);
     } else {
@@ -1533,7 +1533,7 @@ get_text_prop(Window win, Atom atom, char *text, uint size) {
 }
 
 void
-grabbuttons(Client *client, int focused) {
+grab_buttons(Client *client, int focused) {
     uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 
     update_numlock_mask();
@@ -1556,7 +1556,7 @@ grabbuttons(Client *client, int focused) {
 }
 
 void
-grabkeys(void) {
+grab_keys(void) {
     uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
     int start, end, skip;
     KeySym *syms;
@@ -1583,7 +1583,7 @@ grabkeys(void) {
 }
 
 void
-incnmaster(const Arg *arg) {
+inc_number_masters(const Arg *arg) {
     int nslave = 0;
     Client *client = current_monitor->clients;
 
@@ -1623,11 +1623,11 @@ key_press(XEvent *e) {
 }
 
 void
-killclient(const Arg *arg) {
+kill_client(const Arg *arg) {
     (void) arg;
     if (!current_monitor->selected_client)
         return;
-    if (!sendevent(current_monitor->selected_client, wmatom[WMDelete])) {
+    if (!send_event(current_monitor->selected_client, wmatom[WMDelete])) {
         XGrabServer(display);
         XSetErrorHandler(xerrordummy);
         XSetCloseDownMode(display, DestroyAll);
@@ -1706,7 +1706,7 @@ manage(Window win, XWindowAttributes *wa) {
     client->x = client->monitor->mx + (client->monitor->mw - WIDTH(client)) / 2;
     client->y = client->monitor->my + (client->monitor->mh - HEIGHT(client)) / 2;
     XSelectInput(display, win, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
-    grabbuttons(client, 0);
+    grab_buttons(client, 0);
     if (!client->isfloating)
         client->isfloating = client->oldstate = trans != None || client->isfixed;
     if (client->isfloating)
@@ -1732,7 +1732,7 @@ mapping_notify(XEvent *e) {
 
     XRefreshKeyboardMapping(ev);
     if (ev->request == MappingKeyboard)
-        grabkeys();
+        grab_keys();
     return;
 }
 
@@ -1782,7 +1782,7 @@ motion_notify(XEvent *e) {
 }
 
 void
-movemouse(const Arg *arg) {
+move_mouse(const Arg *arg) {
     (void) arg;
     int x, y, ocx, ocy, nx, ny;
     Client *client;
@@ -1835,7 +1835,7 @@ movemouse(const Arg *arg) {
     } while (ev.type != ButtonRelease);
     XUngrabPointer(display, CurrentTime);
     if ((m = recttomon(client->x, client->y, client->w, client->h)) != current_monitor) {
-        sendmon(client, m);
+        send_monitor(client, m);
         current_monitor = m;
         focus(NULL);
     }
@@ -2007,7 +2007,7 @@ resize_mouse(const Arg *arg) {
     XUngrabPointer(display, CurrentTime);
     while (XCheckMaskEvent(display, EnterWindowMask, &ev));
     if ((m = recttomon(client->x, client->y, client->w, client->h)) != current_monitor) {
-        sendmon(client, m);
+        send_monitor(client, m);
         current_monitor = m;
         focus(NULL);
     }
@@ -2079,7 +2079,7 @@ scan(void) {
 }
 
 void
-sendmon(Client *client, Monitor *m) {
+send_monitor(Client *client, Monitor *m) {
     if (client->monitor == m)
         return;
     unfocus(client, 1);
@@ -2105,7 +2105,7 @@ set_client_state(Client *client, long state) {
 }
 
 int
-sendevent(Client *client, Atom proto) {
+send_event(Client *client, Atom proto) {
     int n;
     Atom *protocols;
     int exists = 0;
@@ -2136,7 +2136,7 @@ set_focus(Client *client) {
             XA_WINDOW, 32, PropModeReplace,
             (uchar *) &(client->win), 1);
     }
-    sendevent(client, wmatom[WMTakeFocus]);
+    send_event(client, wmatom[WMTakeFocus]);
     return;
 }
 
@@ -2281,7 +2281,7 @@ setup(void) {
         |LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
     XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &wa);
     XSelectInput(display, root, wa.event_mask);
-    grabkeys();
+    grab_keys();
     focus(NULL);
     for (Monitor *m = monitors; m; m = m->next) {
         unfocus(current_monitor->selected_client, 0);
@@ -2381,7 +2381,7 @@ tagmon(const Arg *arg) {
         current_monitor->selected_client->x += monitor->mx - current_monitor->mx;
         current_monitor->selected_client->y += monitor->my - current_monitor->my;
     }
-    sendmon(current_monitor->selected_client, monitor);
+    send_monitor(current_monitor->selected_client, monitor);
     usleep(50);
     focus(NULL);
     usleep(50);
@@ -2614,7 +2614,7 @@ void
 unfocus(Client *client, int set_focus) {
     if (!client)
         return;
-    grabbuttons(client, 0);
+    grab_buttons(client, 0);
     XSetWindowBorder(display, client->win, scheme[SchemeNorm][ColBorder].pixel);
     if (set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
