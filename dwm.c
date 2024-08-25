@@ -185,7 +185,7 @@ static void button_press(XEvent *e);
 static void cleanup(void);
 static void cleanup_monitor(Monitor *monitor);
 static void client_message(XEvent *e);
-static void col(Monitor *);
+static void columns(Monitor *);
 static void configure(Client *client);
 static void configure_notify(XEvent *e);
 static void configure_request(XEvent *e);
@@ -2549,14 +2549,14 @@ tag_monitor(const Arg *arg) {
 }
 
 void
-col(Monitor *m) {
+columns(Monitor *monitor) {
     int i;
     int n = 0;
     uint x, y, w, h;
     uint mon_w;
     Client *client;
 
-    for (Client *client_aux = next_tiled(m->clients);
+    for (Client *client_aux = next_tiled(monitor->clients);
                  client_aux;
                  client_aux = next_tiled(client_aux->next)) {
         n += 1;
@@ -2564,24 +2564,24 @@ col(Monitor *m) {
     if (n == 0)
         return;
 
-    if (n > m->nmaster)
-        mon_w = (uint) (m->nmaster ? (float)m->win_w*m->master_fact : 0);
+    if (n > monitor->nmaster)
+        mon_w = (uint) (monitor->nmaster ? (float)monitor->win_w*monitor->master_fact : 0);
     else
-        mon_w = (uint) m->win_w;
+        mon_w = (uint) monitor->win_w;
 
-    for (i = x = y = 0, client = next_tiled(m->clients); client; client = next_tiled(client->next), i++) {
-        if (i < m->nmaster) {
-            w = (mon_w - x) / (MIN(n, m->nmaster) - i);
+    for (i = x = y = 0, client = next_tiled(monitor->clients); client; client = next_tiled(client->next), i++) {
+        if (i < monitor->nmaster) {
+            w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
             resize(client,
-                   x + m->win_x, m->win_y,
+                   x + monitor->win_x, monitor->win_y,
                    w - (2*client->border_width),
-                   m->win_h - (2*client->border_width), 0);
+                   monitor->win_h - (2*client->border_width), 0);
             x += WIDTH(client);
         } else {
-            h = (m->win_h - y) / (n - i);
+            h = (monitor->win_h - y) / (n - i);
             resize(client,
-                   x + m->win_x, m->win_y + y,
-                   m->win_w - x - (2*client->border_width),
+                   x + monitor->win_x, monitor->win_y + y,
+                   monitor->win_w - x - (2*client->border_width),
                    h - (2*client->border_width), 0);
             y += HEIGHT(client);
         }

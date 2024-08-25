@@ -90,7 +90,7 @@ static const Layout layouts[] = {
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
 	{ "###",      gapless_grid },
-	{ "|||",      col },
+	{ "|||",      columns },
 };
 
 /* key definitions */
