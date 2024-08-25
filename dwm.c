@@ -2359,7 +2359,8 @@ setup(void) {
     screen_height = DisplayHeight(display, screen);
     root = RootWindow(display, screen);
     xinitvisual();
-    drw = drw_create(display, screen, root, screen_width, screen_height, visual, depth, cmap);
+    drw = drw_create(display, screen, root,
+                     screen_width, screen_height, visual, depth, cmap);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
         die("no fonts could be loaded.");
     lrpad = drw->fonts->h / 2;
@@ -2875,22 +2876,30 @@ update_bars(void) {
         .event_mask = ButtonPressMask|ExposureMask
     };
     XClassHint ch = {"dwm", "dwm"};
-    for (Monitor *m = monitors; m; m = m->next) {
-        if (!m->barwin) {
-            m->barwin = XCreateWindow(display, root, m->win_x, m->bar_y, m->win_w, bar_height, 0, depth,
-                    InputOutput, visual,
-                    CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &window_attributes);
-            XDefineCursor(display, m->barwin, cursor[CursorNormal]->cursor);
-            XMapRaised(display, m->barwin);
-            XSetClassHint(display, m->barwin, &ch);
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+        Window win;
+        ulong value_mask = CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask;
+        if (!monitor->barwin) {
+            win = XCreateWindow(display, root,
+                                monitor->win_x, monitor->bar_y,
+                                monitor->win_w, bar_height,
+                                0, depth, InputOutput, visual,
+                                value_mask, &window_attributes);
+            monitor->barwin = win;
+            XDefineCursor(display, monitor->barwin, cursor[CursorNormal]->cursor);
+            XMapRaised(display, monitor->barwin);
+            XSetClassHint(display, monitor->barwin, &ch);
         }
-        if (!m->extrabarwin) {
-            m->extrabarwin = XCreateWindow(display, root, m->win_x, m->extra_bar_y, m->win_w, bar_height, 0, depth,
-                    InputOutput, visual,
-                    CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &window_attributes);
-            XDefineCursor(display, m->extrabarwin, cursor[CursorNormal]->cursor);
-            XMapRaised(display, m->extrabarwin);
-            XSetClassHint(display, m->extrabarwin, &ch);
+        if (!monitor->extrabarwin) {
+            win = XCreateWindow(display, root,
+                                monitor->win_x, monitor->extra_bar_y,
+                                monitor->win_w, bar_height,
+                                0, depth, InputOutput, visual,
+                                value_mask, &window_attributes);
+            monitor->extrabarwin = win;
+            XDefineCursor(display, monitor->extrabarwin, cursor[CursorNormal]->cursor);
+            XMapRaised(display, monitor->extrabarwin);
+            XSetClassHint(display, monitor->extrabarwin, &ch);
         }
     }
     return;
