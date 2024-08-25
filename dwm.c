@@ -761,48 +761,6 @@ void debug_dwm(char *message, ...) {
 }
 
 void
-handler_configure_notify(XEvent *e) {
-    XConfigureEvent *event = &e->xconfigure;
-    int dirty;
-
-    if (event->window != root)
-        return;
-
-    /* TODO: update_geometry handling sucks, needs to be simplified */
-    dirty = (screen_width != event->width || screen_height != event->height);
-    screen_width = event->width;
-    screen_height = event->height;
-    if (update_geometry() || dirty) {
-        drw_resize(drw, (uint) screen_width, (uint) bar_height);
-        update_bars();
-        for (Monitor *m = monitors; m; m = m->next) {
-            for (Client *client = m->clients; client; client = client->next) {
-                if (client->isfullscreen && !client->isfakefullscreen)
-                    resize_client(client,
-                                  m->mon_x, m->mon_y, m->mon_w, m->mon_h);
-            }
-            XMoveResizeWindow(display, m->barwin,
-                              m->win_x, m->bar_y, (uint)m->win_w, (uint)bar_height);
-            XMoveResizeWindow(display, m->extrabarwin,
-                              m->win_x, m->extra_bar_y, (uint)m->win_w, (uint)bar_height);
-        }
-        focus(NULL);
-        arrange(NULL);
-    }
-    return;
-}
-
-void
-handler_destroy_notify(XEvent *e) {
-    Client *client;
-    XDestroyWindowEvent *destroy_window_event = &e->xdestroywindow;
-
-    if ((client = window_to_client(destroy_window_event->window)))
-        unmanage(client, 1);
-    return;
-}
-
-void
 detach(Client *client) {
     Client **tc;
 
@@ -959,30 +917,6 @@ draw_bars(void) {
 }
 
 void
-handler_enter_notify(XEvent *event) {
-    Client *client;
-    Monitor *m;
-    XCrossingEvent *crossing_event = &event->xcrossing;
-    bool is_root = crossing_event->window == root;
-    bool notify_normal = crossing_event->mode == NotifyNormal;
-    bool notify_inferior = crossing_event->detail == NotifyInferior;
-
-    if (!is_root && (!notify_normal || notify_inferior))
-        return;
-
-    client = window_to_client(crossing_event->window);
-    m = client ? client->monitor : window_to_monitor(crossing_event->window);
-    if (m != current_monitor) {
-        unfocus(current_monitor->selected_client, 1);
-        current_monitor = m;
-    } else if (!client || client == current_monitor->selected_client) {
-        return;
-    }
-    focus(client);
-    return;
-}
-
-void
 focus(Client *client) {
     if (!client || !ISVISIBLE(client))
         for (client = current_monitor->stack; client && !ISVISIBLE(client); client = client->snext);
@@ -1073,19 +1007,6 @@ focus_direction(const Arg *arg) {
         focus(f);
         restack(f->monitor);
     }
-    return;
-}
-
-/* there are some broken focus acquiring clients needing extra handling */
-void
-handler_focus_in(XEvent *event) {
-    XFocusChangeEvent *focus_change_event = &event->xfocus;
-
-    if (!(current_monitor->selected_client))
-        return;
-
-    if (focus_change_event->window != current_monitor->selected_client->win)
-        set_focus(current_monitor->selected_client);
     return;
 }
 
@@ -1628,6 +1549,85 @@ handler_configure_request(XEvent *e) {
     return;
 }
 
+void
+handler_configure_notify(XEvent *e) {
+    XConfigureEvent *event = &e->xconfigure;
+    int dirty;
+
+    if (event->window != root)
+        return;
+
+    /* TODO: update_geometry handling sucks, needs to be simplified */
+    dirty = (screen_width != event->width || screen_height != event->height);
+    screen_width = event->width;
+    screen_height = event->height;
+    if (update_geometry() || dirty) {
+        drw_resize(drw, (uint) screen_width, (uint) bar_height);
+        update_bars();
+        for (Monitor *m = monitors; m; m = m->next) {
+            for (Client *client = m->clients; client; client = client->next) {
+                if (client->isfullscreen && !client->isfakefullscreen)
+                    resize_client(client,
+                                  m->mon_x, m->mon_y, m->mon_w, m->mon_h);
+            }
+            XMoveResizeWindow(display, m->barwin,
+                              m->win_x, m->bar_y, (uint)m->win_w, (uint)bar_height);
+            XMoveResizeWindow(display, m->extrabarwin,
+                              m->win_x, m->extra_bar_y, (uint)m->win_w, (uint)bar_height);
+        }
+        focus(NULL);
+        arrange(NULL);
+    }
+    return;
+}
+
+void
+handler_destroy_notify(XEvent *e) {
+    Client *client;
+    XDestroyWindowEvent *destroy_window_event = &e->xdestroywindow;
+
+    if ((client = window_to_client(destroy_window_event->window)))
+        unmanage(client, 1);
+    return;
+}
+
+void
+handler_enter_notify(XEvent *event) {
+    Client *client;
+    Monitor *m;
+    XCrossingEvent *crossing_event = &event->xcrossing;
+    bool is_root = crossing_event->window == root;
+    bool notify_normal = crossing_event->mode == NotifyNormal;
+    bool notify_inferior = crossing_event->detail == NotifyInferior;
+
+    if (!is_root && (!notify_normal || notify_inferior))
+        return;
+
+    client = window_to_client(crossing_event->window);
+    m = client ? client->monitor : window_to_monitor(crossing_event->window);
+    if (m != current_monitor) {
+        unfocus(current_monitor->selected_client, 1);
+        current_monitor = m;
+    } else if (!client || client == current_monitor->selected_client) {
+        return;
+    }
+    focus(client);
+    return;
+}
+
+/* there are some broken focus acquiring clients needing extra handling */
+void
+handler_focus_in(XEvent *event) {
+    XFocusChangeEvent *focus_change_event = &event->xfocus;
+
+    if (!(current_monitor->selected_client))
+        return;
+
+    if (focus_change_event->window != current_monitor->selected_client->win)
+        set_focus(current_monitor->selected_client);
+    return;
+}
+
 
 void
 inc_number_masters(const Arg *arg) {
@@ -1651,7 +1651,7 @@ inc_number_masters(const Arg *arg) {
 
 #ifdef XINERAMA
 static int
-isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
+is_unique_geometry(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
     while (n--) {
         if (unique[n].x_org == info->x_org && unique[n].y_org == info->y_org
         && unique[n].width == info->width && unique[n].height == info->height)
@@ -2976,7 +2976,7 @@ update_geometry(void) {
         /* only consider unique geometries as separate screens */
         unique = ecalloc(nn, sizeof(*unique));
         for (i = 0, j = 0; i < nn; i++)
-            if (isuniquegeom(unique, j, &info[i]))
+            if (is_unique_geometry(unique, j, &info[i]))
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
         XFree(info);
         nn = j;
