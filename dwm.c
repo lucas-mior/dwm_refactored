@@ -1378,7 +1378,9 @@ get_atom_property(Client *client, Atom property) {
 
 pid_t
 get_status_bar_pid(void) {
-    char buffer[32], *str = buffer, *client;
+    char buffer[32];
+    char *str = buffer;
+    char *client;
     long pid_long;
     FILE *fp;
 
@@ -1568,7 +1570,7 @@ grab_keys(void) {
 
     XUngrabKey(display, AnyKey, AnyModifier, root);
     XDisplayKeycodes(display, &start, &end);
-    syms = XGetKeyboardMapping(display, start, end - start + 1, &skip);
+    syms = XGetKeyboardMapping(display, (uchar) start, (uchar) end - start + 1, &skip);
     if (!syms)
         return;
     for (int k = start; k <= end; k++) {
@@ -1576,7 +1578,7 @@ grab_keys(void) {
             /* skip modifier codes, we do that ourselves */
             if (keys[i].keysym == syms[(k - start) * skip]) {
                 for (int j = 0; j < LENGTH(modifiers); j++)
-                    XGrabKey(display, k, keys[i].mod | modifiers[j],
+                    XGrabKey(display, k, (uint) keys[i].mod | modifiers[j],
                              root, True, GrabModeAsync, GrabModeAsync);
             }
         }
@@ -1689,9 +1691,9 @@ manage(Window win, XWindowAttributes *wa) {
         Atom atom;
         if (XGetWindowProperty(display, client->win, netatom[NetClientInfo], 0L, 2L, False, XA_CARDINAL,
                 &atom, &format, &n, &extra, (uchar **)&data) == Success && n == 2) {
-            client->tags = *data;
+            client->tags = (uint) *data;
             for (m = monitors; m; m = m->next) {
-                if (m->num == *(data+1)) {
+                if (m->num == (int) *(data+1)) {
                     client->monitor = m;
                     break;
                 }
