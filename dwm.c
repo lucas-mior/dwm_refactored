@@ -48,6 +48,7 @@
 #include "drw.h"
 #include "util.h"
 
+typedef uint8_t uint8;
 typedef uint32_t uint32;
 typedef unsigned int uint;
 typedef unsigned long ulong;
@@ -1353,6 +1354,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         ulong *i;
         const ulong *end = p + n;
         uint32 bstd = UINT32_MAX, d, m;
+
         for (i = p; i < end - 1; i += sz) {
             if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
                 XFree(p);
@@ -1400,12 +1402,14 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         if (icon_height == 0)
             icon_height = 1;
     }
-    *picture_width = icon_width; *picture_height = icon_height;
+    *picture_width = icon_width;
+    *picture_height = icon_height;
 
-    uint32 i, *bstp32 = (uint32 *)bstp;
+    uint32 i;
+    uint32 *bstp32 = (uint32 *)bstp;
     for (sz = w*h, i = 0; i < sz; i += 1) {
-        uint32 pixel = bstp[i];
-        uint8_t a = pixel >> 24u;
+        uint32 pixel = (uint32) bstp[i];
+        uint8 a = pixel >> 24u;
         uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
         uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
         bstp32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
