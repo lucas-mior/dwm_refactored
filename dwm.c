@@ -20,7 +20,6 @@
  *
  * To understand everything else, start reading main().
  */
-#define _DEFAULT_SOURCE
 #include <errno.h>
 #include <locale.h>
 #include <signal.h>
@@ -2512,6 +2511,7 @@ toggle_bar(const Arg *arg) {
 
 void
 toggle_extra_bar(const Arg *arg) {
+    (void) arg;
     current_monitor->extrabar = !current_monitor->extrabar;
     update_bar_pos(current_monitor);
     XMoveResizeWindow(display, current_monitor->extrabarwin, current_monitor->win_x, current_monitor->extra_bar_y, current_monitor->win_w, bh);
@@ -2565,8 +2565,8 @@ spawn(const Arg *arg) {
        sa.sa_handler = SIG_DFL;
        sigaction(SIGCHLD, &sa, NULL);
 
-       execvp(((char **)arg->v)[0], (char **)arg->v);
-       die("dwm: execvp '%s' failed:", ((char **)arg->v)[0]);
+       execvp(((char *const *)arg->v)[0], (char *const *)arg->v);
+       die("dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
    }
 }
 
