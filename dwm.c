@@ -155,8 +155,8 @@ struct Monitor {
     Client *selected_client;
     Client *stack;
     Monitor *next;
-    Window barwin;
-    Window extrabarwin;
+    Window bar_window;
+    Window extra_bar_window;
     const Layout *layout[2];
     Pertag *pertag;
 };
@@ -668,10 +668,10 @@ cleanup_monitor(Monitor *monitor) {
             monitor_aux = monitor_aux->next;
         monitor_aux->next = monitor->next;
     }
-    XUnmapWindow(display, monitor->barwin);
-    XDestroyWindow(display, monitor->extrabarwin);
-    XDestroyWindow(display, monitor->barwin);
-    XDestroyWindow(display, monitor->extrabarwin);
+    XUnmapWindow(display, monitor->bar_window);
+    XDestroyWindow(display, monitor->extra_bar_window);
+    XDestroyWindow(display, monitor->bar_window);
+    XDestroyWindow(display, monitor->extra_bar_window);
     free(monitor);
     return;
 }
@@ -896,7 +896,7 @@ draw_bar(Monitor *monitor) {
             drw_rect(drw, x, 0, w, bar_height, 1, 1);
         }
     }
-    drw_map(drw, monitor->barwin, 0, 0, monitor->win_w, bar_height);
+    drw_map(drw, monitor->bar_window, 0, 0, monitor->win_w, bar_height);
 
     if (monitor == current_monitor) { /* extra status is only drawn on selected monitor */
         drw_setscheme(drw, scheme[SchemeNorm]);
@@ -904,7 +904,7 @@ draw_bar(Monitor *monitor) {
         drw_rect(drw, 0, 0, monitor->win_w, bar_height, 1, 1);
         extra_status_width = TEXT_PIXELS(extra_status);
         drw_text(drw, 0, 0, extra_status_width, bar_height, 0, extra_status, 0);
-        drw_map(drw, monitor->extrabarwin, 0, 0, monitor->win_w, bar_height);
+        drw_map(drw, monitor->extra_bar_window, 0, 0, monitor->win_w, bar_height);
     }
     return;
 }
@@ -933,7 +933,7 @@ focus(Client *client) {
         XSetWindowBorder(display, client->win, scheme[SchemeSel][ColBorder].pixel);
         set_focus(client);
     } else {
-        XSetInputFocus(display, current_monitor->barwin, RevertToPointerRoot, CurrentTime);
+        XSetInputFocus(display, current_monitor->bar_window, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
     current_monitor->selected_client = client;
@@ -1408,7 +1408,7 @@ handler_button_press(XEvent *event) {
         current_monitor = monitor;
         focus(NULL);
     }
-    if (button_event->window == current_monitor->barwin) {
+    if (button_event->window == current_monitor->bar_window) {
         uint i = 0;
         uint x = 0;
 
@@ -1442,7 +1442,7 @@ handler_button_press(XEvent *event) {
         } else {
             click = ClickWinTitle;
         }
-    } else if (button_event->window == current_monitor->extrabarwin) {
+    } else if (button_event->window == current_monitor->extra_bar_window) {
         int x = 0;
         char *s = &extra_status[0];
 
@@ -1570,9 +1570,9 @@ handler_configure_notify(XEvent *e) {
                     resize_client(client,
                                   m->mon_x, m->mon_y, m->mon_w, m->mon_h);
             }
-            XMoveResizeWindow(display, m->barwin,
+            XMoveResizeWindow(display, m->bar_window,
                               m->win_x, m->bar_y, (uint)m->win_w, (uint)bar_height);
-            XMoveResizeWindow(display, m->extrabarwin,
+            XMoveResizeWindow(display, m->extra_bar_window,
                               m->win_x, m->extra_bar_y, (uint)m->win_w, (uint)bar_height);
         }
         focus(NULL);
@@ -2168,7 +2168,7 @@ restack(Monitor *m) {
         XRaiseWindow(display, m->selected_client->win);
     if (m->layout[m->layout_index]->arrange) {
         window_changes.stack_mode = Below;
-        window_changes.sibling = m->barwin;
+        window_changes.sibling = m->bar_window;
         for (client = m->stack; client; client = client->snext) {
             if (!client->isfloating && ISVISIBLE(client)) {
                 XConfigureWindow(display, client->win, CWSibling|CWStackMode, &window_changes);
@@ -2571,7 +2571,7 @@ tag_monitor(const Arg *arg) {
 
 void
 layout_columns(Monitor *monitor) {
-    int i;
+    int i = 0;
     int n = 0;
     uint x, y, w, h;
     uint mon_w;
@@ -2590,7 +2590,7 @@ layout_columns(Monitor *monitor) {
     else
         mon_w = (uint) monitor->win_w;
 
-    for (i = x = y = 0, client = next_tiled(monitor->clients); client; client = next_tiled(client->next), i++) {
+    for (x = y = 0, client = next_tiled(monitor->clients); client; client = next_tiled(client->next), i++) {
         if (i < monitor->nmaster) {
             w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
             resize(client,
@@ -2664,7 +2664,7 @@ toggle_bar(const Arg *arg) {
 
     monitor->showbar = monitor->pertag->showbars[monitor->pertag->current_tag] = !monitor->showbar;
     update_bar_pos(monitor);
-    XMoveResizeWindow(display, monitor->barwin, monitor->win_x, monitor->bar_y, monitor->win_w, bar_height);
+    XMoveResizeWindow(display, monitor->bar_window, monitor->win_x, monitor->bar_y, monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -2676,7 +2676,7 @@ toggle_extra_bar(const Arg *arg) {
 
     monitor->extrabar = !monitor->extrabar;
     update_bar_pos(monitor);
-    XMoveResizeWindow(display, monitor->extrabarwin,
+    XMoveResizeWindow(display, monitor->extra_bar_window,
                       monitor->win_x, monitor->extra_bar_y, monitor->win_w, bar_height);
     arrange(monitor);
     return;
@@ -2899,27 +2899,27 @@ update_bars(void) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Window win;
         ulong value_mask = CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask;
-        if (!monitor->barwin) {
+        if (!monitor->bar_window) {
             win = XCreateWindow(display, root,
                                 monitor->win_x, monitor->bar_y,
                                 monitor->win_w, bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
-            monitor->barwin = win;
-            XDefineCursor(display, monitor->barwin, cursor[CursorNormal]->cursor);
-            XMapRaised(display, monitor->barwin);
-            XSetClassHint(display, monitor->barwin, &ch);
+            monitor->bar_window = win;
+            XDefineCursor(display, monitor->bar_window, cursor[CursorNormal]->cursor);
+            XMapRaised(display, monitor->bar_window);
+            XSetClassHint(display, monitor->bar_window, &ch);
         }
-        if (!monitor->extrabarwin) {
+        if (!monitor->extra_bar_window) {
             win = XCreateWindow(display, root,
                                 monitor->win_x, monitor->extra_bar_y,
                                 monitor->win_w, bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
-            monitor->extrabarwin = win;
-            XDefineCursor(display, monitor->extrabarwin, cursor[CursorNormal]->cursor);
-            XMapRaised(display, monitor->extrabarwin);
-            XSetClassHint(display, monitor->extrabarwin, &ch);
+            monitor->extra_bar_window = win;
+            XDefineCursor(display, monitor->extra_bar_window, cursor[CursorNormal]->cursor);
+            XMapRaised(display, monitor->extra_bar_window);
+            XSetClassHint(display, monitor->extra_bar_window, &ch);
         }
     }
     return;
@@ -3248,7 +3248,7 @@ window_to_monitor(Window window) {
             return rectangle_to_monitor(x, y, 1, 1);
     }
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        if (window == monitor->barwin || window == monitor->extrabarwin)
+        if (window == monitor->bar_window || window == monitor->extra_bar_window)
             return monitor;
     }
     if ((client = window_to_client(window)))
