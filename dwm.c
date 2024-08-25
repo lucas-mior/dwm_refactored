@@ -1339,9 +1339,11 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     uint32 w, h, sz;
     Atom real;
 
-    if (XGetWindowProperty(display, win, netatom[NetWMIcon], 0L, LONG_MAX, False, AnyPropertyType,
-                           &real, &format, &n, &extra, (uchar **)&p) != Success)
+    if (XGetWindowProperty(display, win, netatom[NetWMIcon],
+                           0L, LONG_MAX, False, AnyPropertyType,
+                           &real, &format, &n, &extra, (uchar **)&p) != Success) {
         return None;
+    }
     if (n == 0 || format != 32) {
         XFree(p);
         return None;
@@ -1402,10 +1404,10 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
 
     uint32 i, *bstp32 = (uint32 *)bstp;
     for (sz = w*h, i = 0; i < sz; i += 1) {
-        uint32 p = bstp[i];
-        uint8_t a = p >> 24u;
-        uint32 rb = (a*(p & 0xFF00FFu)) >> 8u;
-        uint32 g = (a*(p & 0x00FF00u)) >> 8u;
+        uint32 pixel = bstp[i];
+        uint8_t a = pixel >> 24u;
+        uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
+        uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
         bstp32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
     }
 
