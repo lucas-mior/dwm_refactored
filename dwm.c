@@ -552,7 +552,7 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
 
 void
 arrange(Monitor *monitor) {
-    XEvent ev;
+    XEvent event;
     if (monitor) {
         showhide(monitor->stack);
     } else {
@@ -566,7 +566,7 @@ arrange(Monitor *monitor) {
         for (monitor = monitors; monitor; monitor = monitor->next)
             arrange_monitor(monitor);
         XSync(display, False);
-        while (XCheckMaskEvent(display, EnterWindowMask, &ev));
+        while (XCheckMaskEvent(display, EnterWindowMask, &event));
     }
     return;
 }
@@ -619,45 +619,45 @@ attach_stack(Client *client) {
 }
 
 void
-button_press(XEvent *e) {
+button_press(XEvent *event) {
     uint click;
     Arg arg = {0};
     Client *client;
     Monitor *monitor;
-    XButtonPressedEvent *ev = &e->xbutton;
+    XButtonPressedEvent *button_event = &event->xbutton;
 
     click = ClickRootWin;
     /* focus monitor if necessary */
-    if ((monitor = window_to_monitor(ev->window)) && monitor != current_monitor) {
+    if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = monitor;
         focus(NULL);
     }
-    if (ev->window == current_monitor->barwin) {
+    if (button_event->window == current_monitor->barwin) {
         uint i = 0;
         uint x = 0;
 
         do
             x += tagw[i];
-        while (ev->x >= x && ++i < LENGTH(tags));
+        while (button_event->x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
             arg.ui = 1 << i;
-        } else if (ev->x < x + TEXTW(current_monitor->layout_symbol)) {
+        } else if (button_event->x < x + TEXTW(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
-        } else if (ev->x > current_monitor->win_w - statusw) {
+        } else if (button_event->x > current_monitor->win_w - statusw) {
             char *s;
             x = current_monitor->win_w - statusw;
             click = ClickStatusText;
             statussig = 0;
-            for (char *text = s = stext; *s && x <= ev->x; s += 1) {
+            for (char *text = s = stext; *s && x <= button_event->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
                     x += TEXTW(text) - lrpad;
                     *s = ch;
                     text = s + 1;
-                    if (x >= ev->x)
+                    if (x >= button_event->x)
                         break;
                     statussig = ch;
                 }
@@ -665,33 +665,33 @@ button_press(XEvent *e) {
         } else {
             click = ClickWinTitle;
         }
-    } else if (ev->window == current_monitor->extrabarwin) {
+    } else if (button_event->window == current_monitor->extrabarwin) {
         int x = 0;
         char *s = &extra_status[0];
 
         click = ClickExtraBar;
         statussig = 0;
-        for (char *text = s; *s && x <= ev->x; s += 1) {
+        for (char *text = s; *s && x <= button_event->x; s += 1) {
             if ((uchar)(*s) < ' ') {
                 char ch = *s;
                 *s = '\0';
                 x += TEXTW(text) - lrpad;
                 *s = ch;
                 text = s + 1;
-                if (x >= ev->x)
+                if (x >= button_event->x)
                     break;
                 statussig = ch;
             }
         }
-    } else if ((client = window_to_client(ev->window))) {
+    } else if ((client = window_to_client(button_event->window))) {
         focus(client);
         restack(current_monitor);
         XAllowEvents(display, ReplayPointer, CurrentTime);
         click = ClickClientWin;
     }
     for (uint i = 0; i < LENGTH(buttons); i += 1) {
-        if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
-        && CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
+        if (click == buttons[i].click && buttons[i].func && buttons[i].button == button_event->button
+        && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state))
             buttons[i].func(click == ClickTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
     }
 
@@ -1782,7 +1782,7 @@ monocle(Monitor *monitor) {
 
     for (Client *client = monitor->clients; client; client = client->next) {
         if (ISVISIBLE(client))
-            n++;
+            n += 1;
     }
 
     if (n > 0) /* override layout symbol */
@@ -1972,8 +1972,7 @@ resize(Client *client, int x, int y, int w, int h, int interact) {
 void
 resize_client(Client *client, int x, int y, int w, int h) {
     XWindowChanges window_changes;
-    uint n;
-    Client *nbc;
+    uint n = 0;
 
     client->old_x = client->x; client->x = window_changes.x = x;
     client->old_y = client->y; client->y = window_changes.y = y;
@@ -1981,7 +1980,11 @@ resize_client(Client *client, int x, int y, int w, int h) {
     client->old_h = client->h; client->h = window_changes.height = h;
     window_changes.border_width = client->border_width;
 
-    for (n = 0, nbc = nexttiled(current_monitor->clients); nbc; nbc = nexttiled(nbc->next), n++);
+    for (Client *client = nexttiled(current_monitor->clients);
+                 client;
+                 client = nexttiled(client->next)) {
+        n += 1;
+    }
 
     if (!(client->isfloating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
         if (current_monitor->layout[current_monitor->layout_index]->arrange == monocle || n == 1) {
