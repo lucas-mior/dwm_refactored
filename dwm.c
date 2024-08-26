@@ -2524,6 +2524,7 @@ scan(void) {
 
     for (uint i = 0; i < nchildren_return; i += 1) {
         Window child = children_return[i];
+
         if (!XGetWindowAttributes(display, child, &window_attributes))
             continue;
         if (window_attributes.override_redirect)
@@ -2538,6 +2539,7 @@ scan(void) {
     }
     for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
         Window child = children_return[i];
+
         if (!XGetWindowAttributes(display, child, &window_attributes))
             continue;
         if (!XGetTransientForHint(display, child, &root_return))
