@@ -1435,9 +1435,9 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         }
     }
 
-    w = *(bstp - 2));
+    w = *(bstp - 2);
     h = *(bstp - 1);
-    if ((w == 0) || (h == 0) {
+    if ((w == 0) || (h == 0)) {
         XFree(propreturn);
         return None;
     }
