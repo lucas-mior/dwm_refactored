@@ -288,10 +288,10 @@ static void zoom(const Arg *);
 
 /* variables */
 static const char broken[] = "broken";
-static char status_text[256];
-static char extra_status[256];
+static char top_status[256];
+static char bottom_status[256];
 static int status_text_pixels;
-static int extra_status_pixels;
+static int bottom_status_pixels;
 static int statussig;
 static pid_t statuspid = -1;
 
@@ -854,7 +854,7 @@ draw_bar(Monitor *monitor) {
         drw_setscheme(drw, scheme[SchemeNormal]);
 
         x = 0;
-        for (text = s = &status_text[0]; *s; s += 1) {
+        for (text = s = &top_status[0]; *s; s += 1) {
             if ((uchar)(*s) < ' ') {
                 temp = *s;
                 *s = '\0';
@@ -968,7 +968,7 @@ draw_bar(Monitor *monitor) {
         char *s;
 
         x = 0;
-        for (text = s = &extra_status[0]; *s; s += 1) {
+        for (text = s = &bottom_status[0]; *s; s += 1) {
             char temp;
 
             if ((uchar)(*s) < ' ') {
@@ -977,7 +977,7 @@ draw_bar(Monitor *monitor) {
 
                 text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
                 drw_text(drw,
-                         monitor->win_w - extra_status_pixels + x, 0,
+                         monitor->win_w - bottom_status_pixels + x, 0,
                          (uint) text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
 
@@ -987,7 +987,7 @@ draw_bar(Monitor *monitor) {
         }
         text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
         drw_text(drw,
-                 monitor->win_w - extra_status_pixels + x, 0,
+                 monitor->win_w - bottom_status_pixels + x, 0,
                  (uint) text_pixels, bar_height, 0, text, 0);
     }
     drw_map(drw, monitor->bottom_bar_window,
@@ -1696,7 +1696,7 @@ handler_button_press(XEvent *event) {
             click = ClickStatusText;
             statussig = 0;
 
-            for (char *text = s = status_text; *s && (int) x <= button_event->x; s += 1) {
+            for (char *text = s = top_status; *s && (int) x <= button_event->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
@@ -1714,8 +1714,8 @@ handler_button_press(XEvent *event) {
             click = ClickWinTitle;
         }
     } else if (button_event->window == current_monitor->bottom_bar_window) {
-        int x = current_monitor->win_w - extra_status_pixels;
-        char *s = &extra_status[0];
+        int x = current_monitor->win_w - bottom_status_pixels;
+        char *s = &bottom_status[0];
 
         click = ClickBottomBar;
         statussig = 0;
@@ -3330,9 +3330,9 @@ update_status(void) {
     char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
-        strcpy(status_text, "dwm-"VERSION);
-        status_text_pixels = (int) (TEXT_PIXELS(status_text) - lrpad + 2);
-        extra_status[0] = '\0';
+        strcpy(top_status, "dwm-"VERSION);
+        status_text_pixels = (int) (TEXT_PIXELS(top_status) - lrpad + 2);
+        bottom_status[0] = '\0';
         draw_bar(current_monitor);
         return;
     }
@@ -3341,14 +3341,14 @@ update_status(void) {
     if (separator) {
         *separator = '\0';
         separator += 1;
-        strncpy(extra_status, separator, sizeof(extra_status) - 1);
+        strncpy(bottom_status, separator, sizeof(bottom_status) - 1);
     } else {
-        extra_status[0] = '\0';
+        bottom_status[0] = '\0';
     }
 
-    strncpy(status_text, text, sizeof(status_text) - 1);
-    status_text_pixels = status_count_pixels(status_text);
-    extra_status_pixels = status_count_pixels(extra_status);
+    strncpy(top_status, text, sizeof(top_status) - 1);
+    status_text_pixels = status_count_pixels(top_status);
+    bottom_status_pixels = status_count_pixels(bottom_status);
     draw_bar(current_monitor);
     return;
 }
