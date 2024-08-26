@@ -1399,7 +1399,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     ulong n;
     ulong extra;
     ulong *propreturn = NULL;
-    ulong *bstp = NULL;
+    ulong *pixel_find = NULL;
     uint32 w, h;
     uint32 sz = 0;
     Atom real;
@@ -1432,31 +1432,31 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
             max_dim = w > h ? w : h;
             if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
                 bstd = d;
-                bstp = i;
+                pixel_find = i;
             }
         }
-        if (!bstp) {
-            for (i = propreturn; i < end - 1; i += sz) {
+        if (!pixel_find) {
+            for (i = propreturn; i < (end - 1); i += sz) {
                 if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
                     XFree(propreturn);
                     return None;
                 }
-                if ((sz = w*h) > end - i)
+                if ((sz = w*h) > (end - i))
                     break;
                 if ((d = ICONSIZE - (w > h ? w : h)) < bstd) {
                     bstd = d;
-                    bstp = i;
+                    pixel_find = i;
                 }
             }
         }
-        if (!bstp) {
+        if (!pixel_find) {
             XFree(propreturn);
             return None;
         }
     }
 
-    w = (uint32) *(bstp - 2);
-    h = (uint32) *(bstp - 1);
+    w = (uint32) *(pixel_find - 2);
+    h = (uint32) *(pixel_find - 1);
     if ((w == 0) || (h == 0)) {
         XFree(propreturn);
         return None;
@@ -1478,16 +1478,16 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     *picture_width = icon_width;
     *picture_height = icon_height;
 
-    uint32 *bstp32 = (uint32 *)bstp;
+    uint32 *pixel_find32 = (uint32 *)pixel_find;
     for (uint32 i = 0; i < w*h; i += 1) {
-        uint32 pixel = (uint32) bstp[i];
+        uint32 pixel = (uint32) pixel_find[i];
         uint8 a = pixel >> 24u;
         uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
         uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
-        bstp32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
+        pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
     }
 
-    Picture ret = drw_picture_create_resized(drw, (char *)bstp,
+    Picture ret = drw_picture_create_resized(drw, (char *)pixel_find,
                                              w, h, icon_width, icon_height);
     XFree(propreturn);
 
