@@ -2408,8 +2408,8 @@ resize_client(Client *client, int x, int y, int w, int h) {
     }
 
     if (!(client->is_floating)) {
-        void *layout_function = current_monitor->layout[current_monitor->lay_i]->arrange;
-        if (layout_function == layout_monocle || n == 1) {
+        const Layout *layout = current_monitor->layout[current_monitor->lay_i];
+        if (layout->arrange == layout_monocle || n == 1) {
             window_changes.border_width = 0;
             client->w = window_changes.width += client->border_pixels*2;
             client->h = window_changes.height += client->border_pixels*2;
