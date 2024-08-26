@@ -2532,15 +2532,21 @@ scan(void) {
             continue;
 
         if (window_attributes.map_state == IsViewable
-            || get_window_state(child) == IconicState)
+            || get_window_state(child) == IconicState) {
             manage(child, &window_attributes);
+        }
     }
     for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
-        if (!XGetWindowAttributes(display, children_return[i], &window_attributes))
+        Window child = children_return[i];
+        if (!XGetWindowAttributes(display, child, &window_attributes))
             continue;
-        if (XGetTransientForHint(display, children_return[i], &root_return)
-        && (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState))
-            manage(children_return[i], &window_attributes);
+        if (!XGetTransientForHint(display, child, &root_return))
+            continue;
+
+        if (window_attributes.map_state == IsViewable
+            || get_window_state(child) == IconicState) {
+            manage(child, &window_attributes);
+        }
     }
 
     if (children_return)
