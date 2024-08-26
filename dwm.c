@@ -1581,19 +1581,22 @@ get_root_pointer(int *x, int *y) {
 
 long
 get_state(Window window) {
-    int format;
+    int actual_format_return;
     long result = -1;
     uchar *prop_return = NULL;
     ulong nitems_return;
     ulong bytes_after_return;
-    Atom real;
+    Atom actual_type_return;
+    int sucess;
 
-    if (XGetWindowProperty(display, window, wmatom[WMState],
-                           0L, 2L, False, wmatom[WMState],
-                           &real, &format, &nitems_return, &bytes_after_return,
-                           (uchar **)&prop_return) != Success) {
+    sucess = XGetWindowProperty(display, window, wmatom[WMState],
+                                0L, 2L, False, wmatom[WMState],
+                                &actual_type_return, &actual_format_return,
+                                &nitems_return, &bytes_after_return,
+                                (uchar **)&prop_return);
+    if (sucess != Success)
         return -1;
-    }
+
     if (nitems_return != 0)
         result = *prop_return;
     XFree(prop_return);
