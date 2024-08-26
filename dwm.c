@@ -157,8 +157,8 @@ struct Monitor {
     Client *selected_client;
     Client *stack;
     Monitor *next;
-    Window bar_window;
-    Window extra_bar_window;
+    Window top_bar_window;
+    Window bottom_bar_window;
     const Layout *layout[2];
     Pertag *pertag;
 };
@@ -689,10 +689,10 @@ cleanup_monitor(Monitor *monitor) {
             monitor_aux = monitor_aux->next;
         monitor_aux->next = monitor->next;
     }
-    XUnmapWindow(display, monitor->bar_window);
-    XDestroyWindow(display, monitor->extra_bar_window);
-    XDestroyWindow(display, monitor->bar_window);
-    XDestroyWindow(display, monitor->extra_bar_window);
+    XUnmapWindow(display, monitor->top_bar_window);
+    XDestroyWindow(display, monitor->bottom_bar_window);
+    XDestroyWindow(display, monitor->top_bar_window);
+    XDestroyWindow(display, monitor->bottom_bar_window);
     free(monitor);
     return;
 }
@@ -959,7 +959,7 @@ draw_bar(Monitor *monitor) {
             drw_rect(drw, x, 0, (uint) w, bar_height, 1, 1);
         }
     }
-    drw_map(drw, monitor->bar_window, 0, 0, (uint) monitor->win_w, bar_height);
+    drw_map(drw, monitor->top_bar_window, 0, 0, (uint) monitor->win_w, bar_height);
 
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
@@ -990,7 +990,7 @@ draw_bar(Monitor *monitor) {
                  monitor->win_w - extra_status_pixels + x, 0,
                  (uint) text_pixels, bar_height, 0, text, 0);
     }
-    drw_map(drw, monitor->extra_bar_window,
+    drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint) monitor->win_w, bar_height);
     return;
 }
@@ -1025,7 +1025,7 @@ focus(Client *client) {
         XSetWindowBorder(display, client->window, scheme[SchemeSelected][ColBorder].pixel);
         set_focus(client);
     } else {
-        XSetInputFocus(display, current_monitor->bar_window, RevertToPointerRoot, CurrentTime);
+        XSetInputFocus(display, current_monitor->top_bar_window, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
 
@@ -1677,7 +1677,7 @@ handler_button_press(XEvent *event) {
         current_monitor = monitor;
         focus(NULL);
     }
-    if (button_event->window == current_monitor->bar_window) {
+    if (button_event->window == current_monitor->top_bar_window) {
         uint i = 0;
         uint x = 0;
 
@@ -1713,7 +1713,7 @@ handler_button_press(XEvent *event) {
         } else {
             click = ClickWinTitle;
         }
-    } else if (button_event->window == current_monitor->extra_bar_window) {
+    } else if (button_event->window == current_monitor->bottom_bar_window) {
         int x = current_monitor->win_w - extra_status_pixels;
         char *s = &extra_status[0];
 
@@ -1856,9 +1856,9 @@ handler_configure_notify(XEvent *event) {
                     resize_client(client,
                                   m->mon_x, m->mon_y, m->mon_w, m->mon_h);
             }
-            XMoveResizeWindow(display, m->bar_window,
+            XMoveResizeWindow(display, m->top_bar_window,
                               m->win_x, m->bar_y, (uint)m->win_w, bar_height);
-            XMoveResizeWindow(display, m->extra_bar_window,
+            XMoveResizeWindow(display, m->bottom_bar_window,
                               m->win_x, m->bottom_bar_y, (uint)m->win_w, bar_height);
         }
         focus(NULL);
@@ -2436,7 +2436,7 @@ restack(Monitor *m) {
         XRaiseWindow(display, m->selected_client->window);
     if (m->layout[m->layout_index]->arrange) {
         window_changes.stack_mode = Below;
-        window_changes.sibling = m->bar_window;
+        window_changes.sibling = m->top_bar_window;
         for (client = m->stack; client; client = client->snext) {
             if (!client->isfloating && ISVISIBLE(client)) {
                 XConfigureWindow(display, client->window, CWSibling|CWStackMode, &window_changes);
@@ -2847,7 +2847,7 @@ toggle_bar(const Arg *arg) {
 
     monitor->showbar = monitor->pertag->showbars[monitor->pertag->current_tag] = !monitor->showbar;
     update_bar_position(monitor);
-    XMoveResizeWindow(display, monitor->bar_window,
+    XMoveResizeWindow(display, monitor->top_bar_window,
                       monitor->win_x, monitor->bar_y,
                       (uint) monitor->win_w, bar_height);
     arrange(monitor);
@@ -2861,7 +2861,7 @@ toggle_extra_bar(const Arg *arg) {
 
     monitor->bottom_bar = !monitor->bottom_bar;
     update_bar_position(monitor);
-    XMoveResizeWindow(display, monitor->extra_bar_window,
+    XMoveResizeWindow(display, monitor->bottom_bar_window,
                       monitor->win_x, monitor->bottom_bar_y,
                       (uint) monitor->win_w, bar_height);
     arrange(monitor);
@@ -3094,27 +3094,27 @@ update_bars(void) {
         ulong value_mask = CWOverrideRedirect
                            | CWBackPixel | CWBorderPixel
                            | CWColormap |CWEventMask;
-        if (!monitor->bar_window) {
+        if (!monitor->top_bar_window) {
             window = XCreateWindow(display, root,
                                 monitor->win_x, monitor->bar_y,
                                 (uint) monitor->win_w, bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
-            monitor->bar_window = window;
-            XDefineCursor(display, monitor->bar_window, cursor[CursorNormal]->cursor);
-            XMapRaised(display, monitor->bar_window);
-            XSetClassHint(display, monitor->bar_window, &ch);
+            monitor->top_bar_window = window;
+            XDefineCursor(display, monitor->top_bar_window, cursor[CursorNormal]->cursor);
+            XMapRaised(display, monitor->top_bar_window);
+            XSetClassHint(display, monitor->top_bar_window, &ch);
         }
-        if (!monitor->extra_bar_window) {
+        if (!monitor->bottom_bar_window) {
             window = XCreateWindow(display, root,
                                 monitor->win_x, monitor->bottom_bar_y,
                                 (uint) monitor->win_w, bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
-            monitor->extra_bar_window = window;
-            XDefineCursor(display, monitor->extra_bar_window, cursor[CursorNormal]->cursor);
-            XMapRaised(display, monitor->extra_bar_window);
-            XSetClassHint(display, monitor->extra_bar_window, &ch);
+            monitor->bottom_bar_window = window;
+            XDefineCursor(display, monitor->bottom_bar_window, cursor[CursorNormal]->cursor);
+            XMapRaised(display, monitor->bottom_bar_window);
+            XSetClassHint(display, monitor->bottom_bar_window, &ch);
         }
     }
     return;
@@ -3475,7 +3475,7 @@ window_to_monitor(Window window) {
             return rectangle_to_monitor(x, y, 1, 1);
     }
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        if (window == monitor->bar_window || window == monitor->extra_bar_window)
+        if (window == monitor->top_bar_window || window == monitor->bottom_bar_window)
             return monitor;
     }
     if ((client = window_to_client(window)))
