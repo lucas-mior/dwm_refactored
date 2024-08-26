@@ -1735,6 +1735,7 @@ handler_button_press(XEvent *event) {
         XAllowEvents(display, ReplayPointer, CurrentTime);
         click = ClickClientWin;
     }
+
     for (uint i = 0; i < LENGTH(buttons); i += 1) {
         if (click == buttons[i].click
             && buttons[i].func
@@ -1749,7 +1750,6 @@ handler_button_press(XEvent *event) {
             buttons[i].func(argument);
         }
     }
-
     return;
 }
 
