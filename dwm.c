@@ -287,7 +287,7 @@ static void zoom(const Arg *);
 
 /* variables */
 static const char broken[] = "broken";
-static char stext[256];
+static char status_text[256];
 static char extra_status[256];
 static int statusw;
 static int statussig;
@@ -851,7 +851,7 @@ draw_bar(Monitor *monitor) {
         drw_setscheme(drw, scheme[SchemeNormal]);
 
         x = 0;
-        for (text = s = stext; *s; s += 1) {
+        for (text = s = status_text; *s; s += 1) {
             if ((uchar)(*s) < ' ') {
                 ch = *s;
                 *s = '\0';
@@ -1050,7 +1050,7 @@ focus_direction(const Arg *arg) {
             break;
         }
 
-        if (client_score < (int)score
+        if (client_score < score
             || ((arg->i == 0 || arg->i == 2) && client_score <= (int)score)) {
             score = (uint)client_score;
             f = client;
@@ -1661,7 +1661,7 @@ handler_button_press(XEvent *event) {
             click = ClickStatusText;
             statussig = 0;
 
-            for (char *text = s = stext; *s && (int) x <= button_event->x; s += 1) {
+            for (char *text = s = status_text; *s && (int) x <= button_event->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
@@ -3271,8 +3271,8 @@ update_status(void) {
     char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
-        strcpy(stext, "dwm-"VERSION);
-        statusw = (int) (TEXT_PIXELS(stext) - lrpad + 2);
+        strcpy(status_text, "dwm-"VERSION);
+        statusw = (int) (TEXT_PIXELS(status_text) - lrpad + 2);
         extra_status[0] = '\0';
         draw_bar(current_monitor);
         return;
@@ -3287,9 +3287,9 @@ update_status(void) {
         extra_status[0] = '\0';
     }
 
-    strncpy(stext, text, sizeof(stext) - 1);
+    strncpy(status_text, text, sizeof(status_text) - 1);
     statusw = 0;
-    for (text2 = s = stext; *s; s += 1) {
+    for (text2 = s = status_text; *s; s += 1) {
         char ch;
         if ((uchar)(*s) < ' ') {
             ch = *s;
