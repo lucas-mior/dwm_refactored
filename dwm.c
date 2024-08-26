@@ -107,7 +107,7 @@ struct Client {
     int x, y, w, h;
     int stored_fx, stored_fy, stored_fw, stored_fh;
     int old_x, old_y, old_w, old_h;
-    int basew, baseh;
+    int base_w, base_h;
     int incw, inch, maxw, maxh, minw, minh, hintsvalid;
     int border_width, oldbw;
     uint tags;
@@ -537,10 +537,10 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
             update_size_hints(client);
 
         /* see last two sentences in ICCCM 4.1.2.3 */
-        baseismin = client->basew == client->minw && client->baseh == client->minh;
+        baseismin = client->base_w == client->minw && client->base_h == client->minh;
         if (!baseismin) { /* temporarily remove base dimensions */
-            *w -= client->basew;
-            *h -= client->baseh;
+            *w -= client->base_w;
+            *h -= client->base_h;
         }
 
         /* adjust for aspect limits */
@@ -552,8 +552,8 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         }
 
         if (baseismin) { /* increment calculation requires this */
-            *w -= client->basew;
-            *h -= client->baseh;
+            *w -= client->base_w;
+            *h -= client->base_h;
         }
 
         /* adjust for increment value */
@@ -563,8 +563,8 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
             *h -= *h % client->inch;
 
         /* restore base dimensions */
-        *w = MAX(*w + client->basew, client->minw);
-        *h = MAX(*h + client->baseh, client->minh);
+        *w = MAX(*w + client->base_w, client->minw);
+        *h = MAX(*h + client->base_h, client->minh);
         if (client->maxw)
             *w = MIN(*w, client->maxw);
         if (client->maxh)
@@ -3315,13 +3315,13 @@ update_size_hints(Client *client) {
         /* size is uninitialized, ensure that size.flags aren't used */
         size.flags = PSize;
     if (size.flags & PBaseSize) {
-        client->basew = size.base_width;
-        client->baseh = size.base_height;
+        client->base_w = size.base_width;
+        client->base_h = size.base_height;
     } else if (size.flags & PMinSize) {
-        client->basew = size.min_width;
-        client->baseh = size.min_height;
+        client->base_w = size.min_width;
+        client->base_h = size.min_height;
     } else
-        client->basew = client->baseh = 0;
+        client->base_w = client->base_h = 0;
     if (size.flags & PResizeInc) {
         client->incw = size.width_inc;
         client->inch = size.height_inc;
