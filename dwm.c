@@ -986,7 +986,6 @@ focus_direction(const Arg *arg) {
     Client *next;
 
     uint score = -1;
-    int direction_weight = 20;
     int isfloating = selected->isfloating;
 
     if (!selected)
@@ -1009,20 +1008,20 @@ focus_direction(const Arg *arg) {
         switch (arg->i) {
         case 0: // left
             dist = selected->x - client->x - client->w;
-            client_score = direction_weight*MIN(abs(dist), abs(dist + selected->monitor->win_w)) + abs(selected->y - client->y);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w)) + abs(selected->y - client->y);
             break;
         case 1: // right
             dist = client->x - selected->x - selected->w;
-            client_score = direction_weight*MIN(abs(dist), abs(dist + selected->monitor->win_w)) + abs(client->y - selected->y);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w)) + abs(client->y - selected->y);
             break;
         case 2: // up
             dist = selected->y - client->y - client->h;
-            client_score = direction_weight*MIN(abs(dist), abs(dist + selected->monitor->win_h)) + abs(selected->x - client->x);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h)) + abs(selected->x - client->x);
             break;
         default:
         case 3: // down
             dist = client->y - selected->y - selected->h;
-            client_score = direction_weight*MIN(abs(dist), abs(dist + selected->monitor->win_h)) + abs(client->x - selected->x);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h)) + abs(client->x - selected->x);
             break;
         }
 
