@@ -119,8 +119,8 @@ struct Client {
     Picture icon;
 
     Client *next;
-    Client *snext;
-    Client *allnext;
+    Client *stack_next;
+    Client *all_next;
     Monitor *monitor;
     Window window;
 };
@@ -639,7 +639,7 @@ aspect_resize(const Arg *arg) {
 void
 attach(Client *client) {
     client->next = client->monitor->clients;
-    client->allnext = all_clients;
+    client->all_next = all_clients;
     client->monitor->clients = client;
     all_clients = client;
     return;
@@ -647,7 +647,7 @@ attach(Client *client) {
 
 void
 attach_stack(Client *client) {
-    client->snext = client->monitor->stack;
+    client->stack_next = client->monitor->stack;
     client->monitor->stack = client;
     return;
 }
@@ -792,8 +792,8 @@ detach(Client *client) {
 
     for (clients = &all_clients;
          *clients && *clients != client;
-         clients = &(*clients)->allnext);
-    *clients = client->allnext;
+         clients = &(*clients)->all_next);
+    *clients = client->all_next;
 
     return;
 }
@@ -804,14 +804,14 @@ detach_stack(Client *client) {
 
     for (client_aux = &client->monitor->stack;
          *client_aux && *client_aux != client;
-         client_aux = &(*client_aux)->snext);
-    *client_aux = client->snext;
+         client_aux = &(*client_aux)->stack_next);
+    *client_aux = client->stack_next;
 
     if (client == client->monitor->selected_client) {
         Client *t;
         for (t = client->monitor->stack;
              t && !ISVISIBLE(t);
-             t = t->snext);
+             t = t->stack_next);
         client->monitor->selected_client = t;
     }
     return;
@@ -1011,7 +1011,7 @@ focus(Client *client) {
     if (!client || !ISVISIBLE(client)) {
         for (client = current_monitor->stack;
              client && !ISVISIBLE(client);
-             client = client->snext);
+             client = client->stack_next);
     }
 
     if (selected && selected != client)
@@ -1134,15 +1134,15 @@ focus_next(const Arg *arg) {
         return;
 
     if (arg->i) {
-        if (client->allnext)
-            client = client->allnext;
+        if (client->all_next)
+            client = client->all_next;
         else
             client = all_clients;
     } else {
         Client *last = client;
         if (last == all_clients)
             last = NULL;
-        for (client = all_clients; client->allnext != last; client = client->allnext);
+        for (client = all_clients; client->all_next != last; client = client->all_next);
     }
     focus(client);
     return;
@@ -2482,7 +2482,7 @@ restack(Monitor *m) {
     if (m->layout[m->layout_index]->arrange) {
         window_changes.stack_mode = Below;
         window_changes.sibling = m->top_bar_window;
-        for (client = m->stack; client; client = client->snext) {
+        for (client = m->stack; client; client = client->stack_next) {
             if (!client->is_floating && ISVISIBLE(client)) {
                 XConfigureWindow(display, client->window, CWSibling|CWStackMode, &window_changes);
                 window_changes.sibling = client->window;
@@ -2819,10 +2819,10 @@ show_hide(Client *client) {
         if ((!client->monitor->layout[client->monitor->layout_index]->arrange || client->is_floating)
                 && (!client->is_fullscreen || client->is_fake_fullscreen))
             resize(client, client->x, client->y, client->w, client->h, 0);
-        show_hide(client->snext);
+        show_hide(client->stack_next);
     } else {
         /* hide clients bottom up */
-        show_hide(client->snext);
+        show_hide(client->stack_next);
         XMoveWindow(display, client->window, -2*WIDTH(client), client->y);
     }
     return;
@@ -3259,7 +3259,7 @@ update_geometry(void) {
             while ((client = monitor->clients)) {
                 dirty = 1;
                 monitor->clients = client->next;
-                all_clients = client->allnext;
+                all_clients = client->all_next;
                 detach_stack(client);
                 client->monitor = monitors;
                 attach(client);
