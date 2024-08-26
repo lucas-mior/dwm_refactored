@@ -1705,7 +1705,7 @@ handler_button_press(XEvent *event) {
             && buttons[i].func
             && (buttons[i].button == button_event->button)
             && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state)) {
-            Arg *argument;
+            const Arg *argument;
 
             if (click == ClickTagBar && buttons[i].arg.i == 0)
                 argument = &arg;
@@ -1930,7 +1930,9 @@ handler_motion_notify(XEvent *event) {
 
     if (motion_event->window != root)
         return;
-    if ((m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1)) != monitor && monitor) {
+
+    m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1);
+    if (m != monitor && monitor) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = m;
         focus(NULL);
