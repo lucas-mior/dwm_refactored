@@ -11,7 +11,6 @@ static const unsigned int key_k = 45;
 static const unsigned int superKey = 133;
 static const int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no standard bar */
-static const int top_bar             = 1;        /* 0 means standard bar at bottom */
 static const int bottom_bar           = 1;        /* 0 means no extra bar */
 static const char status_separator  = -1;      /* separator between statuses */
 #define ICONSIZE 18   /* icon size */
