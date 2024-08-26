@@ -2523,10 +2523,18 @@ scan(void) {
         return;
 
     for (uint i = 0; i < nchildren_return; i += 1) {
-        if (!XGetWindowAttributes(display, children_return[i], &window_attributes)
-        || window_attributes.override_redirect || XGetTransientForHint(display, children_return[i], &root_return))
+        sucess = XGetWindowAttributes(display,
+                                      children_return[i], &window_attributes);
+        if (!sucess)
             continue;
-        if (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState)
+
+        if (window_attributes.override_redirect)
+            continue;
+        if (XGetTransientForHint(display, children_return[i], &root_return))
+            continue;
+
+        if (window_attributes.map_state == IsViewable
+            || get_window_state(children_return[i]) == IconicState)
             manage(children_return[i], &window_attributes);
     }
     for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
