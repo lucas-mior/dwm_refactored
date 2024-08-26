@@ -230,6 +230,7 @@ static void layout_monocle(Monitor *);
 static void layout_tile(Monitor *);
 static void manage(Window, XWindowAttributes *window_attributes);
 static void mouse_move(const Arg *);
+static void mouse_resize(const Arg *);
 static Client *next_tiled(Client *);
 static void pop(Client *);
 static void promote_to_master(const Arg *);
@@ -237,7 +238,6 @@ static void quit_dwm(const Arg *);
 static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *, int x, int y, int w, int h, int interact);
 static void resize_client(Client *, int x, int y, int w, int h);
-static void mouse_resize(const Arg *);
 static void restack(Monitor *);
 static void run(void);
 static void scan_windows(void);
@@ -2332,6 +2332,85 @@ mouse_move(const Arg *arg) {
     return;
 }
 
+void
+mouse_resize(const Arg *arg) {
+    int ocx, ocy;
+    Client *client;
+    Monitor *monitor;
+    XEvent event;
+    Time last_time = 0;
+    (void) arg;
+
+    if (!(client = current_monitor->selected_client))
+        return;
+
+    /* no support resizing fullscreen windows by mouse */
+    if (client->is_fullscreen && !client->is_fake_fullscreen)
+        return;
+
+    restack(current_monitor);
+    ocx = client->x;
+    ocy = client->y;
+
+    if (XGrabPointer(display, root,
+                     False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
+                     None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess) {
+        return;
+    }
+
+    XWarpPointer(display, None, client->window,
+                 0, 0, 0, 0,
+                 client->w + client->border_pixels - 1,
+                 client->h + client->border_pixels - 1);
+    do {
+        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
+        switch (event.type) {
+        case ConfigureRequest:
+        case Expose:
+        case MapRequest:
+            handler[event.type](&event);
+            break;
+        case MotionNotify: {
+            int nw = MAX(event.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
+            int nh = MAX(event.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
+
+            if ((event.xmotion.time - last_time) <= (1000 / 60))
+                continue;
+            last_time = event.xmotion.time;
+
+            if (client->monitor->win_x + nw >= current_monitor->win_x
+                && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
+                && client->monitor->win_y + nh >= current_monitor->win_y
+                && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
+                if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->function
+                    && (abs(nw - client->w) > SNAP_PIXELS || abs(nh - client->h) > SNAP_PIXELS))
+                    toggle_floating(NULL);
+            }
+            if (!current_monitor->layout[current_monitor->lay_i]->function || client->is_floating)
+                resize(client, client->x, client->y, nw, nh, 1);
+            break;
+        }
+        default:
+            break;
+        }
+    } while (event.type != ButtonRelease);
+
+    XWarpPointer(display, None, client->window,
+                 0, 0, 0, 0,
+                 client->w + client->border_pixels - 1,
+                 client->h + client->border_pixels - 1);
+    XUngrabPointer(display, CurrentTime);
+    while (XCheckMaskEvent(display, EnterWindowMask, &event));
+
+    monitor = rectangle_to_monitor(client->x, client->y, client->w, client->h);
+    if (monitor != current_monitor) {
+        send_monitor(client, monitor);
+        current_monitor = monitor;
+        focus(NULL);
+    }
+    return;
+}
+
 Client *
 next_tiled(Client *client) {
     while (true) {
@@ -2426,85 +2505,6 @@ resize_client(Client *client, int x, int y, int w, int h) {
                      CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &window_changes);
     configure(client);
     XSync(display, False);
-    return;
-}
-
-void
-mouse_resize(const Arg *arg) {
-    int ocx, ocy;
-    Client *client;
-    Monitor *monitor;
-    XEvent event;
-    Time last_time = 0;
-    (void) arg;
-
-    if (!(client = current_monitor->selected_client))
-        return;
-
-    /* no support resizing fullscreen windows by mouse */
-    if (client->is_fullscreen && !client->is_fake_fullscreen)
-        return;
-
-    restack(current_monitor);
-    ocx = client->x;
-    ocy = client->y;
-
-    if (XGrabPointer(display, root,
-                     False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-                     None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess) {
-        return;
-    }
-
-    XWarpPointer(display, None, client->window,
-                 0, 0, 0, 0,
-                 client->w + client->border_pixels - 1,
-                 client->h + client->border_pixels - 1);
-    do {
-        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
-        switch (event.type) {
-        case ConfigureRequest:
-        case Expose:
-        case MapRequest:
-            handler[event.type](&event);
-            break;
-        case MotionNotify: {
-            int nw = MAX(event.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
-            int nh = MAX(event.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
-
-            if ((event.xmotion.time - last_time) <= (1000 / 60))
-                continue;
-            last_time = event.xmotion.time;
-
-            if (client->monitor->win_x + nw >= current_monitor->win_x
-                && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
-                && client->monitor->win_y + nh >= current_monitor->win_y
-                && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
-                if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->function
-                    && (abs(nw - client->w) > SNAP_PIXELS || abs(nh - client->h) > SNAP_PIXELS))
-                    toggle_floating(NULL);
-            }
-            if (!current_monitor->layout[current_monitor->lay_i]->function || client->is_floating)
-                resize(client, client->x, client->y, nw, nh, 1);
-            break;
-        }
-        default:
-            break;
-        }
-    } while (event.type != ButtonRelease);
-
-    XWarpPointer(display, None, client->window,
-                 0, 0, 0, 0,
-                 client->w + client->border_pixels - 1,
-                 client->h + client->border_pixels - 1);
-    XUngrabPointer(display, CurrentTime);
-    while (XCheckMaskEvent(display, EnterWindowMask, &event));
-
-    monitor = rectangle_to_monitor(client->x, client->y, client->w, client->h);
-    if (monitor != current_monitor) {
-        send_monitor(client, monitor);
-        current_monitor = monitor;
-        focus(NULL);
-    }
     return;
 }
 
