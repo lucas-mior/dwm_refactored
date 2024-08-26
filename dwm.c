@@ -2978,18 +2978,24 @@ unmanage(Client *client, int destroyed) {
     detach(client);
     detach_stack(client);
     free_icon(client);
+
     if (!destroyed) {
         window_changes.border_width = client->oldbw;
         XGrabServer(display); /* avoid race conditions */
         XSetErrorHandler(xerrordummy);
+
         XSelectInput(display, client->window, NoEventMask);
-        XConfigureWindow(display, client->window, CWBorderWidth, &window_changes); /* restore border */
+
+        /* restore border */
+        XConfigureWindow(display, client->window, CWBorderWidth, &window_changes);
         XUngrabButton(display, AnyButton, AnyModifier, client->window);
         set_client_state(client, WithdrawnState);
+
         XSync(display, False);
         XSetErrorHandler(xerror);
         XUngrabServer(display);
     }
+
     free(client);
     focus(NULL);
     update_client_list();
@@ -3267,8 +3273,11 @@ update_status(void) {
 
 void
 update_title(Client *client) {
-    if (!get_text_property(client->window, netatom[NetWMName], client->name, sizeof(client->name)))
-        get_text_property(client->window, XA_WM_NAME, client->name, sizeof(client->name));
+    if (!get_text_property(client->window, netatom[NetWMName],
+                           client->name, sizeof(client->name))) {
+        get_text_property(client->window, XA_WM_NAME,
+                          client->name, sizeof(client->name));
+    }
     if (client->name[0] == '\0') /* hack to mark broken clients */
         strcpy(client->name, broken);
     return;
