@@ -288,8 +288,9 @@ static void zoom(const Arg *);
 
 /* variables */
 static const char broken[] = "broken";
-static char top_status[256];
-static char bottom_status[256];
+#define STATUS_TEXT_SIZE 256
+static char top_status[STATUS_TEXT_SIZE];
+static char bottom_status[STATUS_TEXT_SIZE];
 static int status_text_pixels;
 static int bottom_status_pixels;
 static int statussig;
