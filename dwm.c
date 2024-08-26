@@ -2377,6 +2377,11 @@ mouse_resize(const Arg *arg) {
             bool under_y;
             int nw;
             int nh;
+
+            if ((event.xmotion.time - last_time) <= (1000 / 60))
+                continue;
+            last_time = event.xmotion.time;
+
             event.xmotion.x += (-client->x - 2*client->border_pixels + 1);
             event.xmotion.y += (-client->y - 2*client->border_pixels + 1);
 
@@ -2386,10 +2391,6 @@ mouse_resize(const Arg *arg) {
             under_x =  client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w;
             over_y = client->monitor->win_y + nh >= current_monitor->win_y;
             under_y =  client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h;
-
-            if ((event.xmotion.time - last_time) <= (1000 / 60))
-                continue;
-            last_time = event.xmotion.time;
 
             if (over_x && under_x && over_y && under_y) {
                 if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->function
