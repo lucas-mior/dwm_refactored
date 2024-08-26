@@ -2278,16 +2278,13 @@ move_mouse(const Arg *arg) {
             break;
         case MotionNotify: {
             Monitor *monitor = current_monitor;
-            int nx;
-            int ny;
             bool is_floating = client->is_floating;
+            int nx = ocx + (event.xmotion.x - x);
+            int ny = ocy + (event.xmotion.y - y);
 
             if ((event.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
             lasttime = event.xmotion.time;
-
-            nx = ocx + (event.xmotion.x - x);
-            ny = ocy + (event.xmotion.y - y);
 
             if (abs(monitor->win_x - nx) < SNAP_PIXELS)
                 nx = monitor->win_x;
