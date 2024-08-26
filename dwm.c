@@ -1839,6 +1839,7 @@ handler_configure_request(XEvent *event) {
                 client->x = monitor->mon_x + (monitor->mon_w / 2 - WIDTH(client) / 2);
             if ((client->y + client->h) > (monitor->mon_y + monitor->mon_h) && client->is_floating)
                 client->y = monitor->mon_y + (monitor->mon_h / 2 - HEIGHT(client) / 2);
+
             if ((conf_request_event->value_mask & (CWX|CWY)) && !(conf_request_event->value_mask & (CWWidth|CWHeight)))
                 configure(client);
             if (ISVISIBLE(client))
