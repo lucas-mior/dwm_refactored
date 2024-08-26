@@ -2244,7 +2244,7 @@ move_mouse(const Arg *arg) {
     Client *client;
     Monitor *monitor_aux;
     XEvent event;
-    Time lasttime = 0;
+    Time last_time = 0;
     int sucess;
     (void) arg;
 
@@ -2290,9 +2290,9 @@ move_mouse(const Arg *arg) {
                 abs((monitor->win_y + monitor->win_h) - (ny + HEIGHT(client))),
             };
 
-            if ((event.xmotion.time - lasttime) <= (1000 / 60))
+            if ((event.xmotion.time - last_time) <= (1000 / 60))
                 continue;
-            lasttime = event.xmotion.time;
+            last_time = event.xmotion.time;
 
             if (over_x[0] < SNAP_PIXELS)
                 nx = monitor->win_x;
@@ -2435,7 +2435,7 @@ resize_mouse(const Arg *arg) {
     Client *client;
     Monitor *monitor;
     XEvent event;
-    Time lasttime = 0;
+    Time last_time = 0;
     (void) arg;
 
     if (!(client = current_monitor->selected_client))
@@ -2471,9 +2471,9 @@ resize_mouse(const Arg *arg) {
             int nw = MAX(event.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
             int nh = MAX(event.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
 
-            if ((event.xmotion.time - lasttime) <= (1000 / 60))
+            if ((event.xmotion.time - last_time) <= (1000 / 60))
                 continue;
-            lasttime = event.xmotion.time;
+            last_time = event.xmotion.time;
 
             if (client->monitor->win_x + nw >= current_monitor->win_x
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
