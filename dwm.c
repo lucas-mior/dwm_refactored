@@ -2362,7 +2362,8 @@ mouse_resize(const Arg *arg) {
                  client->w + client->border_pixels - 1,
                  client->h + client->border_pixels - 1);
     do {
-        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
+        XMaskEvent(display,
+                   MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
         switch (event.type) {
         case ConfigureRequest:
         case Expose:
