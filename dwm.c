@@ -151,7 +151,7 @@ struct Monitor {
     uint layout_index;
     uint tagset[2];
     int showbar;
-    int topbar;
+    int top_bar;
     int bottom_bar;
     Client *clients;
     Client *selected_client;
@@ -726,7 +726,7 @@ create_monitor(void) {
     monitor->master_fact = master_fact;
     monitor->nmaster = nmaster;
     monitor->showbar = showbar;
-    monitor->topbar = topbar;
+    monitor->top_bar = top_bar;
     monitor->bottom_bar = bottom_bar;
     monitor->layout[0] = &layouts[0];
     monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
@@ -3148,16 +3148,16 @@ update_bar_position(Monitor *monitor) {
 
     if (monitor->showbar) {
         monitor->win_h -= bar_height;
-        monitor->bar_y = monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
-        monitor->win_y = monitor->topbar ? monitor->win_y + bar_height : monitor->win_y;
+        monitor->bar_y = monitor->top_bar ? monitor->win_y : monitor->win_y + monitor->win_h;
+        monitor->win_y = monitor->top_bar ? monitor->win_y + bar_height : monitor->win_y;
     } else {
         monitor->bar_y = - (int) bar_height;
     }
 
     if (monitor->bottom_bar) {
         monitor->win_h -= bar_height;
-        monitor->bottom_bar_y = !monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
-        monitor->win_y = !monitor->topbar ? monitor->win_y + bar_height : monitor->win_y;
+        monitor->bottom_bar_y = !monitor->top_bar ? monitor->win_y : monitor->win_y + monitor->win_h;
+        monitor->win_y = !monitor->top_bar ? monitor->win_y + bar_height : monitor->win_y;
     } else {
         monitor->bottom_bar_y = - (int) bar_height;
     }
