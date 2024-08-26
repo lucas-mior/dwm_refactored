@@ -469,6 +469,7 @@ apply_rules(Client *client) {
             client->is_floating = rule->is_floating;
             client->is_fake_fullscreen = rule->is_fake_fullscreen;
             client->tags |= rule->tags;
+
             if ((rule->tags & SPTAGMASK) && rule->is_floating) {
                 Monitor *monitor = client->monitor;
                 client->x = monitor->win_x + monitor->win_w / 2 - WIDTH(client) / 2;
@@ -887,6 +888,7 @@ draw_bar(Monitor *monitor) {
     for (Client *client = monitor->clients; client; client = client->next) {
         if (client->is_urgent)
             urgent |= client->tags;
+
         for (int i = 0; i < LENGTH(tags); i += 1) {
             if (client->icon && client->tags & (1 << i))
                 icontagclient[i] = client;
