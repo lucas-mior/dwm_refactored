@@ -2371,6 +2371,10 @@ mouse_resize(const Arg *arg) {
             handler[event.type](&event);
             break;
         case MotionNotify: {
+            bool over_x = client->monitor->win_x + nw >= current_monitor->win_x;
+            bool under_x = client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w;
+            bool over_y = client->monitor->win_y + nh >= current_monitor->win_y;
+            bool under_y = client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h);
             int nw;
             int nh;
             event.xmotion.x += (-client->x - 2*client->border_pixels + 1);
@@ -2383,10 +2387,7 @@ mouse_resize(const Arg *arg) {
                 continue;
             last_time = event.xmotion.time;
 
-            if (client->monitor->win_x + nw >= current_monitor->win_x
-                && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
-                && client->monitor->win_y + nh >= current_monitor->win_y
-                && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
+            if (over_x && under_x && over_y && under_y) {
                 if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->function
                     && (abs(nw - client->w) > SNAP_PIXELS || abs(nh - client->h) > SNAP_PIXELS))
                     toggle_floating(NULL);
