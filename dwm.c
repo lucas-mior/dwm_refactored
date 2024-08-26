@@ -231,7 +231,7 @@ static void manage(Window, XWindowAttributes *window_attributes);
 static void move_mouse(const Arg *);
 static Client *next_tiled(Client *);
 static void pop(Client *);
-static void quit(const Arg *);
+static void quit_dwm(const Arg *);
 static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *, int x, int y, int w, int h, int interact);
 static void resize_client(Client *, int x, int y, int w, int h);
@@ -893,6 +893,7 @@ draw_bar(Monitor *monitor) {
             }
         }
     }
+
     x = 0;
     for (int i = 0; i < LENGTH(tags); i += 1) {
         Client *client = icontagclient[i];
@@ -2275,7 +2276,7 @@ pop(Client *client) {
 }
 
 void
-quit(const Arg *arg) {
+quit_dwm(const Arg *arg) {
     if (arg->i)
         restart = 1;
     running = 0;
