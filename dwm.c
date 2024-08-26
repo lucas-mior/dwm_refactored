@@ -2229,6 +2229,7 @@ move_mouse(const Arg *arg) {
     Monitor *monitor;
     XEvent event;
     Time lasttime = 0;
+    int sucess;
     (void) arg;
 
     if (!(client = current_monitor->selected_client))
@@ -2241,9 +2242,13 @@ move_mouse(const Arg *arg) {
     restack(current_monitor);
     ocx = client->x;
     ocy = client->y;
-    if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-        None, cursor[CursorMove]->cursor, CurrentTime) != GrabSuccess)
+
+    sucess = XGrabPointer(display, root, False,
+                          MOUSEMASK, GrabModeAsync, GrabModeAsync,
+                          None, cursor[CursorMove]->cursor, CurrentTime);
+    if (sucess != GrabSuccess)
         return;
+
     if (!get_root_pointer(&x, &y))
         return;
 
