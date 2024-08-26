@@ -1468,14 +1468,16 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
     uint32 area_find = 0;
     Atom real;
     Picture drw_picture;
+    int sucess;
 
-    if (XGetWindowProperty(display, window, netatom[NetWMIcon],
-                           0L, LONG_MAX, False, AnyPropertyType,
-                           &real, &format,
-                           &nitems_return, &bytes_after_return,
-                           (uchar **)&prop_return) != Success) {
+    sucess = XGetWindowProperty(display, window, netatom[NetWMIcon],
+                                0L, LONG_MAX, False, AnyPropertyType,
+                                &real, &format,
+                                &nitems_return, &bytes_after_return,
+                                (uchar **)&prop_return));
+    if (sucess != Success)
         return None;
-    }
+
     if (nitems_return == 0 || format != 32) {
         XFree(prop_return);
         return None;
