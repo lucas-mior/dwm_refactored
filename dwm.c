@@ -256,7 +256,7 @@ static int status_count_pixels(char *text);
 static void tag(const Arg *);
 static void tag_monitor(const Arg *);
 static void toggle_bar(const Arg *);
-static void toggle_extra_bar(const Arg *);
+static void toggle_bottom_bar(const Arg *);
 static void toggle_floating(const Arg *);
 static void toggle_fullscreen(const Arg *);
 static void toggle_scratch(const Arg *);
@@ -2855,7 +2855,7 @@ toggle_bar(const Arg *arg) {
 }
 
 void
-toggle_extra_bar(const Arg *arg) {
+toggle_bottom_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
