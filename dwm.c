@@ -1208,13 +1208,13 @@ layout_columns(Monitor *monitor) {
 
 void
 layout_gapless_grid(Monitor *monitor) {
-    uint nclients = 0;
-    uint ncolumns = 0;
-    uint nrows;
-    uint col_i;
-    uint row_i;
-    uint column_width;
-    uint i = 0;
+    int nclients = 0;
+    int ncolumns = 0;
+    int nrows;
+    int col_i;
+    int row_i;
+    int column_width;
+    int i = 0;
 
     for (Client *client = next_tiled(monitor->clients);
                  client;
@@ -1236,16 +1236,16 @@ layout_gapless_grid(Monitor *monitor) {
     nrows = nclients/ncolumns;
 
     if (ncolumns == 0)
-        column_width = (uint) monitor->win_w;
+        column_width = monitor->win_w;
     else
-        column_width = (uint) monitor->win_w / ncolumns;
+        column_width = monitor->win_w / ncolumns;
 
     col_i = 0;
     row_i = 0;
     for (Client *client = next_tiled(monitor->clients);
                  client;
                  client = next_tiled(client->next)) {
-        uint client_height;
+        int client_height;
         int new_x;
         int new_y;
         int new_w;
@@ -1254,11 +1254,11 @@ layout_gapless_grid(Monitor *monitor) {
         if ((i/nrows + 1) > (ncolumns - nclients % ncolumns))
             nrows = nclients/ncolumns + 1;
 
-        client_height = (uint) monitor->win_h / nrows;
-        new_x = (int) monitor->win_x + col_i*column_width;
-        new_y = (int) monitor->win_y + row_i*client_height;
-        new_w = (int) column_width - 2*client->border_width;
-        new_h = (int) client_height - 2*client->border_width;
+        client_height = monitor->win_h / nrows;
+        new_x = monitor->win_x + col_i*column_width;
+        new_y = monitor->win_y + row_i*client_height;
+        new_w = column_width - 2*client->border_width;
+        new_h = client_height - 2*client->border_width;
 
         resize(client,
                new_x, new_y, new_w, new_h,
@@ -1316,7 +1316,7 @@ layout_tile(Monitor *m) {
 
     if (n > m->nmaster) {
         if (m->nmaster != 0)
-            mon_w = (int) ((float)m->win_w*m->master_fact);
+            mon_w = (uint) ((float)m->win_w*m->master_fact);
         else
             mon_w = 0;
     } else {
