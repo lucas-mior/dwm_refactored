@@ -2280,6 +2280,7 @@ move_mouse(const Arg *arg) {
             Monitor *monitor = current_monitor;
             int nx;
             int ny;
+            bool is_floating = client->is_floating;
 
             if ((event.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
@@ -2298,11 +2299,12 @@ move_mouse(const Arg *arg) {
             else if (abs((monitor->win_y + monitor->win_h) - (ny + HEIGHT(client))) < SNAP_PIXELS)
                 ny = monitor->win_y + monitor->win_h - HEIGHT(client);
 
-            if (!client->is_floating && monitor->layout[monitor->lay_i]->arrange
-            && (abs(nx - client->x) > SNAP_PIXELS || abs(ny - client->y) > SNAP_PIXELS))
+            if (!is_floating && monitor->layout[monitor->lay_i]->arrange
+                && (abs(nx - client->x) > SNAP_PIXELS || abs(ny - client->y) > SNAP_PIXELS)) {
                 toggle_floating(NULL);
+            }
 
-            if (!monitor->layout[monitor->lay_i]->arrange || client->is_floating)
+            if (!monitor->layout[monitor->lay_i]->arrange || is_floating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
         }
