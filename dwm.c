@@ -1211,7 +1211,10 @@ layout_gapless_grid(Monitor *monitor) {
     uint n = 0;
     uint cols = 0;
     uint rows;
-    uint cn, rn, cw, ch;
+    uint cn;
+    uint rn;
+    uint cw;
+    uint ch;
     uint i = 0;
 
     for (Client *client = next_tiled(monitor->clients);
@@ -1398,14 +1401,14 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         uint32 d;
 
         for (i = propreturn; i < (end - 1); i += sz) {
-            uint32 m;
+            uint32 max_dim = w > h ? w : h;
             if ((w = (uint32)*i++) >= 16384 || (h = (uint32)*i++) >= 16384) {
                 XFree(propreturn);
                 return None;
             }
             if ((sz = w*h) > (end - i))
                 break;
-            if ((m = w > h ? w : h) >= ICONSIZE && (d = m - ICONSIZE) < bstd) {
+            if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
                 bstd = d;
                 bstp = i;
             }
