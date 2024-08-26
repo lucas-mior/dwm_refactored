@@ -1701,9 +1701,18 @@ handler_button_press(XEvent *event) {
         click = ClickClientWin;
     }
     for (uint i = 0; i < LENGTH(buttons); i += 1) {
-        if (click == buttons[i].click && buttons[i].func && buttons[i].button == button_event->button
-        && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state))
-            buttons[i].func(click == ClickTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+        if (click == buttons[i].click
+            && buttons[i].func
+            && (buttons[i].button == button_event->button)
+            && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state)) {
+            Arg *argument;
+
+            if (click == ClickTagBar && buttons[i].arg.i == 0)
+                argument = &arg;
+            else
+                argument = &buttons[i].arg;
+            buttons[i].func(argument);
+        }
     }
 
     return;
