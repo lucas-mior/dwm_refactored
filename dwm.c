@@ -252,6 +252,7 @@ static void set_urgent(Client *, int urgent);
 static void show_hide(Client *);
 static void signal_status_bar(const Arg *);
 static void spawn(const Arg *);
+static int status_count_pixels(char *text);
 static void tag(const Arg *);
 static void tag_monitor(const Arg *);
 static void toggle_bar(const Arg *);
@@ -290,6 +291,7 @@ static const char broken[] = "broken";
 static char status_text[256];
 static char extra_status[256];
 static int status_text_pixels;
+static int extra_status_pixels;
 static int statussig;
 static pid_t statuspid = -1;
 
@@ -3288,11 +3290,28 @@ update_size_hints(Client *client) {
     return;
 }
 
+int
+status_count_pixels(char *text) {
+    char *s;
+    char *text2;
+    int pixels = 0;
+    for (text2 = s = text; *s; s += 1) {
+        char ch;
+        if ((uchar)(*s) < ' ') {
+            ch = *s;
+            *s = '\0';
+            pixels += TEXT_PIXELS(text2) - lrpad;
+            *s = ch;
+            text2 = s + 1;
+        }
+    }
+    pixels += TEXT_PIXELS(text2) - lrpad + 2;
+    return pixels;
+}
+
 void
 update_status(void) {
     char text[768];
-    char *s;
-    char *text2;
     char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
@@ -3313,19 +3332,8 @@ update_status(void) {
     }
 
     strncpy(status_text, text, sizeof(status_text) - 1);
-    status_text_pixels = 0;
-    for (text2 = s = status_text; *s; s += 1) {
-        char ch;
-        if ((uchar)(*s) < ' ') {
-            ch = *s;
-            *s = '\0';
-            status_text_pixels += TEXT_PIXELS(text2) - lrpad;
-            *s = ch;
-            text2 = s + 1;
-        }
-    }
-    status_text_pixels += TEXT_PIXELS(text2) - lrpad + 2;
-
+    status_text_pixels = status_count_pixels(status_text);
+    extra_status_pixels = status_count_pixels(extra_status);
     draw_bar(current_monitor);
     return;
 }
