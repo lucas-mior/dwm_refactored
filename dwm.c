@@ -971,7 +971,9 @@ draw_bar(Monitor *monitor) {
                 *s = '\0';
 
                 text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
-                drw_text(drw, monitor->win_w - extra_status_pixels + x, 0, (uint) text_pixels, bar_height, 0, text, 0);
+                drw_text(drw,
+                         monitor->win_w - extra_status_pixels + x, 0,
+                         (uint) text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
 
                 *s = temp;
@@ -979,8 +981,11 @@ draw_bar(Monitor *monitor) {
             }
         }
         text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
-        drw_text(drw, monitor->win_w - extra_status_pixels + x, 0, (uint) text_pixels, bar_height, 0, text, 0);
-        drw_map(drw, monitor->extra_bar_window, 0, 0, (uint) monitor->win_w, bar_height);
+        drw_text(drw,
+                 monitor->win_w - extra_status_pixels + x, 0,
+                 (uint) text_pixels, bar_height, 0, text, 0);
+        drw_map(drw, monitor->extra_bar_window,
+                0, 0, (uint) monitor->win_w, bar_height);
     }
     return;
 }
