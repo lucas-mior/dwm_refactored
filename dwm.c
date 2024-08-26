@@ -3611,7 +3611,9 @@ xinitvisual(void) {
         .class = TrueColor
     };
 
-    visual_infos = XGetVisualInfo(display, vinfo_mask, &vinfo_template, &nitems_return);
+    visual_infos = XGetVisualInfo(display,
+                                  vinfo_mask, &vinfo_template, &nitems_return);
+
     visual = NULL;
     for (int i = 0; i < nitems_return; i += 1) {
         render_format = XRenderFindVisualFormat(display, visual_infos[i].visual);
