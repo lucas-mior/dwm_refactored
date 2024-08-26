@@ -321,7 +321,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Atom wmatom[WMLast], netatom[NetLast];
 static int restart = 0;
-static int running = 1;
+static bool running = true;
 static Cur *cursor[CursorLast];
 static Clr **scheme;
 static Display *display;
@@ -2279,7 +2279,7 @@ void
 quit_dwm(const Arg *arg) {
     if (arg->i)
         restart = 1;
-    running = 0;
+    running = false;
     return;
 }
 
