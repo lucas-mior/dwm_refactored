@@ -1474,7 +1474,7 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
                                 0L, LONG_MAX, False, AnyPropertyType,
                                 &real, &format,
                                 &nitems_return, &bytes_after_return,
-                                (uchar **)&prop_return));
+                                (uchar **)&prop_return);
     if (sucess != Success)
         return None;
 
