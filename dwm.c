@@ -1309,7 +1309,7 @@ layout_tile(Monitor *m) {
     int i = 0;
     uint mon_w = 0;
     int mon_y = 0;
-    int ty = 0;
+    int tile_y = 0;
 
     for (Client *client_aux = next_tiled(m->clients);
                  client_aux;
@@ -1341,13 +1341,13 @@ layout_tile(Monitor *m) {
             if (mon_y + HEIGHT(client) < m->win_h)
                 mon_y += HEIGHT(client);
         } else {
-            h = (m->win_h - ty) / (n - i);
+            h = (m->win_h - tile_y) / (n - i);
             resize(client,
-                   m->win_x + mon_w, m->win_y + ty,
+                   m->win_x + mon_w, m->win_y + tile_y,
                    m->win_w - mon_w - (2*client->border_width),
                    h - (2*client->border_width), 0);
-            if (ty + HEIGHT(client) < m->win_h)
-                ty += HEIGHT(client);
+            if (tile_y + HEIGHT(client) < m->win_h)
+                tile_y += HEIGHT(client);
         }
         i += 1;
     }
@@ -1405,6 +1405,7 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
     ulong extra;
     ulong *prop_return = NULL;
     ulong *pixel_find = NULL;
+    uint32 *pixel_find32;
     uint32 width_find;
     uint32 height_find;
     uint32 icon_width;
@@ -1493,7 +1494,7 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
     *picture_width = icon_width;
     *picture_height = icon_height;
 
-    uint32 *pixel_find32 = (uint32 *)pixel_find;
+    pixel_find32 = (uint32 *)pixel_find;
     for (uint32 i = 0; i < width_find*height_find; i += 1) {
         uint32 pixel = (uint32) pixel_find[i];
         uint8 a = pixel >> 24u;
