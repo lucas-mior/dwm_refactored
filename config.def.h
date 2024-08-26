@@ -9,10 +9,10 @@ static const unsigned int key_semicolon = 47;
 static const unsigned int key_l = 46;
 static const unsigned int key_k = 45;
 static const unsigned int superKey = 133;
-static const int snap_pixels      = 32;       /* snap_pixels pixel */
-static const int show_top_bar            = 1;        /* 0 means no standard bar */
-static const int show_bottom_bar           = 1;        /* 0 means no extra bar */
-static const char status_separator  = -1;      /* separator between statuses */
+static const int snap_pixels       = 32;
+static const bool show_top_bar      = 1;   /* 0 means no top bar */
+static const bool show_bottom_bar   = 1;   /* 0 means no bottom bar */
+static const char status_separator = -1;  /* separator between statuses */
 #define ICONSIZE 18   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {

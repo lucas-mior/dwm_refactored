@@ -151,8 +151,8 @@ struct Monitor {
     int win_x, win_y, win_w, win_h;  /* window area */
     uint selected_tags;
     uint tagset[2];
-    int show_top_bar;
-    int show_bottom_bar;
+    bool show_top_bar;
+    bool show_bottom_bar;
     Client *clients;
     Client *selected_client;
     Client *stack;
@@ -351,7 +351,7 @@ struct Pertag {
     const Layout *layout_tags_indexes[LENGTH(tags) + 1][2];
 
     /* display bar for the current tag */
-    int top_bars[LENGTH(tags) + 1];
+    bool top_bars[LENGTH(tags) + 1];
 };
 
 static int tag_width[LENGTH(tags)];
