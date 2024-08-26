@@ -1709,7 +1709,7 @@ handler_button_press(XEvent *event) {
             click = ClickWinTitle;
         }
     } else if (button_event->window == current_monitor->extra_bar_window) {
-        int x = current_monitor->win_w - status_text_pixels;
+        int x = current_monitor->win_w - extra_status_pixels;
         char *s = &extra_status[0];
 
         click = ClickExtraBar;
