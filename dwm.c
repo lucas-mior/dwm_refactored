@@ -57,7 +57,7 @@ typedef unsigned char uchar;
 /* macros */
 #define BUTTONMASK (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         \
-    (mask & ~(numlockmask|LockMask) \
+    (mask & ~(numlock_mask|LockMask) \
     & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->selected_tags]))
 #define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
@@ -303,7 +303,7 @@ static int screen_height;
 static uint bar_height;  /* bar height */
 static uint lrpad;      /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
-static uint numlockmask = 0;
+static uint numlock_mask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
     [ButtonPress] = handler_button_press,
     [ClientMessage] = handler_client_message,
@@ -1638,7 +1638,7 @@ end:
 
 void
 grab_buttons(Client *client, int focused) {
-    uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
+    uint modifiers[] = { 0, LockMask, numlock_mask, numlock_mask|LockMask };
 
     update_numlock_mask();
     XUngrabButton(display, AnyButton, AnyModifier, client->window);
@@ -1661,7 +1661,7 @@ grab_buttons(Client *client, int focused) {
 
 void
 grab_keys(void) {
-    uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
+    uint modifiers[] = { 0, LockMask, numlock_mask, numlock_mask|LockMask };
     int start, end, skip;
     KeySym *key_sym;
 
@@ -3295,13 +3295,13 @@ void
 update_numlock_mask(void) {
     XModifierKeymap *modmap;
 
-    numlockmask = 0;
+    numlock_mask = 0;
     modmap = XGetModifierMapping(display);
     for (int i = 0; i < 8; i += 1) {
         for (int j = 0; j < modmap->max_keypermod; j += 1) {
             if (modmap->modifiermap[i*modmap->max_keypermod + j]
                 == XKeysymToKeycode(display, XK_Num_Lock))
-                numlockmask = (1 << i);
+                numlock_mask = (1 << i);
         }
     }
     XFreeModifiermap(modmap);
