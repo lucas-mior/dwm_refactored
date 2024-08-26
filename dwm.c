@@ -2845,8 +2845,11 @@ show_hide(Client *client) {
 
     if (ISVISIBLE(client)) {
         if ((client->tags & SPTAGMASK) && client->is_floating) {
-            client->x = client->monitor->win_x + (client->monitor->win_w / 2 - WIDTH(client) / 2);
-            client->y = client->monitor->win_y + (client->monitor->win_h / 2 - HEIGHT(client) / 2);
+            client->x = client->monitor->win_x;
+            client->x += (client->monitor->win_w / 2 - WIDTH(client) / 2);
+
+            client->y = client->monitor->win_y;
+            client->y += (client->monitor->win_h / 2 - HEIGHT(client) / 2);
         }
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
@@ -2924,11 +2927,15 @@ toggle_top_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
-    monitor->show_top_bar = monitor->pertag->top_bars[monitor->pertag->current_tag] = !monitor->show_top_bar;
+    monitor->show_top_bar
+        = monitor->pertag->top_bars[monitor->pertag->current_tag]
+        = !monitor->show_top_bar;
+
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->top_bar_window,
                       monitor->win_x, monitor->top_bar_y,
                       (uint) monitor->win_w, bar_height);
+
     arrange(monitor);
     return;
 }
@@ -2983,8 +2990,10 @@ toggle_floating(const Arg *arg) {
 void
 toggle_fullscreen(const Arg *arg) {
     (void) arg;
-    if (current_monitor->selected_client)
-        set_fullscreen(current_monitor->selected_client, !current_monitor->selected_client->is_fullscreen);
+    if (current_monitor->selected_client) {
+        set_fullscreen(current_monitor->selected_client,
+                       !current_monitor->selected_client->is_fullscreen);
+    }
     return;
 }
 
