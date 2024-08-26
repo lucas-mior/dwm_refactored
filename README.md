@@ -1,4 +1,5 @@
-# dwm fork
+# dwm refactored
+dwm source code made readable and maintainable
 
 ## Changes
 - alt tab functionallity
