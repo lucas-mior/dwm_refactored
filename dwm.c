@@ -2334,11 +2334,13 @@ mouse_move(const Arg *arg) {
 
 void
 mouse_resize(const Arg *arg) {
-    int ocx, ocy;
     Client *client;
     Monitor *monitor;
     XEvent event;
     Time last_time = 0;
+    int ocx;
+    int ocy;
+
     (void) arg;
 
     if (!(client = current_monitor->selected_client))
