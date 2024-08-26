@@ -1452,7 +1452,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         bstp32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
     }
 
-    Picture ret = drw_picture_create_resized(drw, (char *)bstp, w, h, icon_width, icon_height);
+    Picture ret = drw_picture_create_resized(drw, (char *)bstp,
+                                             w, h, icon_width, icon_height);
     XFree(propreturn);
 
     return ret;
@@ -2716,7 +2717,9 @@ toggle_bar(const Arg *arg) {
 
     monitor->showbar = monitor->pertag->showbars[monitor->pertag->current_tag] = !monitor->showbar;
     update_bar_position(monitor);
-    XMoveResizeWindow(display, monitor->bar_window, monitor->win_x, monitor->bar_y, monitor->win_w, bar_height);
+    XMoveResizeWindow(display, monitor->bar_window,
+                      monitor->win_x, monitor->bar_y,
+                      monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -2729,7 +2732,8 @@ toggle_extra_bar(const Arg *arg) {
     monitor->extrabar = !monitor->extrabar;
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->extra_bar_window,
-                      monitor->win_x, monitor->extra_bar_y, monitor->win_w, bar_height);
+                      monitor->win_x, monitor->extra_bar_y,
+                      monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -2851,10 +2855,9 @@ void
 toggle_view(const Arg *arg) {
     Monitor *monitor = current_monitor;
     uint new_tagset = monitor->tagset[monitor->seltags] ^ (arg->ui & TAGMASK);
-    int i;
 
     if (new_tagset) {
-        int current_tag;
+        uint current_tag;
         monitor->tagset[monitor->seltags] = new_tagset;
 
         if (new_tagset == (uint) ~0) {
@@ -2864,8 +2867,10 @@ toggle_view(const Arg *arg) {
 
         /* test if the user did not select the same tag */
         if (!(new_tagset & 1 << (monitor->pertag->current_tag - 1))) {
+            uint i = 0;
             monitor->pertag->previous_tag = monitor->pertag->current_tag;
-            for (i = 0; !(new_tagset & 1 << i); i++);
+            while (!(new_tagset & 1 << i))
+                i += 1;
             monitor->pertag->current_tag = i + 1;
         }
 
