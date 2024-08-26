@@ -2387,7 +2387,8 @@ resize_client(Client *client, int x, int y, int w, int h) {
         }
     }
 
-    XConfigureWindow(display, client->window, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &window_changes);
+    XConfigureWindow(display, client->window,
+                     CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &window_changes);
     configure(client);
     XSync(display, False);
     return;
@@ -2826,7 +2827,12 @@ set_urgent(Client *client, int urgent) {
     client->is_urgent = urgent;
     if (!(wm_hints = XGetWMHints(display, client->window)))
         return;
-    wm_hints->flags = urgent ? (wm_hints->flags | XUrgencyHint) : (wm_hints->flags & ~XUrgencyHint);
+
+    if (urgent)
+        wm_hints->flags = wm_hints->flags | XUrgencyHint;
+    else
+        wm_hints->flags = wm_hints->flags & ~XUrgencyHint;
+
     XSetWMHints(display, client->window, wm_hints);
     XFree(wm_hints);
     return;
