@@ -62,8 +62,8 @@ typedef unsigned char uchar;
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->selected_tags]))
 #define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
-#define WIDTH(X)  ((X)->w + 2*(X)->border_width)
-#define HEIGHT(X) ((X)->h + 2*(X)->border_width)
+#define WIDTH(X)  ((X)->w + 2*(X)->border_pixels)
+#define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
 #define NUMTAGS   (LENGTH(tags) + LENGTH(scratchpads))
 #define TAGMASK   ((1 << NUMTAGS) - 1)
 #define SPTAG(i)  (uint) ((1 << LENGTH(tags)) << (i))
@@ -110,8 +110,8 @@ struct Client {
     int base_w, base_h;
     int incw, inch;
     int maxw, maxh, minw, minh, hintsvalid;
-    int border_width;
-    int old_border_width;
+    int border_pixels;
+    int old_border_pixels;
     uint tags;
 
     bool is_fixed, is_floating, is_urgent;
@@ -513,18 +513,18 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
             *x = screen_width - WIDTH(client);
         if (*y > screen_height)
             *y = screen_height - HEIGHT(client);
-        if (*x + *w + 2*client->border_width < 0)
+        if (*x + *w + 2*client->border_pixels < 0)
             *x = 0;
-        if (*y + *h + 2*client->border_width < 0)
+        if (*y + *h + 2*client->border_pixels < 0)
             *y = 0;
     } else {
         if (*x >= monitor->win_x + monitor->win_w)
             *x = monitor->win_x + monitor->win_w - WIDTH(client);
         if (*y >= monitor->win_y + monitor->win_h)
             *y = monitor->win_y + monitor->win_h - HEIGHT(client);
-        if (*x + *w + 2*client->border_width <= monitor->win_x)
+        if (*x + *w + 2*client->border_pixels <= monitor->win_x)
             *x = monitor->win_x;
-        if (*y + *h + 2*client->border_width <= monitor->win_y)
+        if (*y + *h + 2*client->border_pixels <= monitor->win_y)
             *y = monitor->win_y;
     }
 
@@ -712,7 +712,7 @@ configure(Client *client) {
     conf_event.y = client->y;
     conf_event.width = client->w;
     conf_event.height = client->h;
-    conf_event.border_width = client->border_width;
+    conf_event.border_width = client->border_pixels;
     conf_event.above = None;
     conf_event.override_redirect = False;
     XSendEvent(display, client->window,
@@ -1253,15 +1253,15 @@ layout_columns(Monitor *monitor) {
             w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
             resize(client,
                    x + monitor->win_x, monitor->win_y,
-                   w - (2*client->border_width),
-                   monitor->win_h - (2*client->border_width), 0);
+                   w - (2*client->border_pixels),
+                   monitor->win_h - (2*client->border_pixels), 0);
             x += WIDTH(client);
         } else {
             h = (monitor->win_h - y) / (n - i);
             resize(client,
                    x + monitor->win_x, monitor->win_y + y,
-                   monitor->win_w - x - (2*client->border_width),
-                   h - (2*client->border_width), 0);
+                   monitor->win_w - x - (2*client->border_pixels),
+                   h - (2*client->border_pixels), 0);
             y += HEIGHT(client);
         }
         i += 1;
@@ -1321,8 +1321,8 @@ layout_gapless_grid(Monitor *monitor) {
 
         new_x = monitor->win_x + col_i*column_width;
         new_y = monitor->win_y + row_i*client_height;
-        new_w = column_width - 2*client->border_width;
-        new_h = client_height - 2*client->border_width;
+        new_w = column_width - 2*client->border_pixels;
+        new_h = client_height - 2*client->border_pixels;
         resize(client, new_x, new_y, new_w, new_h, False);
 
         row_i += 1;
@@ -1352,8 +1352,8 @@ layout_monocle(Monitor *monitor) {
                  client = next_tiled(client->next)) {
         int new_x = monitor->win_x;
         int new_y = monitor->win_y;
-        int new_w = monitor->win_w - 2*client->border_width;
-        int new_h = monitor->win_h - 2*client->border_width;
+        int new_w = monitor->win_w - 2*client->border_pixels;
+        int new_h = monitor->win_h - 2*client->border_pixels;
         resize(client, new_x, new_y, new_w, new_h, 0);
     }
     return;
@@ -1392,16 +1392,16 @@ layout_tile(Monitor *m) {
             h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
             resize(client,
                    m->win_x, m->win_y + mon_y,
-                   mon_w - (2*client->border_width),
-                   h - (2*client->border_width), 0);
+                   mon_w - (2*client->border_pixels),
+                   h - (2*client->border_pixels), 0);
             if (mon_y + HEIGHT(client) < m->win_h)
                 mon_y += HEIGHT(client);
         } else {
             h = (m->win_h - tile_y) / (n - i);
             resize(client,
                    m->win_x + mon_w, m->win_y + tile_y,
-                   m->win_w - mon_w - (2*client->border_width),
-                   h - (2*client->border_width), 0);
+                   m->win_w - mon_w - (2*client->border_pixels),
+                   h - (2*client->border_pixels), 0);
             if (tile_y + HEIGHT(client) < m->win_h)
                 tile_y += HEIGHT(client);
         }
@@ -1812,7 +1812,7 @@ handler_configure_request(XEvent *event) {
 
     if ((client = window_to_client(conf_request_event->window))) {
         if (conf_request_event->value_mask & CWBorderWidth) {
-            client->border_width = conf_request_event->border_width;
+            client->border_pixels = conf_request_event->border_width;
             XSync(display, False);
             return;
         }
@@ -2136,7 +2136,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
     client->y = client->old_y = window_attributes->y;
     client->w = client->old_w = window_attributes->width;
     client->h = client->old_h = window_attributes->height;
-    client->old_border_width = window_attributes->border_width;
+    client->old_border_pixels = window_attributes->border_width;
 
     update_icon(client);
     update_title(client);
@@ -2154,12 +2154,12 @@ manage(Window window, XWindowAttributes *window_attributes) {
         client->y = client->monitor->win_y + client->monitor->win_h - HEIGHT(client);
     client->x = MAX(client->x, client->monitor->win_x);
     client->y = MAX(client->y, client->monitor->win_y);
-    client->border_width = border_pixels;
+    client->border_pixels = border_pixels;
 
-    window_changes.border_width = client->border_width;
+    window_changes.border_width = client->border_pixels;
     XConfigureWindow(display, window, CWBorderWidth, &window_changes);
     XSetWindowBorder(display, window, scheme[SchemeNormal][ColBorder].pixel);
-    configure(client); /* propagates border_width, if size doesn't change */
+    configure(client); /* propagates border_pixels, if size doesn't change */
     update_window_type(client);
     update_size_hints(client);
     update_wm_hints(client);
@@ -2367,7 +2367,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
     client->old_y = client->y; client->y = window_changes.y = y;
     client->old_w = client->w; client->w = window_changes.width = w;
     client->old_h = client->h; client->h = window_changes.height = h;
-    window_changes.border_width = client->border_width;
+    window_changes.border_width = client->border_pixels;
 
     for (Client *client_aux = next_tiled(current_monitor->clients);
                  client_aux;
@@ -2378,8 +2378,8 @@ resize_client(Client *client, int x, int y, int w, int h) {
     if (!(client->is_floating) && current_monitor->layout[current_monitor->lay_i]->arrange) {
         if (current_monitor->layout[current_monitor->lay_i]->arrange == layout_monocle || n == 1) {
             window_changes.border_width = 0;
-            client->w = window_changes.width += client->border_width*2;
-            client->h = window_changes.height += client->border_width*2;
+            client->w = window_changes.width += client->border_pixels*2;
+            client->h = window_changes.height += client->border_pixels*2;
         }
     }
 
@@ -2417,8 +2417,8 @@ resize_mouse(const Arg *arg) {
 
     XWarpPointer(display, None, client->window,
                  0, 0, 0, 0,
-                 client->w + client->border_width - 1,
-                 client->h + client->border_width - 1);
+                 client->w + client->border_pixels - 1,
+                 client->h + client->border_pixels - 1);
     do {
         int nw;
         int nh;
@@ -2435,8 +2435,8 @@ resize_mouse(const Arg *arg) {
                 continue;
             lasttime = ev.xmotion.time;
 
-            nw = MAX(ev.xmotion.x - ocx - 2*client->border_width + 1, 1);
-            nh = MAX(ev.xmotion.y - ocy - 2*client->border_width + 1, 1);
+            nw = MAX(ev.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
+            nh = MAX(ev.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
 
             if (client->monitor->win_x + nw >= current_monitor->win_x
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
@@ -2456,8 +2456,8 @@ resize_mouse(const Arg *arg) {
 
     XWarpPointer(display, None, client->window,
                  0, 0, 0, 0,
-                 client->w + client->border_width - 1,
-                 client->h + client->border_width - 1);
+                 client->w + client->border_pixels - 1,
+                 client->h + client->border_pixels - 1);
     XUngrabPointer(display, CurrentTime);
     while (XCheckMaskEvent(display, EnterWindowMask, &ev));
 
@@ -2630,8 +2630,8 @@ set_fullscreen(Client *client, int fullscreen) {
             return;
         }
         client->old_state = client->is_floating;
-        client->old_border_width = client->border_width;
-        client->border_width = 0;
+        client->old_border_pixels = client->border_pixels;
+        client->border_pixels = 0;
         client->is_floating = 1;
 
         resize_client(client,
@@ -2647,7 +2647,7 @@ set_fullscreen(Client *client, int fullscreen) {
             return;
         }
         client->is_floating = client->old_state;
-        client->border_width = client->old_border_width;
+        client->border_pixels = client->old_border_pixels;
         client->x = client->old_x;
         client->y = client->old_y;
         client->w = client->old_w;
@@ -3124,7 +3124,7 @@ unmanage(Client *client, int destroyed) {
     free_icon(client);
 
     if (!destroyed) {
-        window_changes.border_width = client->old_border_width;
+        window_changes.border_width = client->old_border_pixels;
         XGrabServer(display); /* avoid race conditions */
         XSetErrorHandler(xerrordummy);
 
