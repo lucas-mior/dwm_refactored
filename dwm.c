@@ -1707,14 +1707,16 @@ handler_button_press(XEvent *event) {
         statussig = 0;
         for (char *text = s; *s && x <= button_event->x; s += 1) {
             if ((uchar)(*s) < ' ') {
-                char ch = *s;
+                char byte = *s;
                 *s = '\0';
+
                 x += TEXT_PIXELS(text) - lrpad;
-                *s = ch;
+
+                *s = byte;
                 text = s + 1;
                 if (x >= button_event->x)
                     break;
-                statussig = ch;
+                statussig = byte;
             }
         }
     } else if ((client = window_to_client(button_event->window))) {
