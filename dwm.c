@@ -2955,11 +2955,13 @@ update_bars(void) {
     XClassHint ch = {"dwm", "dwm"};
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Window win;
-        ulong value_mask = CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask;
+        ulong value_mask = CWOverrideRedirect
+                           | CWBackPixel | CWBorderPixel
+                           | CWColormap |CWEventMask;
         if (!monitor->bar_window) {
             win = XCreateWindow(display, root,
                                 monitor->win_x, monitor->bar_y,
-                                monitor->win_w, bar_height,
+                                (uint) monitor->win_w, (uint) bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
             monitor->bar_window = win;
@@ -2970,7 +2972,7 @@ update_bars(void) {
         if (!monitor->extra_bar_window) {
             win = XCreateWindow(display, root,
                                 monitor->win_x, monitor->extra_bar_y,
-                                monitor->win_w, bar_height,
+                                (uint) monitor->win_w, (uint) bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
             monitor->extra_bar_window = win;
@@ -3022,13 +3024,19 @@ update_geometry(void) {
 
 #ifdef XINERAMA
     if (XineramaIsActive(display)) {
-        int i, j, n, nn;
+        int i;
+        int j;
+        int n = 0;
+        int nn;
         Client *client;
         Monitor *monitor;
         XineramaScreenInfo *info = XineramaQueryScreens(display, &nn);
         XineramaScreenInfo *unique = NULL;
 
-        for (n = 0, monitor = monitors; monitor; monitor = monitor->next, n++);
+        for (monitor = monitors; monitor; monitor = monitor->next) {
+            n += 1;
+        }
+
         /* only consider unique geometries as separate screens */
         unique = ecalloc(nn, sizeof(*unique));
         for (i = 0, j = 0; i < nn; i++)
