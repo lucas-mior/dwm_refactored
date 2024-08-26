@@ -848,7 +848,7 @@ draw_bar(Monitor *monitor) {
     /* draw status first so it can be overdrawn by tags later */
     if (monitor == current_monitor) { /* status is only drawn on selected monitor */
         char *text;
-        char *s
+        char *s;
         char temp;
         drw_setscheme(drw, scheme[SchemeNormal]);
 
