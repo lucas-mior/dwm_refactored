@@ -1695,7 +1695,9 @@ handler_button_press(XEvent *event) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
+
                     x += TEXT_PIXELS(text) - lrpad;
+
                     *s = ch;
                     text = s + 1;
                     if ((int) x >= button_event->x)
@@ -1707,14 +1709,13 @@ handler_button_press(XEvent *event) {
             click = ClickWinTitle;
         }
     } else if (button_event->window == current_monitor->extra_bar_window) {
-        int x = 0;
+        int x = current_monitor->win_w - status_text_pixels;
         char *s = &extra_status[0];
 
         click = ClickExtraBar;
-        x = (uint) (current_monitor->win_w - status_text_pixels);
         statussig = 0;
 
-        for (char *text = s ; *s && (int) x <= button_event->x; s += 1) {
+        for (char *text = s; *s && x <= button_event->x; s += 1) {
             if ((uchar)(*s) < ' ') {
                 char ch = *s;
                 *s = '\0';
@@ -1723,7 +1724,7 @@ handler_button_press(XEvent *event) {
 
                 *s = ch;
                 text = s + 1;
-                if ((int) x >= button_event->x)
+                if (x >= button_event->x)
                     break;
                 statussig = ch;
             }
