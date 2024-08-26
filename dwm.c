@@ -339,11 +339,15 @@ static Colormap cmap;
 
 struct Pertag {
     uint current_tag, previous_tag;
-    int nmasters[LENGTH(tags) + 1]; /* number of windows in master area */
-    float master_facts[LENGTH(tags) + 1]; /* master_facts per tag */
-    uint selected_layouts[LENGTH(tags) + 1]; /* selected layouts */
-    const Layout *layout_tags_indexes[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes */
-    int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
+    int nmasters[LENGTH(tags) + 1];
+    float master_facts[LENGTH(tags) + 1];
+    uint selected_layouts[LENGTH(tags) + 1];
+
+    /* matrix of tags and layouts indexes */
+    const Layout *layout_tags_indexes[LENGTH(tags) + 1][2];
+
+    /* display bar for the current tag */
+    int showbars[LENGTH(tags) + 1];
 };
 
 static int tag_width[LENGTH(tags)];
@@ -453,28 +457,29 @@ apply_rules(Client *client) {
     instance = class_hint.res_name  ? class_hint.res_name  : broken;
 
     for (int i = 0; i < LENGTH(rules); i += 1) {
-        const Rule *r = &rules[i];
+        const Rule *rule = &rules[i];
         Monitor *monitor;
 
-        if ((!r->title || strstr(client->name, r->title))
-            && (!r->class || strstr(class, r->class))
-            && (!r->instance || strstr(instance, r->instance))) {
-            client->isfloating = r->isfloating;
-            client->isfakefullscreen = r->isfakefullscreen;
-            client->tags |= r->tags;
-            if ((r->tags & SPTAGMASK) && r->isfloating) {
-                client->x = client->monitor->win_x + (client->monitor->win_w / 2 - WIDTH(client) / 2);
-                client->y = client->monitor->win_y + (client->monitor->win_h / 2 - HEIGHT(client) / 2);
+        if ((!rule->title || strstr(client->name, rule->title))
+            && (!rule->class || strstr(class, rule->class))
+            && (!rule->instance || strstr(instance, rule->instance))) {
+            client->isfloating = rule->isfloating;
+            client->isfakefullscreen = rule->isfakefullscreen;
+            client->tags |= rule->tags;
+            if ((rule->tags & SPTAGMASK) && rule->isfloating) {
+                Monitor *monitor = client->monitor;
+                client->x = monitor->win_x + monitor->win_w / 2 - WIDTH(client) / 2;
+                client->y = monitor->win_y + monitor->win_h / 2 - HEIGHT(client) / 2;
             }
 
             for (monitor = monitors;
-                 monitor && monitor->num != r->monitor;
+                 monitor && monitor->num != rule->monitor;
                  monitor = monitor->next);
             if (monitor)
                 client->monitor = monitor;
 
-            if (r->switchtotag) {
-                Arg a = { .ui = r->tags };
+            if (rule->switchtotag) {
+                Arg a = { .ui = rule->tags };
                 view(&a);
             }
         }
