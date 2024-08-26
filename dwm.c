@@ -1631,7 +1631,7 @@ handler_button_press(XEvent *event) {
         uint x = 0;
 
         do {
-            x += tag_width[i];
+            x += (uint) tag_width[i];
         } while ((uint) button_event->x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
@@ -2103,7 +2103,8 @@ manage(Window window, XWindowAttributes *window_attributes) {
 
     /* some windows require this */
     XMoveResizeWindow(display, client->window,
-                      client->x + 2*screen_width, client->y, client->w, client->h);
+                      client->x + 2*screen_width, client->y,
+                      (uint) client->w, (uint) client->h);
     set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
         unfocus(current_monitor->selected_client, 0);
@@ -2772,7 +2773,7 @@ toggle_bar(const Arg *arg) {
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->bar_window,
                       monitor->win_x, monitor->bar_y,
-                      monitor->win_w, bar_height);
+                      (uint) monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -2786,7 +2787,7 @@ toggle_extra_bar(const Arg *arg) {
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->extra_bar_window,
                       monitor->win_x, monitor->extra_bar_y,
-                      monitor->win_w, bar_height);
+                      (uint) monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -3041,6 +3042,7 @@ void
 update_bar_position(Monitor *monitor) {
     monitor->win_y = monitor->mon_y;
     monitor->win_h = monitor->mon_h;
+
     if (monitor->showbar) {
         monitor->win_h -= bar_height;
         monitor->bar_y = monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
@@ -3048,12 +3050,14 @@ update_bar_position(Monitor *monitor) {
     } else {
         monitor->bar_y = - (int) bar_height;
     }
+
     if (monitor->extrabar) {
         monitor->win_h -= bar_height;
         monitor->extra_bar_y = !monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
         monitor->win_y = !monitor->topbar ? monitor->win_y + bar_height : monitor->win_y;
-    } else
+    } else {
         monitor->extra_bar_y = -bar_height;
+    }
     return;
 }
 
@@ -3121,7 +3125,10 @@ update_geometry(void) {
             }
         /* removed monitors if n > nn */
         for (i = nn; i < n; i += 1) {
-            for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
+            for (monitor = monitors;
+                 monitor && monitor->next;
+                 monitor = monitor->next);
+
             while ((client = monitor->clients)) {
                 dirty = 1;
                 monitor->clients = client->next;
@@ -3131,6 +3138,7 @@ update_geometry(void) {
                 attach(client);
                 attach_stack(client);
             }
+
             if (monitor == current_monitor)
                 current_monitor = monitors;
             cleanup_monitor(monitor);
