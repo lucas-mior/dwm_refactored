@@ -2371,10 +2371,10 @@ mouse_resize(const Arg *arg) {
             handler[event.type](&event);
             break;
         case MotionNotify: {
-            bool over_x = client->monitor->win_x + nw >= current_monitor->win_x;
-            bool under_x = client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w;
-            bool over_y = client->monitor->win_y + nh >= current_monitor->win_y;
-            bool under_y = client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h);
+            bool over_x;
+            bool under_x;
+            bool over_y;
+            bool under_y;
             int nw;
             int nh;
             event.xmotion.x += (-client->x - 2*client->border_pixels + 1);
@@ -2382,6 +2382,10 @@ mouse_resize(const Arg *arg) {
 
             nw = MAX(event.xmotion.x, 1);
             nh = MAX(event.xmotion.y, 1);
+            over_x = client->monitor->win_x + nw >= current_monitor->win_x;
+            under_x =  client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w;
+            over_y = client->monitor->win_y + nh >= current_monitor->win_y;
+            under_y =  client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h;
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
                 continue;
