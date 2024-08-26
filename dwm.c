@@ -1401,13 +1401,15 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         uint32 d;
 
         for (i = propreturn; i < (end - 1); i += sz) {
-            uint32 max_dim = w > h ? w : h;
+            uint32 max_dim;
             if ((w = (uint32)*i++) >= 16384 || (h = (uint32)*i++) >= 16384) {
                 XFree(propreturn);
                 return None;
             }
             if ((sz = w*h) > (end - i))
                 break;
+
+            max_dim = w > h ? w : h;
             if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
                 bstd = d;
                 bstp = i;
@@ -1433,7 +1435,9 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         }
     }
 
-    if ((w = *(bstp - 2)) == 0 || (h = *(bstp - 1)) == 0) {
+    w = *(bstp - 2));
+    h = *(bstp - 1);
+    if ((w == 0) || (h == 0) {
         XFree(propreturn);
         return None;
     }
