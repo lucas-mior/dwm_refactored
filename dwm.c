@@ -819,17 +819,21 @@ detach_stack(Client *client) {
 
 Monitor *
 direction_to_monitor(int dir) {
-    Monitor *m = NULL;
+    Monitor *monitor = NULL;
 
     if (dir > 0) {
-        if (!(m = current_monitor->next))
-            m = monitors;
+        if (!(monitor = current_monitor->next))
+            monitor = monitors;
     } else if (current_monitor == monitors) {
-        for (m = monitors; m->next; m = m->next);
+        for (monitor = monitors;
+             monitor->next;
+             monitor = monitor->next);
     } else {
-        for (m = monitors; m->next != current_monitor; m = m->next);
+        for (monitor = monitors;
+             monitor->next != current_monitor;
+             monitor = monitor->next);
     }
-    return m;
+    return monitor;
 }
 
 void
