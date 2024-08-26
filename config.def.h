@@ -115,7 +115,7 @@ static const Key keys[] = {
 	{ MODKEY,                    XK_semicolon, set_master_fact,    {.f = +0.05f} },
 	{ MODKEY|ControlMask,           XK_j,      aspect_resize,      {.i = -25} },
 	{ MODKEY|ControlMask,        XK_semicolon, aspect_resize,      {.i = +25} },
-	{ MODKEY|ShiftMask,             XK_Return, zoom,               {0} },
+	{ MODKEY|ShiftMask,             XK_Return, promote_to_master,               {0} },
 	{ MODKEY,                       XK_Tab,    view_tag,               {0} },
 	{ MODKEY,                       XK_q,      kill_client,        {0} },
 	{ MODKEY,                       XK_t,      set_layout,         {.v = &layouts[0]} },
@@ -151,7 +151,7 @@ static const Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClickLayoutSymbol,          0,              Button1,        set_layout,      {0} },
 	{ ClickLayoutSymbol,          0,              Button3,        set_layout,      {.v = &layouts[2]} },
-	{ ClickWinTitle,          0,              Button2,        zoom,           {0} },
+	{ ClickWinTitle,          0,              Button2,        promote_to_master,           {0} },
 	{ ClickClientWin,         MODKEY,         Button1,        move_mouse,      {0} },
 	{ ClickClientWin,         MODKEY,         Button2,        toggle_floating, {0} },
 	{ ClickClientWin,         MODKEY,         Button3,        resize_mouse,    {0} },

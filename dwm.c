@@ -283,7 +283,7 @@ static int xerror(Display *, XErrorEvent *ee);
 static int xerrordummy(Display *, XErrorEvent *ee);
 static int xerrorstart(Display *, XErrorEvent *ee);
 static void xinitvisual(void);
-static void zoom(const Arg *);
+static void promote_to_master(const Arg *);
 
 /* variables */
 static const char broken[] = "broken";
@@ -3638,7 +3638,7 @@ xinitvisual(void) {
 }
 
 void
-zoom(const Arg *arg) {
+promote_to_master(const Arg *arg) {
     Client *client = current_monitor->selected_client;
     Monitor *monitor = current_monitor;
     (void) arg;
