@@ -1317,14 +1317,12 @@ layout_gapless_grid(Monitor *monitor) {
             nrows = nclients/ncolumns + 1;
 
         client_height = monitor->win_h / nrows;
+
         new_x = monitor->win_x + col_i*column_width;
         new_y = monitor->win_y + row_i*client_height;
         new_w = column_width - 2*client->border_width;
         new_h = client_height - 2*client->border_width;
-
-        resize(client,
-               new_x, new_y, new_w, new_h,
-               False);
+        resize(client, new_x, new_y, new_w, new_h, False);
 
         row_i += 1;
         if (row_i >= nrows) {
