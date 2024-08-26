@@ -2093,20 +2093,21 @@ manage(Window window, XWindowAttributes *window_attributes) {
     update_wm_hints(client);
     {
         int format;
-        ulong *data, n, extra;
-        Monitor *m;
+        ulong *data, nitems_return, extra;
         Atom atom;
-        if (XGetWindowProperty(display, client->window, netatom[NetClientInfo], 0L, 2L, False, XA_CARDINAL,
-                &atom, &format, &n, &extra, (uchar **)&data) == Success && n == 2) {
+        if (XGetWindowProperty(display, client->window, netatom[NetClientInfo],
+                               0L, 2L, False, XA_CARDINAL,
+                               &atom, &format, &nitems_return,
+                               &extra, (uchar **)&data) == Success && nitems_return == 2) {
             client->tags = (uint) *data;
-            for (m = monitors; m; m = m->next) {
+            for (Monitor *m = monitors; m; m = m->next) {
                 if (m->num == (int) *(data+1)) {
                     client->monitor = m;
                     break;
                 }
             }
         }
-        if (n > 0)
+        if (nitems_return > 0)
             XFree(data);
     }
     set_client_tag_(client);
