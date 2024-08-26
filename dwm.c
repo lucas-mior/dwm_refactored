@@ -2304,8 +2304,8 @@ move_mouse(const Arg *arg) {
             else if (over_y[1] < SNAP_PIXELS)
                 ny = monitor->win_y + monitor->win_h - HEIGHT(client);
 
-            if (!is_floating && monitor->layout[monitor->lay_i]->arrange
-                && (abs(nx - client->x) > SNAP_PIXELS || abs(ny - client->y) > SNAP_PIXELS)) {
+            if (!is_floating && monitor->layout[monitor->lay_i]->arrange) {
+                if (abs(nx - client->x) > SNAP_PIXELS || abs(ny - client->y) > SNAP_PIXELS) {
                 toggle_floating(NULL);
             }
 
