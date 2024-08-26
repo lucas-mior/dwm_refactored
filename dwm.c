@@ -247,7 +247,7 @@ static void set_focus(Client *);
 static void set_fullscreen(Client *, int fullscreen);
 static void set_layout(const Arg *);
 static void set_master_fact(const Arg *);
-static void setup(void);
+static void setup_once(void);
 static void set_urgent(Client *, int urgent);
 static void show_hide(Client *);
 static void signal_status_bar(const Arg *);
@@ -935,7 +935,9 @@ draw_bar(Monitor *monitor) {
 
         if (monitor->selected_client) {
             drw_setscheme(drw, scheme[monitor == current_monitor ? SchemeSelected : SchemeNormal]);
-            drw_text(drw, x, 0, (uint) w, bar_height, lrpad / 2, monitor->selected_client->name, 0);
+            drw_text(drw,
+                     x, 0, (uint) w, bar_height,
+                     lrpad / 2, monitor->selected_client->name, 0);
             if (monitor->selected_client->isfloating)
                 drw_rect(drw, x + boxs, boxs,
                          (uint) boxw, (uint) boxw,
@@ -2573,7 +2575,7 @@ set_master_fact(const Arg *arg) {
 }
 
 void
-setup(void) {
+setup_once(void) {
     XSetWindowAttributes window_attributes;
     Atom utf8string;
     struct sigaction sa;
@@ -3541,13 +3543,17 @@ main(int argc, char *argv[]) {
         die("dwm: cannot open display");
     {
         xerrorxlib = XSetErrorHandler(xerrorstart);
+
         /* this causes an error if some other window manager is running */
-        XSelectInput(display, DefaultRootWindow(display), SubstructureRedirectMask);
+        XSelectInput(display,
+                     DefaultRootWindow(display),
+                     SubstructureRedirectMask);
+
         XSync(display, False);
         XSetErrorHandler(xerror);
         XSync(display, False);
     }
-    setup();
+    setup_once();
 #ifdef __OpenBSD__
     if (pledge("stdio rpath proc exec", NULL) == -1)
         die("pledge");
