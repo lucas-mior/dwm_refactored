@@ -847,19 +847,21 @@ draw_bar(Monitor *monitor) {
 
     /* draw status first so it can be overdrawn by tags later */
     if (monitor == current_monitor) { /* status is only drawn on selected monitor */
-        char *text, *s, ch;
+        char *text;
+        char *s
+        char temp;
         drw_setscheme(drw, scheme[SchemeNormal]);
 
         x = 0;
         for (text = s = status_text; *s; s += 1) {
             if ((uchar)(*s) < ' ') {
-                ch = *s;
+                temp = *s;
                 *s = '\0';
                 text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
                 drw_text(drw, monitor->win_w - statusw + x, 0,
                          (uint) text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
-                *s = ch;
+                *s = temp;
                 text = s + 1;
             }
         }
