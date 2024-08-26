@@ -110,7 +110,8 @@ struct Client {
     int base_w, base_h;
     int incw, inch;
     int maxw, maxh, minw, minh, hintsvalid;
-    int border_width, oldbw;
+    int border_width;
+    int old_border_width;
     uint tags;
 
     bool is_fixed, is_floating, is_urgent;
@@ -2135,7 +2136,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
     client->y = client->old_y = window_attributes->y;
     client->w = client->old_w = window_attributes->width;
     client->h = client->old_h = window_attributes->height;
-    client->oldbw = window_attributes->border_width;
+    client->old_border_width = window_attributes->border_width;
 
     update_icon(client);
     update_title(client);
@@ -2629,7 +2630,7 @@ set_fullscreen(Client *client, int fullscreen) {
             return;
         }
         client->old_state = client->is_floating;
-        client->oldbw = client->border_width;
+        client->old_border_width = client->border_width;
         client->border_width = 0;
         client->is_floating = 1;
 
@@ -2646,7 +2647,7 @@ set_fullscreen(Client *client, int fullscreen) {
             return;
         }
         client->is_floating = client->old_state;
-        client->border_width = client->oldbw;
+        client->border_width = client->old_border_width;
         client->x = client->old_x;
         client->y = client->old_y;
         client->w = client->old_w;
@@ -3123,7 +3124,7 @@ unmanage(Client *client, int destroyed) {
     free_icon(client);
 
     if (!destroyed) {
-        window_changes.border_width = client->oldbw;
+        window_changes.border_width = client->old_border_width;
         XGrabServer(display); /* avoid race conditions */
         XSetErrorHandler(xerrordummy);
 
