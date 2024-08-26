@@ -985,7 +985,7 @@ focus_direction(const Arg *arg) {
     Client *client;
     Client *next;
 
-    int score = -1;
+    uint score = -1;
     int isfloating = selected->isfloating;
 
     if (!selected)
@@ -995,7 +995,7 @@ focus_direction(const Arg *arg) {
     if (!next)
         next = selected->monitor->clients;
     for (client = next; client != selected; client = next) {
-        int client_score;
+        uint client_score;
         int dist;
 
         next = client->next;
