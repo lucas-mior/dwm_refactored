@@ -255,7 +255,7 @@ static void spawn(const Arg *);
 static int status_count_pixels(char *text);
 static void tag(const Arg *);
 static void tag_monitor(const Arg *);
-static void toggle_bar(const Arg *);
+static void toggle_top_bar(const Arg *);
 static void toggle_bottom_bar(const Arg *);
 static void toggle_floating(const Arg *);
 static void toggle_fullscreen(const Arg *);
@@ -2738,7 +2738,7 @@ setup_once(void) {
 
         view(&tag8);
         set_layout(&layout_monocle);
-        toggle_bar(0);
+        toggle_top_bar(0);
 
         view(&tag0);
         set_layout(&lay_grid);
@@ -2841,7 +2841,7 @@ tag_monitor(const Arg *arg) {
 }
 
 void
-toggle_bar(const Arg *arg) {
+toggle_top_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
@@ -3016,7 +3016,7 @@ toggle_view(const Arg *arg) {
             = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
         if (monitor->showbar != monitor->pertag->showbars[current_tag])
-            toggle_bar(NULL);
+            toggle_top_bar(NULL);
 
         focus(NULL);
         arrange(monitor);
@@ -3446,7 +3446,7 @@ view(const Arg *arg) {
         = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
     if (monitor->showbar != monitor->pertag->showbars[current_tag])
-        toggle_bar(NULL);
+        toggle_top_bar(NULL);
 
     focus(NULL);
     arrange(monitor);
