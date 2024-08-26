@@ -2322,7 +2322,8 @@ move_mouse(const Arg *arg) {
 
     XUngrabPointer(display, CurrentTime);
 
-    monitor_aux = rectangle_to_monitor(client->x, client->y, client->w, client->h);
+    monitor_aux = rectangle_to_monitor(client->x, client->y,
+                                       client->w, client->h);
     if (monitor_aux != current_monitor) {
         send_monitor(client, monitor_aux);
         current_monitor = monitor_aux;
