@@ -2286,18 +2286,18 @@ move_mouse(const Arg *arg) {
             nx = ocx + (event.xmotion.x - x);
             ny = ocy + (event.xmotion.y - y);
 
-            if (abs(current_monitor->win_x - nx) < snap_pixels)
+            if (abs(current_monitor->win_x - nx) < SNAP_PIXELS)
                 nx = current_monitor->win_x;
-            else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < snap_pixels)
+            else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < SNAP_PIXELS)
                 nx = current_monitor->win_x + current_monitor->win_w - WIDTH(client);
 
-            if (abs(current_monitor->win_y - ny) < snap_pixels)
+            if (abs(current_monitor->win_y - ny) < SNAP_PIXELS)
                 ny = current_monitor->win_y;
-            else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < snap_pixels)
+            else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < SNAP_PIXELS)
                 ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
 
             if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
-            && (abs(nx - client->x) > snap_pixels || abs(ny - client->y) > snap_pixels))
+            && (abs(nx - client->x) > SNAP_PIXELS || abs(ny - client->y) > SNAP_PIXELS))
                 toggle_floating(NULL);
 
             if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
@@ -2457,7 +2457,7 @@ resize_mouse(const Arg *arg) {
                 && client->monitor->win_y + nh >= current_monitor->win_y
                 && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
                 if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
-                    && (abs(nw - client->w) > snap_pixels || abs(nh - client->h) > snap_pixels))
+                    && (abs(nw - client->w) > SNAP_PIXELS || abs(nh - client->h) > SNAP_PIXELS))
                     toggle_floating(NULL);
             }
             if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
