@@ -2434,7 +2434,7 @@ resize_mouse(const Arg *arg) {
     int ocx, ocy;
     Client *client;
     Monitor *monitor;
-    XEvent ev;
+    XEvent event;
     Time lasttime = 0;
     (void) arg;
 
@@ -2460,20 +2460,20 @@ resize_mouse(const Arg *arg) {
                  client->w + client->border_pixels - 1,
                  client->h + client->border_pixels - 1);
     do {
-        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
-        switch (ev.type) {
+        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
+        switch (event.type) {
         case ConfigureRequest:
         case Expose:
         case MapRequest:
-            handler[ev.type](&ev);
+            handler[event.type](&event);
             break;
         case MotionNotify: {
-            int nw = MAX(ev.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
-            int nh = MAX(ev.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
+            int nw = MAX(event.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
+            int nh = MAX(event.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
 
-            if ((ev.xmotion.time - lasttime) <= (1000 / 60))
+            if ((event.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
-            lasttime = ev.xmotion.time;
+            lasttime = event.xmotion.time;
 
             if (client->monitor->win_x + nw >= current_monitor->win_x
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
@@ -2490,14 +2490,14 @@ resize_mouse(const Arg *arg) {
         default:
             break;
         }
-    } while (ev.type != ButtonRelease);
+    } while (event.type != ButtonRelease);
 
     XWarpPointer(display, None, client->window,
                  0, 0, 0, 0,
                  client->w + client->border_pixels - 1,
                  client->h + client->border_pixels - 1);
     XUngrabPointer(display, CurrentTime);
-    while (XCheckMaskEvent(display, EnterWindowMask, &ev));
+    while (XCheckMaskEvent(display, EnterWindowMask, &event));
 
     monitor = rectangle_to_monitor(client->x, client->y, client->w, client->h);
     if (monitor != current_monitor) {
