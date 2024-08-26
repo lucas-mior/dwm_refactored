@@ -3309,45 +3309,45 @@ update_numlock_mask(void) {
 
 void
 update_size_hints(Client *client) {
-    long msize;
-    XSizeHints size;
+    long supplied_return;
+    XSizeHints size_hints;
 
-    if (!XGetWMNormalHints(display, client->window, &size, &msize))
-        /* size is uninitialized, ensure that size.flags aren't used */
-        size.flags = PSize;
-    if (size.flags & PBaseSize) {
-        client->base_w = size.base_width;
-        client->base_h = size.base_height;
-    } else if (size.flags & PMinSize) {
-        client->base_w = size.min_width;
-        client->base_h = size.min_height;
+    if (!XGetWMNormalHints(display, client->window, &size_hints, &supplied_return))
+        /* size_hints is uninitialized, ensure that size_hints.flags aren't used */
+        size_hints.flags = PSize;
+    if (size_hints.flags & PBaseSize) {
+        client->base_w = size_hints.base_width;
+        client->base_h = size_hints.base_height;
+    } else if (size_hints.flags & PMinSize) {
+        client->base_w = size_hints.min_width;
+        client->base_h = size_hints.min_height;
     } else {
         client->base_w = client->base_h = 0;
     }
-    if (size.flags & PResizeInc) {
-        client->incw = size.width_inc;
-        client->inch = size.height_inc;
+    if (size_hints.flags & PResizeInc) {
+        client->incw = size_hints.width_inc;
+        client->inch = size_hints.height_inc;
     } else {
         client->incw = client->inch = 0;
     }
-    if (size.flags & PMaxSize) {
-        client->maxw = size.max_width;
-        client->maxh = size.max_height;
+    if (size_hints.flags & PMaxSize) {
+        client->maxw = size_hints.max_width;
+        client->maxh = size_hints.max_height;
     } else {
         client->maxw = client->maxh = 0;
     }
-    if (size.flags & PMinSize) {
-        client->minw = size.min_width;
-        client->minh = size.min_height;
-    } else if (size.flags & PBaseSize) {
-        client->minw = size.base_width;
-        client->minh = size.base_height;
+    if (size_hints.flags & PMinSize) {
+        client->minw = size_hints.min_width;
+        client->minh = size_hints.min_height;
+    } else if (size_hints.flags & PBaseSize) {
+        client->minw = size_hints.base_width;
+        client->minh = size_hints.base_height;
     } else {
         client->minw = client->minh = 0;
     }
-    if (size.flags & PAspect) {
-        client->min_a = (float)size.min_aspect.y / (float)size.min_aspect.x;
-        client->max_a = (float)size.max_aspect.x / (float)size.max_aspect.y;
+    if (size_hints.flags & PAspect) {
+        client->min_a = (float)size_hints.min_aspect.y / (float)size_hints.min_aspect.x;
+        client->max_a = (float)size_hints.max_aspect.x / (float)size_hints.max_aspect.y;
     } else {
         client->max_a = client->min_a = 0.0;
     }
