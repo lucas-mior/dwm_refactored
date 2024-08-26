@@ -852,7 +852,7 @@ draw_bar(Monitor *monitor) {
         drw_setscheme(drw, scheme[SchemeNormal]);
 
         x = 0;
-        for (text = s = status_text; *s; s += 1) {
+        for (text = s = &status_text[0]; *s; s += 1) {
             if ((uchar)(*s) < ' ') {
                 temp = *s;
                 *s = '\0';
