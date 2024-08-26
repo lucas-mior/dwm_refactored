@@ -2241,7 +2241,6 @@ void
 move_mouse(const Arg *arg) {
     int x, y;
     int ocx, ocy;
-    int nx, ny;
     Client *client;
     Monitor *monitor;
     XEvent event;
@@ -2277,7 +2276,9 @@ move_mouse(const Arg *arg) {
         case MapRequest:
             handler[event.type](&event);
             break;
-        case MotionNotify:
+        case MotionNotify: {
+            int nx;
+            int ny;
             if ((event.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
             lasttime = event.xmotion.time;
@@ -2302,6 +2303,7 @@ move_mouse(const Arg *arg) {
             if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
+        }
         default:
             break;
         }
