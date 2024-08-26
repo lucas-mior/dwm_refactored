@@ -2338,6 +2338,7 @@ mouse_resize(const Arg *arg) {
     Monitor *monitor;
     XEvent event;
     Time last_time = 0;
+    int sucess;
 
     (void) arg;
 
@@ -2350,11 +2351,11 @@ mouse_resize(const Arg *arg) {
 
     restack(current_monitor);
 
-    if (XGrabPointer(display, root,
-                     False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-                     None, cursor[CursorResize]->cursor, CurrentTime) != GrabSuccess) {
+    sucess = XGrabPointer(display, root, False,
+                          MOUSEMASK, GrabModeAsync, GrabModeAsync,
+                          None, cursor[CursorResize]->cursor, CurrentTime);
+    if (sucess != GrabSuccess)
         return;
-    }
 
     XWarpPointer(display, None, client->window,
                  0, 0, 0, 0,
