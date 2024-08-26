@@ -176,33 +176,35 @@ typedef struct {
 } Rule;
 
 /* function declarations */
-static void alt_tab(const Arg *);
-static void aspect_resize(const Arg *);
-static void focus_direction(const Arg *);
-static void focus_monitor(const Arg *);
-static void focus_next(const Arg *);
-static void focus_stack(const Arg *);
-static void focus_urgent(const Arg *);
-static void inc_number_masters(const Arg *);
-static void kill_client(const Arg *);
-static void mouse_move(const Arg *);
-static void mouse_resize(const Arg *);
-static void promote_to_master(const Arg *);
-static void quit_dwm(const Arg *);
-static void set_layout(const Arg *);
-static void set_master_fact(const Arg *);
-static void signal_status_bar(const Arg *);
-static void spawn(const Arg *);
-static void tag(const Arg *);
-static void tag_monitor(const Arg *);
-static void toggle_bottom_bar(const Arg *);
-static void toggle_floating(const Arg *);
-static void toggle_fullscreen(const Arg *);
-static void toggle_scratch(const Arg *);
-static void toggle_tag(const Arg *);
-static void toggle_top_bar(const Arg *);
-static void toggle_view(const Arg *);
-static void view_tag(const Arg *);
+static void user_alt_tab(const Arg *);
+static void user_aspect_resize(const Arg *);
+static void user_focus_direction(const Arg *);
+static void user_focus_monitor(const Arg *);
+static void user_focus_next(const Arg *);
+static void user_focus_stack(const Arg *);
+static void user_focus_urgent(const Arg *);
+static void user_inc_number_masters(const Arg *);
+static void user_kill_client(const Arg *);
+static void user_mouse_move(const Arg *);
+static void user_mouse_resize(const Arg *);
+static void user_promote_to_master(const Arg *);
+static void user_quit_dwm(const Arg *);
+static void user_set_layout(const Arg *);
+static void user_set_master_fact(const Arg *);
+static void user_signal_status_bar(const Arg *);
+static void user_spawn(const Arg *);
+static void user_tag(const Arg *);
+static void user_tag_monitor(const Arg *);
+static void user_toggle_bottom_bar(const Arg *);
+static void user_toggle_floating(const Arg *);
+static void user_toggle_fullscreen(const Arg *);
+static void user_toggle_scratch(const Arg *);
+static void user_toggle_tag(const Arg *);
+static void user_toggle_top_bar(const Arg *);
+static void user_toggle_view(const Arg *);
+static void user_view_tag(const Arg *);
+static void user_window_view(const Arg *);
+
 static void apply_rules(Client *);
 static int apply_size_hints(Client *, int *, int *, int *, int *, int);
 static void arrange(Monitor *);
@@ -281,7 +283,6 @@ static void update_window_type(Client *);
 static void update_wm_hints(Client *);
 static Client *window_to_client(Window);
 static Monitor *window_to_monitor(Window);
-static void window_view(const Arg* arg);
 static int xerror(Display *, XErrorEvent *ee);
 static int xerrordummy(Display *, XErrorEvent *ee);
 static int xerrorstart(Display *, XErrorEvent *ee);
@@ -350,7 +351,7 @@ struct Pertag {
     /* matrix of tags and layouts indexes */
     const Layout *layout_tags_indexes[LENGTH(tags) + 1][2];
 
-    /* display bar for the current tag */
+    /* display bar for the current user_tag */
     bool top_bars[LENGTH(tags) + 1];
 };
 
@@ -362,7 +363,7 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 /* function implementations */
 
 void
-alt_tab(const Arg *arg) {
+user_alt_tab(const Arg *arg) {
     int grabbed = 1;
     int grabbed_keyboard = 1000;
     (void) arg;
@@ -370,8 +371,8 @@ alt_tab(const Arg *arg) {
         return;
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        view_tag(&(Arg){ .ui = (uint)~0 });
-    focus_next(&(Arg){ .i = alt_tab_direction });
+        user_view_tag(&(Arg){ .ui = (uint)~0 });
+    user_focus_next(&(Arg){ .i = alt_tab_direction });
 
     for (int i = 0; i < 100; i += 1) {
         struct timespec pause;
@@ -403,15 +404,15 @@ alt_tab(const Arg *arg) {
         switch (event.type) {
         case KeyPress:
             if (event.xkey.keycode == tabCycleKey)
-                focus_next(&(Arg){ .i = alt_tab_direction });
+                user_focus_next(&(Arg){ .i = alt_tab_direction });
             else if (event.xkey.keycode == key_j)
-                focus_direction(&(Arg){ .i = 0 });
+                user_focus_direction(&(Arg){ .i = 0 });
             else if (event.xkey.keycode == key_semicolon)
-                focus_direction(&(Arg){ .i = 1 });
+                user_focus_direction(&(Arg){ .i = 1 });
             else if (event.xkey.keycode == key_l)
-                focus_direction(&(Arg){ .i = 2 });
+                user_focus_direction(&(Arg){ .i = 2 });
             else if (event.xkey.keycode == key_k)
-                focus_direction(&(Arg){ .i = 3 });
+                user_focus_direction(&(Arg){ .i = 3 });
             break;
         case KeyRelease:
             if (event.xkey.keycode == tabModKey) {
@@ -419,7 +420,7 @@ alt_tab(const Arg *arg) {
                 XUngrabButton(display, AnyButton, AnyModifier, None);
                 grabbed = 0;
                 alt_tab_direction = !alt_tab_direction;
-                window_view(0);
+                user_window_view(0);
             }
             break;
         case ButtonPress:
@@ -439,7 +440,7 @@ alt_tab(const Arg *arg) {
             XUngrabButton(display, AnyButton, AnyModifier, None);
             grabbed = 0;
             alt_tab_direction = !alt_tab_direction;
-            window_view(0);
+            user_window_view(0);
             break;
         default:
             break;
@@ -485,7 +486,7 @@ apply_rules(Client *client) {
 
             if (rule->switchtotag) {
                 Arg a = { .ui = rule->tags };
-                view_tag(&a);
+                user_view_tag(&a);
             }
         }
     }
@@ -611,7 +612,7 @@ arrange_monitor(Monitor *monitor) {
 }
 
 void
-aspect_resize(const Arg *arg) {
+user_aspect_resize(const Arg *arg) {
     float ratio;
     int w;
     int h;
@@ -660,7 +661,7 @@ cleanup(void) {
     Arg a = {.ui = (uint)~0};
     Layout layout = { "", NULL };
 
-    view_tag(&a);
+    user_view_tag(&a);
     current_monitor->layout[current_monitor->lay_i] = &layout;
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         while (monitor->stack)
@@ -1042,7 +1043,7 @@ focus(Client *client) {
 }
 
 void
-focus_direction(const Arg *arg) {
+user_focus_direction(const Arg *arg) {
     Client *selected = current_monitor->selected_client;
     Client *f = NULL;
     Client *client;
@@ -1107,7 +1108,7 @@ focus_direction(const Arg *arg) {
 }
 
 void
-focus_monitor(const Arg *arg) {
+user_focus_monitor(const Arg *arg) {
     Monitor *monitor;
 
     if (!monitors->next)
@@ -1122,7 +1123,7 @@ focus_monitor(const Arg *arg) {
 }
 
 static void
-focus_next(const Arg *arg) {
+user_focus_next(const Arg *arg) {
     Monitor *m;
     Client *client;
 
@@ -1154,7 +1155,7 @@ focus_next(const Arg *arg) {
 }
 
 void
-focus_stack(const Arg *arg) {
+user_focus_stack(const Arg *arg) {
     Client *client = NULL;
 
     if (!current_monitor->selected_client)
@@ -1194,7 +1195,7 @@ focus_stack(const Arg *arg) {
 }
 
 void
-focus_urgent(const Arg *arg) {
+user_focus_urgent(const Arg *arg) {
     (void) arg;
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Client *client;
@@ -1212,7 +1213,7 @@ focus_urgent(const Arg *arg) {
                 i += 1;
             if (i < LENGTH(tags)) {
                 const Arg a = {.ui = 1 << i};
-                view_tag(&a);
+                user_view_tag(&a);
                 focus(client);
             }
         }
@@ -2079,7 +2080,7 @@ handler_unmap_notify(XEvent *event) {
 }
 
 void
-inc_number_masters(const Arg *arg) {
+user_inc_number_masters(const Arg *arg) {
     int nslave = -1;
     int new_number_masters;
     uint current_tag;
@@ -2111,7 +2112,7 @@ is_unique_geometry(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *inf
 #endif /* XINERAMA */
 
 void
-kill_client(const Arg *arg) {
+user_kill_client(const Arg *arg) {
     (void) arg;
 
     if (!current_monitor->selected_client)
@@ -2239,7 +2240,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
 }
 
 void
-mouse_move(const Arg *arg) {
+user_mouse_move(const Arg *arg) {
     int x, y;
     int ocx, ocy;
     Client *client;
@@ -2309,7 +2310,7 @@ mouse_move(const Arg *arg) {
                 bool moving_x = abs(nx - client->x) > SNAP_PIXELS;
                 bool moving_y = abs(ny - client->y) > SNAP_PIXELS;
                 if (moving_x || moving_y)
-                    toggle_floating(NULL);
+                    user_toggle_floating(NULL);
             }
 
             if (!monitor->layout[monitor->lay_i]->function || is_floating)
@@ -2334,7 +2335,7 @@ mouse_move(const Arg *arg) {
 }
 
 void
-mouse_resize(const Arg *arg) {
+user_mouse_resize(const Arg *arg) {
     Client *client;
     Monitor *monitor;
     XEvent event;
@@ -2400,7 +2401,7 @@ mouse_resize(const Arg *arg) {
                 bool over_snap_y = abs(nh - client->h) > SNAP_PIXELS;
                 if (!client->is_floating && !monitor_floating
                     && (over_snap_x || over_snap_y)) {
-                    toggle_floating(NULL);
+                    user_toggle_floating(NULL);
                 }
             }
             if (client->is_floating
@@ -2452,7 +2453,7 @@ pop(Client *client) {
 }
 
 void
-quit_dwm(const Arg *arg) {
+user_quit_dwm(const Arg *arg) {
     if (arg->i)
         restart = 1;
     running = false;
@@ -2715,7 +2716,7 @@ set_fullscreen(Client *client, int fullscreen) {
 }
 
 void
-set_layout(const Arg *arg) {
+user_set_layout(const Arg *arg) {
     const Layout *layout = arg->v;
     Monitor *monitor = current_monitor;
 
@@ -2740,7 +2741,7 @@ set_layout(const Arg *arg) {
 
 /* arg > 1.0 will set master_fact absolutely */
 void
-set_master_fact(const Arg *arg) {
+user_set_master_fact(const Arg *arg) {
     float factor;
     uint current_tag = current_monitor->pertag->current_tag;
 
@@ -2860,13 +2861,13 @@ setup_once(void) {
         current_monitor = monitor;
         focus(NULL);
 
-        view_tag(&tag8);
-        set_layout(&layout_monocle);
-        toggle_top_bar(0);
+        user_view_tag(&tag8);
+        user_set_layout(&layout_monocle);
+        user_toggle_top_bar(0);
 
-        view_tag(&tag0);
-        set_layout(&lay_grid);
-        view_tag(&tag1);
+        user_view_tag(&tag0);
+        user_set_layout(&lay_grid);
+        user_view_tag(&tag1);
     }
     return;
 }
@@ -2919,7 +2920,7 @@ show_hide(Client *client) {
 }
 
 void
-signal_status_bar(const Arg *arg) {
+user_signal_status_bar(const Arg *arg) {
     union sigval sv;
 
     if (!statussig)
@@ -2941,7 +2942,7 @@ set_client_tag_prop(Client *client) {
 }
 
 void
-tag(const Arg *arg) {
+user_tag(const Arg *arg) {
     uint which_tag = arg->ui & TAGMASK;
 
     if (which_tag && current_monitor->selected_client) {
@@ -2954,7 +2955,7 @@ tag(const Arg *arg) {
 }
 
 void
-tag_monitor(const Arg *arg) {
+user_tag_monitor(const Arg *arg) {
     Monitor *monitor = direction_to_monitor(arg->i);
 
     if (!current_monitor->selected_client || !monitors->next)
@@ -2969,14 +2970,14 @@ tag_monitor(const Arg *arg) {
     usleep(50);
     focus(NULL);
     usleep(50);
-    focus_monitor(arg);
-    toggle_floating(NULL);
-    toggle_floating(NULL);
+    user_focus_monitor(arg);
+    user_toggle_floating(NULL);
+    user_toggle_floating(NULL);
     return;
 }
 
 void
-toggle_top_bar(const Arg *arg) {
+user_toggle_top_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
@@ -2994,7 +2995,7 @@ toggle_top_bar(const Arg *arg) {
 }
 
 void
-toggle_bottom_bar(const Arg *arg) {
+user_toggle_bottom_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
@@ -3008,7 +3009,7 @@ toggle_bottom_bar(const Arg *arg) {
 }
 
 void
-toggle_floating(const Arg *arg) {
+user_toggle_floating(const Arg *arg) {
     Monitor *monitor = current_monitor;
     Client *client = monitor->selected_client;
     (void) arg;
@@ -3041,7 +3042,7 @@ toggle_floating(const Arg *arg) {
 }
 
 void
-toggle_fullscreen(const Arg *arg) {
+user_toggle_fullscreen(const Arg *arg) {
     (void) arg;
     if (current_monitor->selected_client) {
         set_fullscreen(current_monitor->selected_client,
@@ -3051,7 +3052,7 @@ toggle_fullscreen(const Arg *arg) {
 }
 
 void
-spawn(const Arg *arg) {
+user_spawn(const Arg *arg) {
    struct sigaction sig_action;
 
    if (fork() == 0) {
@@ -3071,7 +3072,7 @@ spawn(const Arg *arg) {
 }
 
 void
-toggle_scratch(const Arg *arg) {
+user_toggle_scratch(const Arg *arg) {
     Client *client;
     uint found = 0;
     uint scrath_tag = SPTAG(arg->ui);
@@ -3101,13 +3102,13 @@ toggle_scratch(const Arg *arg) {
         }
     } else {
         current_monitor->tagset[current_monitor->selected_tags] |= scrath_tag;
-        spawn(&scratchpad_arg);
+        user_spawn(&scratchpad_arg);
     }
     return;
 }
 
 void
-toggle_tag(const Arg *arg) {
+user_toggle_tag(const Arg *arg) {
     uint newtags;
 
     if (!current_monitor->selected_client)
@@ -3123,7 +3124,7 @@ toggle_tag(const Arg *arg) {
 }
 
 void
-toggle_view(const Arg *arg) {
+user_toggle_view(const Arg *arg) {
     Monitor *monitor = current_monitor;
     uint new_tagset = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
 
@@ -3136,7 +3137,7 @@ toggle_view(const Arg *arg) {
             monitor->pertag->current_tag = 0;
         }
 
-        /* test if the user did not select the same tag */
+        /* test if the user did not select the same user_tag */
         if (!(new_tagset & 1 << (monitor->pertag->current_tag - 1))) {
             uint i = 0;
             monitor->pertag->previous_tag = monitor->pertag->current_tag;
@@ -3157,7 +3158,7 @@ toggle_view(const Arg *arg) {
             = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i^1];
 
         if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
-            toggle_top_bar(NULL);
+            user_toggle_top_bar(NULL);
 
         focus(NULL);
         arrange(monitor);
@@ -3566,7 +3567,7 @@ update_wm_hints(Client *client) {
 }
 
 void
-view_tag(const Arg *arg) {
+user_view_tag(const Arg *arg) {
     uint arg_tags = arg->ui;
     uint tmptag;
     uint current_tag;
@@ -3605,7 +3606,7 @@ view_tag(const Arg *arg) {
         = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
-        toggle_top_bar(NULL);
+        user_toggle_top_bar(NULL);
 
     focus(NULL);
     arrange(monitor);
@@ -3648,9 +3649,9 @@ window_to_monitor(Window window) {
 }
 
 /* Selects for the view of the focused window. The list of tags */
-/* to be displayed is matched to the focused window tag list. */
+/* to be displayed is matched to the focused window user_tag list. */
 void
-window_view(const Arg* arg) {
+user_window_view(const Arg* arg) {
     Window window;
     Window root_return;
     Window parent_return;
@@ -3675,7 +3676,7 @@ window_view(const Arg* arg) {
         return;
 
     view_arg.ui = client->tags;
-    view_tag(&view_arg);
+    user_view_tag(&view_arg);
     return;
 }
 
@@ -3757,7 +3758,7 @@ xinitvisual(void) {
 }
 
 void
-promote_to_master(const Arg *arg) {
+user_promote_to_master(const Arg *arg) {
     Client *client = current_monitor->selected_client;
     Monitor *monitor = current_monitor;
     (void) arg;
