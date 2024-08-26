@@ -3346,8 +3346,10 @@ update_size_hints(Client *client) {
         client->minw = client->minh = 0;
     }
     if (size_hints.flags & PAspect) {
-        client->min_a = (float)size_hints.min_aspect.y / (float)size_hints.min_aspect.x;
-        client->max_a = (float)size_hints.max_aspect.x / (float)size_hints.max_aspect.y;
+        client->min_a = (float)size_hints.min_aspect.y
+                        / (float)size_hints.min_aspect.x;
+        client->max_a = (float)size_hints.max_aspect.x
+                        / (float)size_hints.max_aspect.y;
     } else {
         client->max_a = client->min_a = 0.0;
     }
