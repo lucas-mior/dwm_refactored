@@ -2242,7 +2242,7 @@ move_mouse(const Arg *arg) {
     int x, y;
     int ocx, ocy;
     Client *client;
-    Monitor *monitor;
+    Monitor *monitor_aux;
     XEvent event;
     Time lasttime = 0;
     int sucess;
@@ -2313,10 +2313,10 @@ move_mouse(const Arg *arg) {
 
     XUngrabPointer(display, CurrentTime);
 
-    monitor = rectangle_to_monitor(client->x, client->y, client->w, client->h);
-    if (monitor != current_monitor) {
-        send_monitor(client, monitor);
-        current_monitor = monitor;
+    monitor_aux = rectangle_to_monitor(client->x, client->y, client->w, client->h);
+    if (monitor_aux != current_monitor) {
+        send_monitor(client, monitor_aux);
+        current_monitor = monitor_aux;
         focus(NULL);
     }
     return;
