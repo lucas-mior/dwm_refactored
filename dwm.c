@@ -1208,47 +1208,47 @@ layout_columns(Monitor *monitor) {
 
 void
 layout_gapless_grid(Monitor *monitor) {
-    uint n = 0;
+    uint nclients = 0;
     uint ncolumns = 0;
     uint nrows;
     uint cn;
     uint rn;
-    uint cw;
+    uint column_width;
     uint ch;
     uint i = 0;
 
     for (Client *client = next_tiled(monitor->clients);
                  client;
                  client = next_tiled(client->next)) {
-        n += 1;
+        nclients += 1;
     }
-    if (n == 0)
+    if (nclients == 0)
         return;
 
     /* grid dimensions */
-    while (ncolumns*ncolumns < n) {
-        if (ncolumns > (n / 2))
+    while (ncolumns*ncolumns < nclients) {
+        if (ncolumns > (nclients / 2))
             break;
         ncolumns += 1;
     }
 
-    if (n == 5) /* set layout against the general calculation: not 1:2:2, but 2:3 */
+    if (nclients == 5) /* set layout against the general calculation: not 1:2:2, but 2:3 */
         ncolumns = 2;
-    nrows = n/ncolumns;
+    nrows = nclients/ncolumns;
 
     /* window geometries */
-    cw = ncolumns ? monitor->win_w / ncolumns : monitor->win_w;
+    column_width = ncolumns ? monitor->win_w / ncolumns : monitor->win_w;
     cn = 0; /* current column number */
     rn = 0; /* current row number */
     for (Client *client = next_tiled(monitor->clients);
                  client;
                  client = next_tiled(client->next)) {
-        if (i/nrows + 1 > ncolumns - n%ncolumns)
-            nrows = n/ncolumns + 1;
+        if (i/nrows + 1 > ncolumns - nclients%ncolumns)
+            nrows = nclients/ncolumns + 1;
         ch = nrows ? monitor->win_h / nrows : monitor->win_h;
         resize(client,
-               monitor->win_x + cn*cw, monitor->win_y + rn*ch,
-               cw - 2*client->border_width, ch - 2*client->border_width,
+               monitor->win_x + cn*column_width, monitor->win_y + rn*ch,
+               column_width - 2*client->border_width, ch - 2*client->border_width,
                False);
         rn += 1;
         if (rn >= nrows) {
