@@ -3311,6 +3311,7 @@ void
 update_size_hints(Client *client) {
     long supplied_return;
     bool has_maxes;
+    bool mins_match_maxes;
     XSizeHints size_hints;
 
     if (!XGetWMNormalHints(display, client->window, &size_hints, &supplied_return))
