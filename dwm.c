@@ -1455,7 +1455,7 @@ get_status_bar_pid(void) {
 
 Picture
 get_icon_property(Window window, uint *picture_width, uint *picture_height) {
-    int format;
+    int actual_format_return;
     ulong nitems_return;
     ulong bytes_after_return;
     ulong *prop_return = NULL;
@@ -1466,19 +1466,19 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
     uint32 icon_width;
     uint32 icon_height;
     uint32 area_find = 0;
-    Atom real;
+    Atom actual_type_return;
     Picture drw_picture;
     int sucess;
 
     sucess = XGetWindowProperty(display, window, netatom[NetWMIcon],
                                 0L, LONG_MAX, False, AnyPropertyType,
-                                &real, &format,
+                                &actual_type_return, &actual_format_return,
                                 &nitems_return, &bytes_after_return,
                                 (uchar **)&prop_return);
     if (sucess != Success)
         return None;
 
-    if (nitems_return == 0 || format != 32) {
+    if (nitems_return == 0 || actual_format_return != 32) {
         XFree(prop_return);
         return None;
     }
