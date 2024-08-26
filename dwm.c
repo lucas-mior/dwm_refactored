@@ -3601,21 +3601,22 @@ xerrorstart(Display *d, XErrorEvent *ee) {
 void
 xinitvisual(void) {
     XVisualInfo *infos;
-    XRenderPictFormat *fmt;
+    XRenderPictFormat *render_format;
     int nitems;
+    long masks = VisualScreenMask | VisualDepthMask | VisualClassMask;
 
     XVisualInfo tpl = {
         .screen = screen,
         .depth = 32,
         .class = TrueColor
     };
-    long masks = VisualScreenMask | VisualDepthMask | VisualClassMask;
 
     infos = XGetVisualInfo(display, masks, &tpl, &nitems);
     visual = NULL;
     for (int i = 0; i < nitems; i += 1) {
-        fmt = XRenderFindVisualFormat(display, infos[i].visual);
-        if (fmt->type == PictTypeDirect && fmt->direct.alphaMask) {
+        render_format = XRenderFindVisualFormat(display, infos[i].visual);
+        if (render_format->type == PictTypeDirect
+            && render_format->direct.alphaMask) {
             visual = infos[i].visual;
             depth = infos[i].depth;
             cmap = XCreateColormap(display, root, visual, AllocNone);
