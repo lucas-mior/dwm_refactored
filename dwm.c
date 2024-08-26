@@ -2536,6 +2536,7 @@ scan(void) {
         && (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState))
             manage(children_return[i], &window_attributes);
     }
+
     if (children_return)
         XFree(children_return);
     return;
