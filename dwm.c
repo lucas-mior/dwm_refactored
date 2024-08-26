@@ -1414,7 +1414,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         return None;
     }
 
-    {
+    do {
         ulong *i;
         const ulong *end = propreturn + n;
         uint32 bstd = UINT32_MAX;
@@ -1435,27 +1435,28 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
                 pixel_find = i;
             }
         }
-        if (!pixel_find) {
-            for (i = propreturn; i < (end - 1); i += sz) {
-                uint32 max_dim;
-                if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
-                    XFree(propreturn);
-                    return None;
-                }
-                if ((sz = w*h) > (end - i))
-                    break;
+        if (pixel_find)
+            break;
+        for (i = propreturn; i < (end - 1); i += sz) {
+            uint32 max_dim;
+            if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
+                XFree(propreturn);
+                return None;
+            }
+            if ((sz = w*h) > (end - i))
+                break;
 
-                max_dim = w > h ? w : h;
-                if ((d = ICONSIZE - max_dim) < bstd) {
-                    bstd = d;
-                    pixel_find = i;
-                }
+            max_dim = w > h ? w : h;
+            if ((d = ICONSIZE - max_dim) < bstd) {
+                bstd = d;
+                pixel_find = i;
             }
         }
-        if (!pixel_find) {
-            XFree(propreturn);
-            return None;
-        }
+    } while (false);
+
+    if (!pixel_find) {
+        XFree(propreturn);
+        return None;
     }
 
     w = (uint32) *(pixel_find - 2);
