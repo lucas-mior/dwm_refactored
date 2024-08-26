@@ -2154,25 +2154,29 @@ manage(Window window, XWindowAttributes *window_attributes) {
     update_size_hints(client);
     update_wm_hints(client);
     {
-        int format;
-        ulong *data;
+        int actual_format_return;
+        ulong *prop_return;
         ulong nitems_return;
-        ulong extra;
-        Atom atom;
-        if (XGetWindowProperty(display, client->window, netatom[NetClientInfo],
-                               0L, 2L, False, XA_CARDINAL,
-                               &atom, &format, &nitems_return,
-                               &extra, (uchar **)&data) == Success && nitems_return == 2) {
-            client->tags = (uint) *data;
+        ulong bytes_after_return;
+        Atom actual_type_return;
+        int sucess;
+
+        sucess = XGetWindowProperty(display, client->window, netatom[NetClientInfo],
+                                    0L, 2L, False, XA_CARDINAL,
+                                    &actual_type_return, &actual_format_return,
+                                    &nitems_return, &bytes_after_return,
+                                    (uchar **)&prop_return);
+        if (sucess == Success && nitems_return == 2) {
+            client->tags = (uint) *prop_return;
             for (Monitor *m = monitors; m; m = m->next) {
-                if (m->num == (int) *(data+1)) {
+                if (m->num == (int) *(prop_return+1)) {
                     client->monitor = m;
                     break;
                 }
             }
         }
         if (nitems_return > 0)
-            XFree(data);
+            XFree(prop_return);
     }
     set_client_tag_prop(client);
 
