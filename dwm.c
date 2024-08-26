@@ -1114,6 +1114,7 @@ focus_monitor(const Arg *arg) {
         return;
     if ((monitor = direction_to_monitor(arg->i)) == current_monitor)
         return;
+
     unfocus(current_monitor->selected_client, 0);
     current_monitor = monitor;
     focus(NULL);
