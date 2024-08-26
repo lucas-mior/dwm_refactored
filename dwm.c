@@ -149,7 +149,6 @@ struct Monitor {
     int mon_x, mon_y, mon_w, mon_h;  /* screen size */
     int win_x, win_y, win_w, win_h;  /* window area */
     uint selected_tags;
-    uint layout_index;
     uint tagset[2];
     int show_top_bar;
     int show_bottom_bar;
@@ -160,6 +159,7 @@ struct Monitor {
     Window top_bar_window;
     Window bottom_bar_window;
     const Layout *layout[2];
+    uint lay_i;
     Pertag *pertag;
 };
 
@@ -534,7 +534,7 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
 
     if (resizehints
         || client->is_floating
-        || !client->monitor->layout[client->monitor->layout_index]->arrange) {
+        || !client->monitor->layout[client->monitor->lay_i]->arrange) {
         if (!client->hintsvalid)
             update_size_hints(client);
 
@@ -602,10 +602,10 @@ arrange(Monitor *monitor) {
 void
 arrange_monitor(Monitor *monitor) {
     strncpy(monitor->layout_symbol,
-            monitor->layout[monitor->layout_index]->symbol,
+            monitor->layout[monitor->lay_i]->symbol,
             sizeof(monitor->layout_symbol));
-    if (monitor->layout[monitor->layout_index]->arrange)
-        monitor->layout[monitor->layout_index]->arrange(monitor);
+    if (monitor->layout[monitor->lay_i]->arrange)
+        monitor->layout[monitor->lay_i]->arrange(monitor);
     return;
 }
 
@@ -622,7 +622,7 @@ aspect_resize(const Arg *arg) {
         return;
 
     if (!client->is_floating
-        && current_monitor->layout[current_monitor->layout_index]->arrange) {
+        && current_monitor->layout[current_monitor->lay_i]->arrange) {
         return;
     }
 
@@ -660,7 +660,7 @@ cleanup(void) {
     Layout layout = { "", NULL };
 
     view_tag(&a);
-    current_monitor->layout[current_monitor->layout_index] = &layout;
+    current_monitor->layout[current_monitor->lay_i] = &layout;
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         while (monitor->stack)
             unmanage(monitor->stack, 0);
@@ -742,7 +742,7 @@ create_monitor(void) {
 
         monitor->pertag->layout_tags_indexes[i][0] = monitor->layout[0];
         monitor->pertag->layout_tags_indexes[i][1] = monitor->layout[1];
-        monitor->pertag->selected_layouts[i] = monitor->layout_index;
+        monitor->pertag->selected_layouts[i] = monitor->lay_i;
 
         monitor->pertag->top_bars[i] = monitor->show_top_bar;
     }
@@ -1815,7 +1815,7 @@ handler_configure_request(XEvent *event) {
             XSync(display, False);
             return;
         }
-        if (client->is_floating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
+        if (client->is_floating || !current_monitor->layout[current_monitor->lay_i]->arrange) {
             monitor = client->monitor;
             if (conf_request_event->value_mask & CWX) {
                 client->old_x = client->x;
@@ -2284,10 +2284,10 @@ move_mouse(const Arg *arg) {
                 ny = current_monitor->win_y;
             else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < snap)
                 ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
-            if (!client->is_floating && current_monitor->layout[current_monitor->layout_index]->arrange
+            if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
             && (abs(nx - client->x) > snap || abs(ny - client->y) > snap))
                 toggle_floating(NULL);
-            if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->is_floating)
+            if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
         default:
@@ -2374,8 +2374,8 @@ resize_client(Client *client, int x, int y, int w, int h) {
         n += 1;
     }
 
-    if (!(client->is_floating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
-        if (current_monitor->layout[current_monitor->layout_index]->arrange == layout_monocle || n == 1) {
+    if (!(client->is_floating) && current_monitor->layout[current_monitor->lay_i]->arrange) {
+        if (current_monitor->layout[current_monitor->lay_i]->arrange == layout_monocle || n == 1) {
             window_changes.border_width = 0;
             client->w = window_changes.width += client->border_width*2;
             client->h = window_changes.height += client->border_width*2;
@@ -2441,11 +2441,11 @@ resize_mouse(const Arg *arg) {
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
                 && client->monitor->win_y + nh >= current_monitor->win_y
                 && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
-                if (!client->is_floating && current_monitor->layout[current_monitor->layout_index]->arrange
+                if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
                     && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
                     toggle_floating(NULL);
             }
-            if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->is_floating)
+            if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
                 resize(client, client->x, client->y, nw, nh, 1);
             break;
         default:
@@ -2478,9 +2478,9 @@ restack(Monitor *m) {
     draw_bar(m);
     if (!m->selected_client)
         return;
-    if (m->selected_client->is_floating || !m->layout[m->layout_index]->arrange)
+    if (m->selected_client->is_floating || !m->layout[m->lay_i]->arrange)
         XRaiseWindow(display, m->selected_client->window);
-    if (m->layout[m->layout_index]->arrange) {
+    if (m->layout[m->lay_i]->arrange) {
         window_changes.stack_mode = Below;
         window_changes.sibling = m->top_bar_window;
         for (client = m->stack; client; client = client->stack_next) {
@@ -2662,16 +2662,16 @@ set_layout(const Arg *arg) {
     const Layout *layout = arg->v;
     Monitor *monitor = current_monitor;
 
-    if (!arg || !arg->v || arg->v != monitor->layout[monitor->layout_index])
-        monitor->layout_index = monitor->pertag->selected_layouts[monitor->pertag->current_tag] ^= 1;
+    if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i])
+        monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->current_tag] ^= 1;
 
     if (arg && arg->v)
-        monitor->layout[monitor->layout_index]
-            = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->layout_index]
+        monitor->layout[monitor->lay_i]
+            = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->lay_i]
             = layout;
 
     strncpy(monitor->layout_symbol,
-            monitor->layout[monitor->layout_index]->symbol,
+            monitor->layout[monitor->lay_i]->symbol,
             sizeof(monitor->layout_symbol));
 
     if (monitor->selected_client)
@@ -2689,7 +2689,7 @@ set_master_fact(const Arg *arg) {
 
     if (!arg)
         return;
-    if (!current_monitor->layout[current_monitor->layout_index]->arrange)
+    if (!current_monitor->layout[current_monitor->lay_i]->arrange)
         return;
 
     if (arg->f < 1.0f)
@@ -2838,7 +2838,7 @@ show_hide(Client *client) {
         }
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
-        if ((!client->monitor->layout[client->monitor->layout_index]->arrange || client->is_floating)
+        if ((!client->monitor->layout[client->monitor->lay_i]->arrange || client->is_floating)
                 && (!client->is_fullscreen || client->is_fake_fullscreen))
             resize(client, client->x, client->y, client->w, client->h, 0);
         show_hide(client->stack_next);
@@ -3076,11 +3076,11 @@ toggle_view(const Arg *arg) {
         /* apply settings for this view */
         monitor->nmaster = monitor->pertag->nmasters[current_tag];
         monitor->master_fact = monitor->pertag->master_facts[current_tag];
-        monitor->layout_index = monitor->pertag->selected_layouts[current_tag];
-        monitor->layout[monitor->layout_index]
-            = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
-        monitor->layout[monitor->layout_index^1]
-            = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
+        monitor->lay_i = monitor->pertag->selected_layouts[current_tag];
+        monitor->layout[monitor->lay_i]
+            = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i];
+        monitor->layout[monitor->lay_i^1]
+            = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i^1];
 
         if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
             toggle_top_bar(NULL);
@@ -3521,11 +3521,11 @@ view_tag(const Arg *arg) {
     current_tag = monitor->pertag->current_tag;
     monitor->nmaster = monitor->pertag->nmasters[current_tag];
     monitor->master_fact = monitor->pertag->master_facts[current_tag];
-    monitor->layout_index = monitor->pertag->selected_layouts[current_tag];
-    monitor->layout[monitor->layout_index]
-        = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index];
-    monitor->layout[monitor->layout_index^1]
-        = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
+    monitor->lay_i = monitor->pertag->selected_layouts[current_tag];
+    monitor->layout[monitor->lay_i]
+        = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i];
+    monitor->layout[monitor->lay_i^1]
+        = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
         toggle_top_bar(NULL);
@@ -3680,7 +3680,7 @@ promote_to_master(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
-    if (!monitor->layout[monitor->layout_index]->arrange || !client || client->is_floating)
+    if (!monitor->layout[monitor->lay_i]->arrange || !client || client->is_floating)
         return;
     if (client == next_tiled(monitor->clients) && !(client = next_tiled(client->next)))
         return;
