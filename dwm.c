@@ -1596,23 +1596,30 @@ get_state(Window window) {
 
 int
 get_text_property(Window window, Atom atom, char *text, uint size) {
-    char **list = NULL;
-    int n;
-    XTextProperty name;
+    char **list_return = NULL;
+    int count_return;
+    XTextProperty text_property;
 
     if (!text || size == 0)
         return 0;
     text[0] = '\0';
-    if (!XGetTextProperty(display, window, &name, atom) || !name.nitems)
+
+    if (!XGetTextProperty(display, window, &text_property, atom) || !text_property.nitems)
         return 0;
-    if (name.encoding == XA_STRING) {
-        strncpy(text, (char *)name.value, size - 1);
-    } else if (XmbTextPropertyToTextList(display, &name, &list, &n) >= Success && n > 0 && *list) {
-        strncpy(text, *list, size - 1);
-        XFreeStringList(list);
+    if (text_property.encoding == XA_STRING) {
+        strncpy(text, (char *)text_property.value, size - 1);
+        goto end;
     }
+    if (XmbTextPropertyToTextList(display, &text_property,
+                                  &list_return, &count_return) >= Success
+                                  && count_return > 0 && *list_return) {
+        strncpy(text, *list_return, size - 1);
+        XFreeStringList(list_return);
+    }
+
+end:
     text[size - 1] = '\0';
-    XFree(name.value);
+    XFree(text_property.value);
     return 1;
 }
 
