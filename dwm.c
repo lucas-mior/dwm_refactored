@@ -289,7 +289,7 @@ static void zoom(const Arg *);
 static const char broken[] = "broken";
 static char status_text[256];
 static char extra_status[256];
-static int statusw;
+static int status_text_pixels;
 static int statussig;
 static pid_t statuspid = -1;
 
@@ -752,7 +752,7 @@ void debug_dwm(char *message, ...) {
     char *argv[6] = {
         [0] = "dunstify",
         [1] = "-t",
-        [2] = "3000",
+        [2] = "900",
         [3] = "dwm",
         [4] = NULL,
         [5] = NULL,
@@ -836,7 +836,6 @@ draw_bar(Monitor *monitor) {
     int x;
     int w;
     int text_pixels = 0;
-    int extra_status_width = 0;
     int urgent = 0;
     char tagdisp[TAGWIDTH];
     char *masterclientontag[LENGTH(tags)];
@@ -858,7 +857,7 @@ draw_bar(Monitor *monitor) {
                 temp = *s;
                 *s = '\0';
                 text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
-                drw_text(drw, monitor->win_w - statusw + x, 0,
+                drw_text(drw, monitor->win_w - status_text_pixels + x, 0,
                          (uint) text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
                 *s = temp;
@@ -867,9 +866,9 @@ draw_bar(Monitor *monitor) {
         }
         text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
         drw_text(drw,
-                 monitor->win_w - statusw + x, 0,
+                 monitor->win_w - status_text_pixels + x, 0,
                  (uint) text_pixels, bar_height, 0, text, 0);
-        text_pixels = statusw;
+        text_pixels = status_text_pixels;
     }
 
     for (int i = 0; i < LENGTH(tags); i += 1) {
@@ -952,11 +951,33 @@ draw_bar(Monitor *monitor) {
     drw_map(drw, monitor->bar_window, 0, 0, (uint) monitor->win_w, bar_height);
 
     if (monitor == current_monitor) { /* extra status is only drawn on selected monitor */
+        char *text;
+        char *s;
+
         drw_setscheme(drw, scheme[SchemeNormal]);
         /* clear default bar draw buffer by drawing a blank rectangle */
         drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
-        extra_status_width = (int) TEXT_PIXELS(extra_status);
-        drw_text(drw, 0, 0, (uint) extra_status_width, bar_height, 0, extra_status, 0);
+
+        x = 0;
+        int kk = 0;
+        for (text = s = &extra_status[0]; *s; s += 1) {
+            char temp;
+
+            if ((uchar)(*s) < ' ') {
+                kk += 1;
+                temp = *s;
+                *s = '\0';
+
+                text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
+                drw_text(drw, x, 0, (uint) text_pixels, bar_height, 0, text, 0);
+                x += text_pixels;
+
+                *s = temp;
+                text = s + 1;
+            }
+        }
+        text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
+        drw_text(drw, x, 0, (uint) text_pixels, bar_height, 0, text, 0);
         drw_map(drw, monitor->extra_bar_window, 0, 0, (uint) monitor->win_w, bar_height);
     }
     return;
@@ -1656,10 +1677,10 @@ handler_button_press(XEvent *event) {
             arg.ui = 1 << i;
         } else if ((uint) button_event->x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
-        } else if (button_event->x > current_monitor->win_w - statusw) {
+        } else if (button_event->x > current_monitor->win_w - status_text_pixels) {
             char *s;
 
-            x = (uint) (current_monitor->win_w - statusw);
+            x = (uint) (current_monitor->win_w - status_text_pixels);
             click = ClickStatusText;
             statussig = 0;
 
@@ -3274,7 +3295,7 @@ update_status(void) {
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(status_text, "dwm-"VERSION);
-        statusw = (int) (TEXT_PIXELS(status_text) - lrpad + 2);
+        status_text_pixels = (int) (TEXT_PIXELS(status_text) - lrpad + 2);
         extra_status[0] = '\0';
         draw_bar(current_monitor);
         return;
@@ -3290,18 +3311,18 @@ update_status(void) {
     }
 
     strncpy(status_text, text, sizeof(status_text) - 1);
-    statusw = 0;
+    status_text_pixels = 0;
     for (text2 = s = status_text; *s; s += 1) {
         char ch;
         if ((uchar)(*s) < ' ') {
             ch = *s;
             *s = '\0';
-            statusw += TEXT_PIXELS(text2) - lrpad;
+            status_text_pixels += TEXT_PIXELS(text2) - lrpad;
             *s = ch;
             text2 = s + 1;
         }
     }
-    statusw += TEXT_PIXELS(text2) - lrpad + 2;
+    status_text_pixels += TEXT_PIXELS(text2) - lrpad + 2;
 
     draw_bar(current_monitor);
     return;
