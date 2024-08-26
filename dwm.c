@@ -939,7 +939,13 @@ draw_bar(Monitor *monitor) {
         int boxw = drw->fonts->h / 6 + 2;
 
         if (monitor->selected_client) {
-            drw_setscheme(drw, scheme[monitor == current_monitor ? SchemeSelected : SchemeNormal]);
+            int scheme_index;
+            if (monitor == current_monitor)
+                scheme_index = SchemeSelected;
+            else
+                scheme_index = SchemeNormal;
+            drw_setscheme(drw, scheme[scheme_index]);
+
             drw_text(drw,
                      x, 0, (uint) w, bar_height,
                      lrpad / 2, monitor->selected_client->name, 0);
@@ -954,6 +960,7 @@ draw_bar(Monitor *monitor) {
     }
     drw_map(drw, monitor->bar_window, 0, 0, (uint) monitor->win_w, bar_height);
 
+    drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
     if (monitor == current_monitor) {
         char *text;
         char *s;
