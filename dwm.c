@@ -3612,15 +3612,20 @@ window_to_monitor(Window window) {
     if (window == root) {
         int x;
         int y;
-        if (get_root_pointer(&x, &y))
-            return rectangle_to_monitor(x, y, 1, 1);
+        if (get_root_pointer(&x, &y)) {
+            Monitor *monitor = rectangle_to_monitor(x, y, 1, 1);
+            return monitor;
+        }
     }
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        if (window == monitor->top_bar_window || window == monitor->bottom_bar_window)
+        if (window == monitor->top_bar_window
+            || window == monitor->bottom_bar_window) {
             return monitor;
+        }
     }
     if ((client = window_to_client(window)))
         return client->monitor;
+
     return current_monitor;
 }
 
