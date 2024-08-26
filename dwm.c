@@ -136,7 +136,7 @@ typedef struct {
 
 typedef struct {
     const char *symbol;
-    void (*arrange)(Monitor *);
+    void (*function)(Monitor *);
 } Layout;
 
 typedef struct Pertag Pertag;
@@ -535,7 +535,7 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
 
     if (resizehints
         || client->is_floating
-        || !client->monitor->layout[client->monitor->lay_i]->arrange) {
+        || !client->monitor->layout[client->monitor->lay_i]->function) {
         if (!client->hintsvalid)
             update_size_hints(client);
 
@@ -605,8 +605,8 @@ arrange_monitor(Monitor *monitor) {
     strncpy(monitor->layout_symbol,
             monitor->layout[monitor->lay_i]->symbol,
             sizeof(monitor->layout_symbol));
-    if (monitor->layout[monitor->lay_i]->arrange)
-        monitor->layout[monitor->lay_i]->arrange(monitor);
+    if (monitor->layout[monitor->lay_i]->function)
+        monitor->layout[monitor->lay_i]->function(monitor);
     return;
 }
 
@@ -623,7 +623,7 @@ aspect_resize(const Arg *arg) {
         return;
 
     if (!client->is_floating
-        && current_monitor->layout[current_monitor->lay_i]->arrange) {
+        && current_monitor->layout[current_monitor->lay_i]->function) {
         return;
     }
 
@@ -1816,7 +1816,7 @@ handler_configure_request(XEvent *event) {
             XSync(display, False);
             return;
         }
-        if (client->is_floating || !current_monitor->layout[current_monitor->lay_i]->arrange) {
+        if (client->is_floating || !current_monitor->layout[current_monitor->lay_i]->function) {
             monitor = client->monitor;
             if (conf_request_event->value_mask & CWX) {
                 client->old_x = client->x;
@@ -2304,14 +2304,14 @@ mouse_move(const Arg *arg) {
             else if (over_y[1] < SNAP_PIXELS)
                 ny = monitor->win_y + monitor->win_h - HEIGHT(client);
 
-            if (!is_floating && monitor->layout[monitor->lay_i]->arrange) {
+            if (!is_floating && monitor->layout[monitor->lay_i]->function) {
                 bool moving_x = abs(nx - client->x) > SNAP_PIXELS;
                 bool moving_y = abs(ny - client->y) > SNAP_PIXELS;
                 if (moving_x || moving_y)
                     toggle_floating(NULL);
             }
 
-            if (!monitor->layout[monitor->lay_i]->arrange || is_floating)
+            if (!monitor->layout[monitor->lay_i]->function || is_floating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
         }
@@ -2415,7 +2415,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
 
     if (!(client->is_floating)) {
         const Layout *layout = current_monitor->layout[current_monitor->lay_i];
-        if (layout->arrange == layout_monocle || n == 1) {
+        if (layout->function == layout_monocle || n == 1) {
             window_changes.border_width = 0;
             client->w = window_changes.width += client->border_pixels*2;
             client->h = window_changes.height += client->border_pixels*2;
@@ -2479,11 +2479,11 @@ mouse_resize(const Arg *arg) {
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
                 && client->monitor->win_y + nh >= current_monitor->win_y
                 && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
-                if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
+                if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->function
                     && (abs(nw - client->w) > SNAP_PIXELS || abs(nh - client->h) > SNAP_PIXELS))
                     toggle_floating(NULL);
             }
-            if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
+            if (!current_monitor->layout[current_monitor->lay_i]->function || client->is_floating)
                 resize(client, client->x, client->y, nw, nh, 1);
             break;
         }
@@ -2517,9 +2517,9 @@ restack(Monitor *m) {
     draw_bar(m);
     if (!m->selected_client)
         return;
-    if (m->selected_client->is_floating || !m->layout[m->lay_i]->arrange)
+    if (m->selected_client->is_floating || !m->layout[m->lay_i]->function)
         XRaiseWindow(display, m->selected_client->window);
-    if (m->layout[m->lay_i]->arrange) {
+    if (m->layout[m->lay_i]->function) {
         window_changes.stack_mode = Below;
         window_changes.sibling = m->top_bar_window;
         for (client = m->stack; client; client = client->stack_next) {
@@ -2728,7 +2728,7 @@ set_master_fact(const Arg *arg) {
 
     if (!arg)
         return;
-    if (!current_monitor->layout[current_monitor->lay_i]->arrange)
+    if (!current_monitor->layout[current_monitor->lay_i]->function)
         return;
 
     if (arg->f < 1.0f)
@@ -2886,9 +2886,11 @@ show_hide(Client *client) {
         }
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
-        if ((!client->monitor->layout[client->monitor->lay_i]->arrange || client->is_floating)
-                && (!client->is_fullscreen || client->is_fake_fullscreen))
+
+        if ((!client->monitor->layout[client->monitor->lay_i]->function || client->is_floating)
+                && (!client->is_fullscreen || client->is_fake_fullscreen)) {
             resize(client, client->x, client->y, client->w, client->h, 0);
+        }
         show_hide(client->stack_next);
     } else {
         /* hide clients bottom up */
@@ -3737,7 +3739,7 @@ promote_to_master(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
-    if (!monitor->layout[monitor->lay_i]->arrange || !client || client->is_floating)
+    if (!monitor->layout[monitor->lay_i]->function || !client || client->is_floating)
         return;
     if (client == next_tiled(monitor->clients) && !(client = next_tiled(client->next)))
         return;
