@@ -3310,6 +3310,7 @@ update_numlock_mask(void) {
 void
 update_size_hints(Client *client) {
     long supplied_return;
+    bool has_maxes;
     XSizeHints size_hints;
 
     if (!XGetWMNormalHints(display, client->window, &size_hints, &supplied_return))
@@ -3353,7 +3354,9 @@ update_size_hints(Client *client) {
     } else {
         client->max_a = client->min_a = 0.0;
     }
-    client->is_fixed = (client->maxw && client->maxh && client->maxw == client->minw && client->maxh == client->minh);
+    has_maxes = client->maxw && client->maxh;
+    mins_match_maxes = client->maxw == client->minw && client->maxh == client->minh;
+    client->is_fixed = has_maxes && mins_match_maxes;
     client->hintsvalid = 1;
     return;
 }
