@@ -3600,32 +3600,32 @@ xerrorstart(Display *d, XErrorEvent *ee) {
 
 void
 xinitvisual(void) {
-    XVisualInfo *infos;
+    XVisualInfo *visual_infos;
     XRenderPictFormat *render_format;
-    int nitems;
-    long masks = VisualScreenMask | VisualDepthMask | VisualClassMask;
+    int nitems_return;
+    long vinfo_mask = VisualScreenMask | VisualDepthMask | VisualClassMask;
 
-    XVisualInfo tpl = {
+    XVisualInfo vinfo_template = {
         .screen = screen,
         .depth = 32,
         .class = TrueColor
     };
 
-    infos = XGetVisualInfo(display, masks, &tpl, &nitems);
+    visual_infos = XGetVisualInfo(display, vinfo_mask, &vinfo_template, &nitems_return);
     visual = NULL;
-    for (int i = 0; i < nitems; i += 1) {
-        render_format = XRenderFindVisualFormat(display, infos[i].visual);
+    for (int i = 0; i < nitems_return; i += 1) {
+        render_format = XRenderFindVisualFormat(display, visual_infos[i].visual);
         if (render_format->type == PictTypeDirect
             && render_format->direct.alphaMask) {
-            visual = infos[i].visual;
-            depth = infos[i].depth;
+            visual = visual_infos[i].visual;
+            depth = visual_infos[i].depth;
             cmap = XCreateColormap(display, root, visual, AllocNone);
             useargb = 1;
             break;
         }
     }
 
-    XFree(infos);
+    XFree(visual_infos);
 
     if (!visual) {
         visual = DefaultVisual(display, screen);
