@@ -1400,8 +1400,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     ulong extra;
     ulong *propreturn = NULL;
     ulong *pixel_find = NULL;
-    uint32 w;
-    uint32 h;
+    uint32 width_find;
+    uint32 height_find;
     uint32 sz = 0;
     Atom real;
 
@@ -1464,23 +1464,23 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         return None;
     }
 
-    w = (uint32) *(pixel_find - 2);
-    h = (uint32) *(pixel_find - 1);
-    if ((w == 0) || (h == 0)) {
+    width_find = (uint32) pixel_find[-2];
+    height_find = (uint32) pixel_find[-1];
+    if ((width_find == 0) || (height_find == 0)) {
         XFree(propreturn);
         return None;
     }
 
     uint32 icon_width;
     uint32 icon_height;
-    if (w <= h) {
+    if (width_find <= height_find) {
         icon_height = ICONSIZE;
-        icon_width = w*ICONSIZE / h;
+        icon_width = width_find*ICONSIZE / height_find;
         if (icon_width == 0)
             icon_width = 1;
     } else {
         icon_width = ICONSIZE;
-        icon_height = h*ICONSIZE / w;
+        icon_height = height_find*ICONSIZE / width_find;
         if (icon_height == 0)
             icon_height = 1;
     }
@@ -1488,7 +1488,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     *picture_height = icon_height;
 
     uint32 *pixel_find32 = (uint32 *)pixel_find;
-    for (uint32 i = 0; i < w*h; i += 1) {
+    for (uint32 i = 0; i < width_find*height_find; i += 1) {
         uint32 pixel = (uint32) pixel_find[i];
         uint8 a = pixel >> 24u;
         uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
@@ -1497,7 +1497,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     }
 
     Picture ret = drw_picture_create_resized(drw, (char *)pixel_find,
-                                             w, h, icon_width, icon_height);
+                                             width_find, height_find,
+                                             icon_width, icon_height);
     XFree(propreturn);
 
     return ret;
