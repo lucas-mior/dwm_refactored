@@ -150,8 +150,8 @@ struct Monitor {
     uint seltags;
     uint layout_index;
     uint tagset[2];
-    int top_bar;
-    int bottom_bar;
+    int show_top_bar;
+    int show_bottom_bar;
     Client *clients;
     Client *selected_client;
     Client *stack;
@@ -724,8 +724,8 @@ create_monitor(void) {
     monitor->tagset[0] = monitor->tagset[1] = 1;
     monitor->master_fact = master_fact;
     monitor->nmaster = nmaster;
-    monitor->top_bar = top_bar;
-    monitor->bottom_bar = bottom_bar;
+    monitor->show_top_bar = show_top_bar;
+    monitor->show_bottom_bar = show_bottom_bar;
     monitor->layout[0] = &layouts[0];
     monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
     strncpy(monitor->layout_symbol,
@@ -742,7 +742,7 @@ create_monitor(void) {
         monitor->pertag->layout_tags_indexes[i][1] = monitor->layout[1];
         monitor->pertag->selected_layouts[i] = monitor->layout_index;
 
-        monitor->pertag->top_bars[i] = monitor->top_bar;
+        monitor->pertag->top_bars[i] = monitor->show_top_bar;
     }
 
     return monitor;
@@ -842,7 +842,7 @@ draw_bar(Monitor *monitor) {
     char *masterclientontag[LENGTH(tags)];
     Client *icontagclient[LENGTH(tags)] = {0};
 
-    if (!monitor->top_bar)
+    if (!monitor->show_top_bar)
         return;
 
     /* draw status first so it can be overdrawn by tags later */
@@ -2864,7 +2864,7 @@ toggle_top_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
-    monitor->top_bar = monitor->pertag->top_bars[monitor->pertag->current_tag] = !monitor->top_bar;
+    monitor->show_top_bar = monitor->pertag->top_bars[monitor->pertag->current_tag] = !monitor->show_top_bar;
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->top_bar_window,
                       monitor->win_x, monitor->bar_y,
@@ -2878,7 +2878,7 @@ toggle_bottom_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
-    monitor->bottom_bar = !monitor->bottom_bar;
+    monitor->show_bottom_bar = !monitor->show_bottom_bar;
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->bottom_bar_window,
                       monitor->win_x, monitor->bottom_bar_y,
@@ -3034,7 +3034,7 @@ toggle_view(const Arg *arg) {
         monitor->layout[monitor->layout_index^1]
             = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
-        if (monitor->top_bar != monitor->pertag->top_bars[current_tag])
+        if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
             toggle_top_bar(NULL);
 
         focus(NULL);
@@ -3144,7 +3144,7 @@ update_bar_position(Monitor *monitor) {
     monitor->win_y = monitor->mon_y;
     monitor->win_h = monitor->mon_h;
 
-    if (monitor->top_bar) {
+    if (monitor->show_top_bar) {
         monitor->win_h -= bar_height;
         monitor->bar_y = monitor->win_y;
         monitor->win_y = monitor->win_y + bar_height;
@@ -3152,7 +3152,7 @@ update_bar_position(Monitor *monitor) {
         monitor->bar_y = - (int) bar_height;
     }
 
-    if (monitor->bottom_bar) {
+    if (monitor->show_bottom_bar) {
         monitor->win_h -= bar_height;
         monitor->bottom_bar_y = monitor->win_y + monitor->win_h;
         monitor->win_y = monitor->win_y;
@@ -3464,7 +3464,7 @@ view(const Arg *arg) {
     monitor->layout[monitor->layout_index^1]
         = monitor->pertag->layout_tags_indexes[current_tag][monitor->layout_index^1];
 
-    if (monitor->top_bar != monitor->pertag->top_bars[current_tag])
+    if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
         toggle_top_bar(NULL);
 
     focus(NULL);
