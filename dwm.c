@@ -1396,32 +1396,35 @@ get_status_bar_pid(void) {
 Picture
 get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     int format;
-    ulong n;
+    ulong nitems_return;
     ulong extra;
     ulong *propreturn = NULL;
     ulong *pixel_find = NULL;
     uint32 width_find;
     uint32 height_find;
-    uint32 sz = 0;
+    uint32 icon_width;
+    uint32 icon_height;
+    uint32 area_find = 0;
     Atom real;
 
     if (XGetWindowProperty(display, win, netatom[NetWMIcon],
                            0L, LONG_MAX, False, AnyPropertyType,
-                           &real, &format, &n, &extra, (uchar **)&propreturn) != Success) {
+                           &real, &format,
+                           &nitems_return, &extra, (uchar **)&propreturn) != Success) {
         return None;
     }
-    if (n == 0 || format != 32) {
+    if (nitems_return == 0 || format != 32) {
         XFree(propreturn);
         return None;
     }
 
     do {
         ulong *i;
-        const ulong *end = propreturn + n;
+        const ulong *end = propreturn + nitems_return;
         uint32 bstd = UINT32_MAX;
         uint32 d;
 
-        for (i = propreturn; i < (end - 1); i += sz) {
+        for (i = propreturn; i < (end - 1); i += area_find) {
             uint32 max_dim;
             uint32 w = (uint32)*i++;
             uint32 h = (uint32)*i++;
@@ -1429,7 +1432,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
                 XFree(propreturn);
                 return None;
             }
-            if ((sz = w*h) > (end - i))
+            if ((area_find = w*h) > (end - i))
                 break;
 
             max_dim = w > h ? w : h;
@@ -1440,7 +1443,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         }
         if (pixel_find)
             break;
-        for (i = propreturn; i < (end - 1); i += sz) {
+        for (i = propreturn; i < (end - 1); i += area_find) {
             uint32 max_dim;
             uint32 w = (uint32)*i++;
             uint32 h = (uint32)*i++;
@@ -1448,7 +1451,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
                 XFree(propreturn);
                 return None;
             }
-            if ((sz = w*h) > (end - i))
+            if ((area_find = w*h) > (end - i))
                 break;
 
             max_dim = w > h ? w : h;
@@ -1471,8 +1474,6 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         return None;
     }
 
-    uint32 icon_width;
-    uint32 icon_height;
     if (width_find <= height_find) {
         icon_height = ICONSIZE;
         icon_width = width_find*ICONSIZE / height_find;
