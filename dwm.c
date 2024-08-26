@@ -242,7 +242,7 @@ static void scan(void);
 static bool send_event(Client *, Atom proto);
 static void send_monitor(Client *, Monitor *);
 static void set_client_state(Client *, long state);
-static void set_client_tag_(Client *);
+static void set_client_tag_prop(Client *);
 static void set_focus(Client *);
 static void set_fullscreen(Client *, int fullscreen);
 static void set_layout(const Arg *);
@@ -2112,7 +2112,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
         if (nitems_return > 0)
             XFree(data);
     }
-    set_client_tag_(client);
+    set_client_tag_prop(client);
 
     client->stored_fx = client->x;
     client->stored_fy = client->y;
@@ -2457,7 +2457,7 @@ send_monitor(Client *client, Monitor *m) {
     client->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
     attach(client);
     attach_stack(client);
-    set_client_tag_(client);
+    set_client_tag_prop(client);
     focus(NULL);
     arrange(NULL);
     return;
@@ -2755,7 +2755,7 @@ signal_status_bar(const Arg *arg) {
 }
 
 void
-set_client_tag_(Client *client) {
+set_client_tag_prop(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
     XChangeProperty(display, client->window, netatom[NetClientInfo],
                     XA_CARDINAL, 32, PropModeReplace, (uchar *) data, 2);
@@ -2767,7 +2767,7 @@ tag(const Arg *arg) {
     if (current_monitor->selected_client && arg->ui & TAGMASK) {
         Client *client = current_monitor->selected_client;
         client->tags = arg->ui & TAGMASK;
-        set_client_tag_(client);
+        set_client_tag_prop(client);
         focus(NULL);
         arrange(current_monitor);
     }
@@ -2929,7 +2929,7 @@ toggle_tag(const Arg *arg) {
     newtags = current_monitor->selected_client->tags ^ (arg->ui & TAGMASK);
     if (newtags) {
         current_monitor->selected_client->tags = newtags;
-        set_client_tag_(current_monitor->selected_client);
+        set_client_tag_prop(current_monitor->selected_client);
         focus(NULL);
         arrange(current_monitor);
     }
