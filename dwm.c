@@ -1741,7 +1741,7 @@ handler_client_message(XEvent *e) {
 void
 handler_configure_request(XEvent *e) {
     Client *client;
-    Monitor *m;
+    Monitor *monitor;
     XConfigureRequestEvent *event = &e->xconfigurerequest;
     XWindowChanges window_changes;
 
@@ -1752,14 +1752,14 @@ handler_configure_request(XEvent *e) {
             return;
         }
         if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
-            m = client->monitor;
+            monitor = client->monitor;
             if (event->value_mask & CWX) {
                 client->old_x = client->x;
-                client->x = m->mon_x + event->x;
+                client->x = monitor->mon_x + event->x;
             }
             if (event->value_mask & CWY) {
                 client->old_y = client->y;
-                client->y = m->mon_y + event->y;
+                client->y = monitor->mon_y + event->y;
             }
             if (event->value_mask & CWWidth) {
                 client->old_w = client->w;
@@ -1769,10 +1769,10 @@ handler_configure_request(XEvent *e) {
                 client->old_h = client->h;
                 client->h = event->height;
             }
-            if ((client->x + client->w) > m->mon_x + m->mon_w && client->isfloating)
-                client->x = m->mon_x + (m->mon_w / 2 - WIDTH(client) / 2);
-            if ((client->y + client->h) > m->mon_y + m->mon_h && client->isfloating)
-                client->y = m->mon_y + (m->mon_h / 2 - HEIGHT(client) / 2);
+            if ((client->x + client->w) > monitor->mon_x + monitor->mon_w && client->isfloating)
+                client->x = monitor->mon_x + (monitor->mon_w / 2 - WIDTH(client) / 2);
+            if ((client->y + client->h) > monitor->mon_y + monitor->mon_h && client->isfloating)
+                client->y = monitor->mon_y + (monitor->mon_h / 2 - HEIGHT(client) / 2);
             if ((event->value_mask & (CWX|CWY)) && !(event->value_mask & (CWWidth|CWHeight)))
                 configure(client);
             if (ISVISIBLE(client))
