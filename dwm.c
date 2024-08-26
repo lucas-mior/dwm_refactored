@@ -3169,6 +3169,7 @@ update_bars(void) {
                                    0, depth, InputOutput, visual,
                                    value_mask, &window_attributes);
             monitor->top_bar_window = window;
+
             XDefineCursor(display, monitor->top_bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->top_bar_window);
             XSetClassHint(display, monitor->top_bar_window, &ch);
@@ -3180,6 +3181,7 @@ update_bars(void) {
                                    0, depth, InputOutput, visual,
                                    value_mask, &window_attributes);
             monitor->bottom_bar_window = window;
+
             XDefineCursor(display, monitor->bottom_bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->bottom_bar_window);
             XSetClassHint(display, monitor->bottom_bar_window, &ch);
