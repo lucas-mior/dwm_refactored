@@ -2513,25 +2513,29 @@ scan(void) {
     Window *children_return = NULL;
     uint nchildren_return;
     XWindowAttributes window_attributes;
+    int sucess;
 
-    if (XQueryTree(display, root, &d1, &d2, &children_return, &nchildren_return)) {
-        for (uint i = 0; i < nchildren_return; i += 1) {
-            if (!XGetWindowAttributes(display, children_return[i], &window_attributes)
-            || window_attributes.override_redirect || XGetTransientForHint(display, children_return[i], &d1))
-                continue;
-            if (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState)
-                manage(children_return[i], &window_attributes);
-        }
-        for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
-            if (!XGetWindowAttributes(display, children_return[i], &window_attributes))
-                continue;
-            if (XGetTransientForHint(display, children_return[i], &d1)
-            && (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState))
-                manage(children_return[i], &window_attributes);
-        }
-        if (children_return)
-            XFree(children_return);
+    sucess = XQueryTree(display, root, &d1, &d2,
+                        &children_return, &nchildren_return);
+    if (!sucess)
+        return;
+
+    for (uint i = 0; i < nchildren_return; i += 1) {
+        if (!XGetWindowAttributes(display, children_return[i], &window_attributes)
+        || window_attributes.override_redirect || XGetTransientForHint(display, children_return[i], &d1))
+            continue;
+        if (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState)
+            manage(children_return[i], &window_attributes);
     }
+    for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
+        if (!XGetWindowAttributes(display, children_return[i], &window_attributes))
+            continue;
+        if (XGetTransientForHint(display, children_return[i], &d1)
+        && (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState))
+            manage(children_return[i], &window_attributes);
+    }
+    if (children_return)
+        XFree(children_return);
     return;
 }
 
@@ -3358,7 +3362,8 @@ update_size_hints(Client *client) {
     }
 
     has_maxes = client->maxw && client->maxh;
-    mins_match_maxes = client->maxw == client->minw && client->maxh == client->minh;
+    mins_match_maxes = client->maxw == client->minw
+                       && client->maxh == client->minh;
     client->is_fixed = has_maxes && mins_match_maxes;
 
     client->hintsvalid = 1;
