@@ -374,9 +374,9 @@ alt_tab(const Arg *arg) {
     focus_next(&(Arg){ .i = alt_tab_direction });
 
     for (int i = 0; i < 100; i += 1) {
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = 1000000;
+        struct timespec pause;
+        pause.tv_sec = 0;
+        pause.tv_nsec = 1000000;
 
         if (grabbed_keyboard != GrabSuccess) {
             grabbed_keyboard = XGrabKeyboard(display, DefaultRootWindow(display), True,
@@ -388,7 +388,7 @@ alt_tab(const Arg *arg) {
                         None, None);
             break;
         }
-        nanosleep(&ts, NULL);
+        nanosleep(&pause, NULL);
         if (i == 100 - 1)
             grabbed = 0;
     }
