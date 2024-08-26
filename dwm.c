@@ -152,7 +152,7 @@ struct Monitor {
     uint tagset[2];
     int showbar;
     int topbar;
-    int extrabar;
+    int bottom_bar;
     Client *clients;
     Client *selected_client;
     Client *stack;
@@ -726,7 +726,7 @@ create_monitor(void) {
     monitor->nmaster = nmaster;
     monitor->showbar = showbar;
     monitor->topbar = topbar;
-    monitor->extrabar = extrabar;
+    monitor->bottom_bar = bottom_bar;
     monitor->layout[0] = &layouts[0];
     monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
     strncpy(monitor->layout_symbol,
@@ -2859,7 +2859,7 @@ toggle_extra_bar(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
-    monitor->extrabar = !monitor->extrabar;
+    monitor->bottom_bar = !monitor->bottom_bar;
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->extra_bar_window,
                       monitor->win_x, monitor->bottom_bar_y,
@@ -3133,7 +3133,7 @@ update_bar_position(Monitor *monitor) {
         monitor->bar_y = - (int) bar_height;
     }
 
-    if (monitor->extrabar) {
+    if (monitor->bottom_bar) {
         monitor->win_h -= bar_height;
         monitor->bottom_bar_y = !monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
         monitor->win_y = !monitor->topbar ? monitor->win_y + bar_height : monitor->win_y;
