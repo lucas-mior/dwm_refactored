@@ -23,16 +23,16 @@ static const char *fonts[]          = {
 };
 static const char *colors[][3]      = {
 	/*               fg         bg         border  */
-	[SchemeNorm] = { "#ffffff", "#000000",   "#000000" },
-	[SchemeInv]  = { "#000000", "#004400", "#000000" },
-	[SchemeSel]  = { "#ffffff", "#004400", "green"   },
-	[SchemeUrg]  = { "red",     "red",     "red"     },
+	[SchemeNormal] = { "#ffffff", "#000000",   "#000000" },
+	[SchemeInverse]  = { "#000000", "#004400", "#000000" },
+	[SchemeSelected]  = { "#ffffff", "#004400", "green"   },
+	[SchemeUrgent]  = { "red",     "red",     "red"     },
 };
 static const unsigned int alphas[][3] = {
 	/*               fg      bg    border */
-	[SchemeNorm] = { OPAQUE, 0xbb, 0x00   },
-	[SchemeSel]  = { OPAQUE, 0xbb, OPAQUE },
-	[SchemeUrg]  = { OPAQUE, 0xbb, OPAQUE },
+	[SchemeNormal] = { OPAQUE, 0xbb, 0x00   },
+	[SchemeSelected]  = { OPAQUE, 0xbb, OPAQUE },
+	[SchemeUrgent]  = { OPAQUE, 0xbb, OPAQUE },
 };
 
 typedef struct {

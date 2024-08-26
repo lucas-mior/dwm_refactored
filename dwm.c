@@ -75,7 +75,7 @@ typedef unsigned char uchar;
 
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
-enum { SchemeNorm, SchemeInv, SchemeSel, SchemeUrg }; /* color schemes */
+enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType, /* EWMH atoms */
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast };
@@ -848,7 +848,7 @@ draw_bar(Monitor *monitor) {
     /* draw status first so it can be overdrawn by tags later */
     if (monitor == current_monitor) { /* status is only drawn on selected monitor */
         char *text, *s, ch;
-        drw_setscheme(drw, scheme[SchemeNorm]);
+        drw_setscheme(drw, scheme[SchemeNormal]);
 
         x = 0;
         for (text = s = stext; *s; s += 1) {
@@ -891,6 +891,7 @@ draw_bar(Monitor *monitor) {
     x = 0;
     for (int i = 0; i < LENGTH(tags); i += 1) {
         Client *client = icontagclient[i];
+        uint which_scheme;
 
         if (masterclientontag[i]) {
             if (client) {
@@ -903,7 +904,13 @@ draw_bar(Monitor *monitor) {
             snprintf(tagdisp, TAGWIDTH, tag_empty_format, tags[i]);
         }
         tag_width[i] = w = (int) TEXT_PIXELS(tagdisp);
-        drw_setscheme(drw, scheme[monitor->tagset[monitor->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+
+        if (monitor->tagset[monitor->seltags] & 1 << i)
+            which_scheme = SchemeSelected;
+        else
+            which_scheme = SchemeNormal;
+        drw_setscheme(drw, scheme[which_scheme]);
+
         drw_text(drw, x, 0, (uint) w,
                  bar_height, lrpad / 2, tagdisp, (int) urgent & 1 << i);
         x += w;
@@ -919,7 +926,7 @@ draw_bar(Monitor *monitor) {
         }
     }
     w = (int) TEXT_PIXELS(monitor->layout_symbol);
-    drw_setscheme(drw, scheme[SchemeNorm]);
+    drw_setscheme(drw, scheme[SchemeNormal]);
     x = drw_text(drw, x, 0, (uint) w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - text_pixels - x) > (int) bar_height) {
@@ -927,21 +934,21 @@ draw_bar(Monitor *monitor) {
         int boxw = drw->fonts->h / 6 + 2;
 
         if (monitor->selected_client) {
-            drw_setscheme(drw, scheme[monitor == current_monitor ? SchemeSel : SchemeNorm]);
+            drw_setscheme(drw, scheme[monitor == current_monitor ? SchemeSelected : SchemeNormal]);
             drw_text(drw, x, 0, (uint) w, bar_height, lrpad / 2, monitor->selected_client->name, 0);
             if (monitor->selected_client->isfloating)
                 drw_rect(drw, x + boxs, boxs,
                          (uint) boxw, (uint) boxw,
                          monitor->selected_client->isfixed, 0);
         } else {
-            drw_setscheme(drw, scheme[SchemeNorm]);
+            drw_setscheme(drw, scheme[SchemeNormal]);
             drw_rect(drw, x, 0, (uint) w, bar_height, 1, 1);
         }
     }
     drw_map(drw, monitor->bar_window, 0, 0, (uint) monitor->win_w, bar_height);
 
     if (monitor == current_monitor) { /* extra status is only drawn on selected monitor */
-        drw_setscheme(drw, scheme[SchemeNorm]);
+        drw_setscheme(drw, scheme[SchemeNormal]);
         /* clear default bar draw buffer by drawing a blank rectangle */
         drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
         extra_status_width = (int) TEXT_PIXELS(extra_status);
@@ -972,7 +979,7 @@ focus(Client *client) {
         detach_stack(client);
         attach_stack(client);
         grab_buttons(client, 1);
-        XSetWindowBorder(display, client->window, scheme[SchemeSel][ColBorder].pixel);
+        XSetWindowBorder(display, client->window, scheme[SchemeSelected][ColBorder].pixel);
         set_focus(client);
     } else {
         XSetInputFocus(display, current_monitor->bar_window, RevertToPointerRoot, CurrentTime);
@@ -2059,7 +2066,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
 
     window_changes.border_width = client->border_width;
     XConfigureWindow(display, window, CWBorderWidth, &window_changes);
-    XSetWindowBorder(display, window, scheme[SchemeNorm][ColBorder].pixel);
+    XSetWindowBorder(display, window, scheme[SchemeNormal][ColBorder].pixel);
     configure(client); /* propagates border_width, if size doesn't change */
     update_window_type(client);
     update_size_hints(client);
@@ -2459,7 +2466,7 @@ send_event(Client *client, Atom proto) {
         event.xclient.window = client->window;
         event.xclient.message_type = wmatom[WMProtocols];
         event.xclient.format = 32;
-        event.xclient.data.l[0] = proto;
+        event.xclient.data.l[0] = (long) proto;
         event.xclient.data.l[1] = CurrentTime;
         XSendEvent(display, client->window, False, NoEventMask, &event);
     }
@@ -2587,7 +2594,8 @@ setup(void) {
     root = RootWindow(display, screen);
     xinitvisual();
     drw = drw_create(display, screen, root,
-                     screen_width, screen_height, visual, depth, cmap);
+                     (uint) screen_width, (uint) screen_height,
+                     visual, (uint) depth, cmap);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
         die("no fonts could be loaded.");
     lrpad = drw->fonts->h / 2;
@@ -2962,7 +2970,7 @@ unfocus(Client *client, int set_focus) {
     if (!client)
         return;
     grab_buttons(client, 0);
-    XSetWindowBorder(display, client->window, scheme[SchemeNorm][ColBorder].pixel);
+    XSetWindowBorder(display, client->window, scheme[SchemeNormal][ColBorder].pixel);
     if (set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
@@ -3062,7 +3070,7 @@ update_bar_position(Monitor *monitor) {
         monitor->extra_bar_y = !monitor->topbar ? monitor->win_y : monitor->win_y + monitor->win_h;
         monitor->win_y = !monitor->topbar ? monitor->win_y + bar_height : monitor->win_y;
     } else {
-        monitor->extra_bar_y = -bar_height;
+        monitor->extra_bar_y = - (int) bar_height;
     }
     return;
 }
@@ -3101,9 +3109,9 @@ update_geometry(void) {
         }
 
         /* only consider unique geometries as separate screens */
-        unique = ecalloc(nn, sizeof(*unique));
+        unique = ecalloc((size_t) nn, sizeof(*unique));
         for (i = 0, j = 0; i < nn; i += 1) {
-            if (is_unique_geometry(unique, j, &info[i]))
+            if (is_unique_geometry(unique, (size_t) j, &info[i]))
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
         }
         XFree(info);
@@ -3238,7 +3246,7 @@ update_status(void) {
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(stext, "dwm-"VERSION);
-        statusw = TEXT_PIXELS(stext) - lrpad + 2;
+        statusw = (int) (TEXT_PIXELS(stext) - lrpad + 2);
         extra_status[0] = '\0';
         draw_bar(current_monitor);
         return;
@@ -3313,7 +3321,7 @@ update_wm_hints(Client *client) {
         } else {
             client->isurgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
             if (client->isurgent)
-                XSetWindowBorder(display, client->window, scheme[SchemeUrg][ColBorder].pixel);
+                XSetWindowBorder(display, client->window, scheme[SchemeUrgent][ColBorder].pixel);
         }
         if (wm_hints->flags & InputHint)
             client->neverfocus = !wm_hints->input;
