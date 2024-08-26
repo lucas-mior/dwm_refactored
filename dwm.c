@@ -1236,9 +1236,9 @@ layout_gapless_grid(Monitor *monitor) {
     nrows = nclients/ncolumns;
 
     if (ncolumns == 0)
-        column_width = monitor->win_w;
+        column_width = (uint) monitor->win_w;
     else
-        column_width = monitor->win_w / ncolumns;
+        column_width = (uint) monitor->win_w / ncolumns;
 
     col_i = 0;
     row_i = 0;
@@ -1246,14 +1246,22 @@ layout_gapless_grid(Monitor *monitor) {
                  client;
                  client = next_tiled(client->next)) {
         uint client_height;
+        int new_x;
+        int new_y;
+        int new_w;
+        int new_h;
 
         if ((i/nrows + 1) > (ncolumns - nclients % ncolumns))
             nrows = nclients/ncolumns + 1;
 
-        client_height = monitor->win_h / nrows;
+        client_height = (uint) monitor->win_h / nrows;
+        new_x = (int) monitor->win_x + col_i*column_width;
+        new_y = (int) monitor->win_y + row_i*client_height;
+        new_w = (int) column_width - 2*client->border_width;
+        new_h = (int) client_height - 2*client->border_width;
+
         resize(client,
-               monitor->win_x + col_i*column_width, monitor->win_y + row_i*client_height,
-               column_width - 2*client->border_width, client_height - 2*client->border_width,
+               new_x, new_y, new_w, new_h,
                False);
 
         row_i += 1;
@@ -1306,10 +1314,14 @@ layout_tile(Monitor *m) {
     if (n == 0)
         return;
 
-    if (n > m->nmaster)
-        mon_w = (uint) (m->nmaster ? (float)m->win_w*m->master_fact : 0);
-    else
-        mon_w = m->win_w;
+    if (n > m->nmaster) {
+        if (m->nmaster != 0)
+            mon_w = (int) ((float)m->win_w*m->master_fact);
+        else
+            mon_w = 0;
+    } else {
+        mon_w = (uint) m->win_w;
+    }
 
     for (Client *client = next_tiled(m->clients);
                  client;
