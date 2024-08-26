@@ -1008,20 +1008,24 @@ focus_direction(const Arg *arg) {
         switch (arg->i) {
         case 0: // left
             dist = selected->x - client->x - client->w;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w)) + abs(selected->y - client->y);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
+            client_score += abs(selected->y - client->y);
             break;
         case 1: // right
             dist = client->x - selected->x - selected->w;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w)) + abs(client->y - selected->y);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
+            client_score += abs(client->y - selected->y);
             break;
         case 2: // up
             dist = selected->y - client->y - client->h;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h)) + abs(selected->x - client->x);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
+            client_score += abs(selected->x - client->x);
             break;
         default:
         case 3: // down
             dist = client->y - selected->y - selected->h;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h)) + abs(client->x - selected->x);
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
+            client_score += abs(client->x - selected->x);
             break;
         }
 
@@ -1155,9 +1159,9 @@ void
 layout_columns(Monitor *monitor) {
     int i = 0;
     int n = 0;
-    uint x = 0;
-    uint y = 0;
-    uint mon_w;
+    int x = 0;
+    int y = 0;
+    int mon_w;
 
     for (Client *client_aux = next_tiled(monitor->clients);
                  client_aux;
@@ -1168,9 +1172,9 @@ layout_columns(Monitor *monitor) {
         return;
 
     if (n > monitor->nmaster)
-        mon_w = (uint) (monitor->nmaster ? (float)monitor->win_w*monitor->master_fact : 0);
+        mon_w = (monitor->nmaster ? (float)monitor->win_w*monitor->master_fact : 0);
     else
-        mon_w = (uint) monitor->win_w;
+        mon_w = monitor->win_w;
 
     for (Client *client = next_tiled(monitor->clients);
                  client;
