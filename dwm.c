@@ -1796,17 +1796,17 @@ handler_configure_request(XEvent *e) {
 }
 
 void
-handler_configure_notify(XEvent *e) {
-    XConfigureEvent *event = &e->xconfigure;
+handler_configure_notify(XEvent *event) {
+    XConfigureEvent *configure_event = &event->xconfigure;
     int dirty;
 
-    if (event->window != root)
+    if (configure_event->window != root)
         return;
 
     /* TODO: update_geometry handling sucks, needs to be simplified */
-    dirty = (screen_width != event->width || screen_height != event->height);
-    screen_width = event->width;
-    screen_height = event->height;
+    dirty = (screen_width != configure_event->width || screen_height != configure_event->height);
+    screen_width = configure_event->width;
+    screen_height = configure_event->height;
     if (update_geometry() || dirty) {
         drw_resize(drw, (uint) screen_width, bar_height);
         update_bars();
