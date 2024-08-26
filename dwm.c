@@ -2099,14 +2099,18 @@ is_unique_geometry(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *inf
 void
 kill_client(const Arg *arg) {
     (void) arg;
+
     if (!current_monitor->selected_client)
         return;
+
     if (!send_event(current_monitor->selected_client, wmatom[WMDelete])) {
         XGrabServer(display);
         XSetErrorHandler(xerrordummy);
         XSetCloseDownMode(display, DestroyAll);
+
         XKillClient(display, current_monitor->selected_client->window);
         XSync(display, False);
+
         XSetErrorHandler(xerror);
         XUngrabServer(display);
     }
