@@ -1211,10 +1211,9 @@ layout_gapless_grid(Monitor *monitor) {
     uint nclients = 0;
     uint ncolumns = 0;
     uint nrows;
-    uint cn;
-    uint rn;
+    uint col_i;
+    uint row_i;
     uint column_width;
-    uint ch;
     uint i = 0;
 
     for (Client *client = next_tiled(monitor->clients);
@@ -1236,24 +1235,31 @@ layout_gapless_grid(Monitor *monitor) {
         ncolumns = 2;
     nrows = nclients/ncolumns;
 
-    /* window geometries */
-    column_width = ncolumns ? monitor->win_w / ncolumns : monitor->win_w;
-    cn = 0; /* current column number */
-    rn = 0; /* current row number */
+    if (ncolumns == 0)
+        column_width = monitor->win_w;
+    else
+        column_width = monitor->win_w / ncolumns;
+
+    col_i = 0;
+    row_i = 0;
     for (Client *client = next_tiled(monitor->clients);
                  client;
                  client = next_tiled(client->next)) {
-        if (i/nrows + 1 > ncolumns - nclients%ncolumns)
+        uint client_height;
+
+        if ((i/nrows + 1) > (ncolumns - nclients % ncolumns))
             nrows = nclients/ncolumns + 1;
-        ch = nrows ? monitor->win_h / nrows : monitor->win_h;
+
+        client_height = monitor->win_h / nrows;
         resize(client,
-               monitor->win_x + cn*column_width, monitor->win_y + rn*ch,
-               column_width - 2*client->border_width, ch - 2*client->border_width,
+               monitor->win_x + col_i*column_width, monitor->win_y + row_i*client_height,
+               column_width - 2*client->border_width, client_height - 2*client->border_width,
                False);
-        rn += 1;
-        if (rn >= nrows) {
-            rn = 0;
-            cn += 1;
+
+        row_i += 1;
+        if (row_i >= nrows) {
+            row_i = 0;
+            col_i += 1;
         }
         i += 1;
     }
