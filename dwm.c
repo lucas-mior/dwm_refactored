@@ -2186,16 +2186,25 @@ manage(Window window, XWindowAttributes *window_attributes) {
     client->stored_fh = client->h;
     client->x = client->monitor->mon_x + (client->monitor->mon_w - WIDTH(client)) / 2;
     client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
-    XSelectInput(display, window, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
+
+    XSelectInput(display, window,
+                 EnterWindowMask
+                 |FocusChangeMask
+                 |PropertyChangeMask
+                 |StructureNotifyMask);
+
     grab_buttons(client, 0);
+
     if (!client->is_floating)
         client->is_floating = client->old_state = trans != None || client->is_fixed;
     if (client->is_floating)
         XRaiseWindow(display, client->window);
+
     attach(client);
     attach_stack(client);
-    XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
-        (uchar *) &(client->window), 1);
+
+    XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW,
+                    32, PropModeAppend, (uchar *) &(client->window), 1);
 
     /* some windows require this */
     XMoveResizeWindow(display, client->window,
