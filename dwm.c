@@ -1218,8 +1218,10 @@ layout_gapless_grid(Monitor *monitor) {
     uint i = 0;
 
     for (Client *client = next_tiled(monitor->clients);
-         client;
-         client = next_tiled(client->next), n += 1);
+                 client;
+                 client = next_tiled(client->next)) {
+        n += 1;
+    }
     if (n == 0)
         return;
 
