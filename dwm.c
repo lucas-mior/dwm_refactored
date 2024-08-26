@@ -1400,7 +1400,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     ulong extra;
     ulong *propreturn = NULL;
     ulong *pixel_find = NULL;
-    uint32 w, h;
+    uint32 w;
+    uint32 h;
     uint32 sz = 0;
     Atom real;
 
@@ -1422,7 +1423,9 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
 
         for (i = propreturn; i < (end - 1); i += sz) {
             uint32 max_dim;
-            if ((w = (uint32)*i++) >= 16384 || (h = (uint32)*i++) >= 16384) {
+            uint32 w = (uint32)*i++;
+            uint32 h = (uint32)*i++;
+            if (w >= 16384 || h >= 16384) {
                 XFree(propreturn);
                 return None;
             }
@@ -1439,7 +1442,9 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
             break;
         for (i = propreturn; i < (end - 1); i += sz) {
             uint32 max_dim;
-            if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
+            uint32 w = (uint32)*i++;
+            uint32 h = (uint32)*i++;
+            if (w >= 16384 || h >= 16384) {
                 XFree(propreturn);
                 return None;
             }
