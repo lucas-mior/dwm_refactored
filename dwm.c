@@ -81,7 +81,7 @@ enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast };
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* atoms */
 enum { ClickTagBar, ClickLayoutSymbol, ClickStatusText, ClickWinTitle,
-       ClickExtraBar, ClickClientWin, ClickRootWin, ClickLast };
+       ClickBottomBar, ClickClientWin, ClickRootWin, ClickLast };
 
 typedef union {
     int i;
@@ -1717,7 +1717,7 @@ handler_button_press(XEvent *event) {
         int x = current_monitor->win_w - extra_status_pixels;
         char *s = &extra_status[0];
 
-        click = ClickExtraBar;
+        click = ClickBottomBar;
         statussig = 0;
 
         for (char *text = s; *s && x <= button_event->x; s += 1) {
