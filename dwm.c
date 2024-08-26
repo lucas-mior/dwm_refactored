@@ -229,7 +229,7 @@ static void layout_gapless_grid(Monitor *);
 static void layout_monocle(Monitor *);
 static void layout_tile(Monitor *);
 static void manage(Window, XWindowAttributes *window_attributes);
-static void move_mouse(const Arg *);
+static void mouse_move(const Arg *);
 static Client *next_tiled(Client *);
 static void pop(Client *);
 static void promote_to_master(const Arg *);
@@ -237,7 +237,7 @@ static void quit_dwm(const Arg *);
 static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *, int x, int y, int w, int h, int interact);
 static void resize_client(Client *, int x, int y, int w, int h);
-static void resize_mouse(const Arg *);
+static void mouse_resize(const Arg *);
 static void restack(Monitor *);
 static void run(void);
 static void scan_windows(void);
@@ -2238,7 +2238,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
 }
 
 void
-move_mouse(const Arg *arg) {
+mouse_move(const Arg *arg) {
     int x, y;
     int ocx, ocy;
     Client *client;
@@ -2430,7 +2430,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
 }
 
 void
-resize_mouse(const Arg *arg) {
+mouse_resize(const Arg *arg) {
     int ocx, ocy;
     Client *client;
     Monitor *monitor;
