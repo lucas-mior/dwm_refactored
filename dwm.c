@@ -969,10 +969,16 @@ draw_bars(void) {
 
 void
 focus(Client *client) {
-    if (!client || !ISVISIBLE(client))
-        for (client = current_monitor->stack; client && !ISVISIBLE(client); client = client->snext);
-    if (current_monitor->selected_client && current_monitor->selected_client != client)
-        unfocus(current_monitor->selected_client, 0);
+    Client *selected = current_monitor->selected_client;
+    if (!client || !ISVISIBLE(client)) {
+        for (client = current_monitor->stack;
+             client && !ISVISIBLE(client);
+             client = client->snext);
+    }
+
+    if (selected && selected != client)
+        unfocus(selected, 0);
+
     if (client) {
         if (client->monitor != current_monitor)
             current_monitor = client->monitor;
@@ -987,6 +993,7 @@ focus(Client *client) {
         XSetInputFocus(display, current_monitor->bar_window, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
+
     current_monitor->selected_client = client;
     draw_bars();
     return;
@@ -2578,13 +2585,13 @@ void
 setup_once(void) {
     XSetWindowAttributes window_attributes;
     Atom utf8string;
-    struct sigaction sa;
+    struct sigaction sig_action;
 
     /* do not transform children into zombies when they terminate */
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_NOCLDSTOP | SA_NOCLDWAIT | SA_RESTART;
-    sa.sa_handler = SIG_IGN;
-    sigaction(SIGCHLD, &sa, NULL);
+    sigemptyset(&sig_action.sa_mask);
+    sig_action.sa_flags = SA_NOCLDSTOP | SA_NOCLDWAIT | SA_RESTART;
+    sig_action.sa_handler = SIG_IGN;
+    sigaction(SIGCHLD, &sig_action, NULL);
 
     /* clean up any zombies (inherited from .xinitrc etc) immediately */
     while (waitpid(-1, NULL, WNOHANG) > 0);
@@ -2845,17 +2852,17 @@ toggle_fullscreen(const Arg *arg) {
 
 void
 spawn(const Arg *arg) {
-   struct sigaction sa;
+   struct sigaction sig_action;
 
    if (fork() == 0) {
        if (display)
            close(ConnectionNumber(display));
        setsid();
 
-       sigemptyset(&sa.sa_mask);
-       sa.sa_flags = 0;
-       sa.sa_handler = SIG_DFL;
-       sigaction(SIGCHLD, &sa, NULL);
+       sigemptyset(&sig_action.sa_mask);
+       sig_action.sa_flags = 0;
+       sig_action.sa_handler = SIG_DFL;
+       sigaction(SIGCHLD, &sig_action, NULL);
 
        execvp(((char *const *)arg->v)[0], (char *const *)arg->v);
        die("dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
