@@ -3164,10 +3164,10 @@ update_bars(void) {
                            | CWColormap |CWEventMask;
         if (!monitor->top_bar_window) {
             window = XCreateWindow(display, root,
-                                monitor->win_x, monitor->top_bar_y,
-                                (uint) monitor->win_w, bar_height,
-                                0, depth, InputOutput, visual,
-                                value_mask, &window_attributes);
+                                   monitor->win_x, monitor->top_bar_y,
+                                   (uint) monitor->win_w, bar_height,
+                                   0, depth, InputOutput, visual,
+                                   value_mask, &window_attributes);
             monitor->top_bar_window = window;
             XDefineCursor(display, monitor->top_bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->top_bar_window);
@@ -3175,10 +3175,10 @@ update_bars(void) {
         }
         if (!monitor->bottom_bar_window) {
             window = XCreateWindow(display, root,
-                                monitor->win_x, monitor->bottom_bar_y,
-                                (uint) monitor->win_w, bar_height,
-                                0, depth, InputOutput, visual,
-                                value_mask, &window_attributes);
+                                   monitor->win_x, monitor->bottom_bar_y,
+                                   (uint) monitor->win_w, bar_height,
+                                   0, depth, InputOutput, visual,
+                                   value_mask, &window_attributes);
             monitor->bottom_bar_window = window;
             XDefineCursor(display, monitor->bottom_bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->bottom_bar_window);
