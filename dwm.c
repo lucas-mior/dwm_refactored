@@ -3162,6 +3162,7 @@ update_bars(void) {
         ulong value_mask = CWOverrideRedirect
                            | CWBackPixel | CWBorderPixel
                            | CWColormap |CWEventMask;
+
         if (!monitor->top_bar_window) {
             window = XCreateWindow(display, root,
                                    monitor->win_x, monitor->top_bar_y,
