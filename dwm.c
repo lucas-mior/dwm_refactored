@@ -2460,9 +2460,6 @@ resize_mouse(const Arg *arg) {
                  client->w + client->border_pixels - 1,
                  client->h + client->border_pixels - 1);
     do {
-        int nw;
-        int nh;
-
         XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
         switch (ev.type) {
         case ConfigureRequest:
@@ -2470,13 +2467,13 @@ resize_mouse(const Arg *arg) {
         case MapRequest:
             handler[ev.type](&ev);
             break;
-        case MotionNotify:
+        case MotionNotify: {
+            int nw = MAX(ev.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
+            int nh = MAX(ev.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
+
             if ((ev.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
             lasttime = ev.xmotion.time;
-
-            nw = MAX(ev.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
-            nh = MAX(ev.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
 
             if (client->monitor->win_x + nw >= current_monitor->win_x
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
@@ -2489,6 +2486,7 @@ resize_mouse(const Arg *arg) {
             if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
                 resize(client, client->x, client->y, nw, nh, 1);
             break;
+        }
         default:
             break;
         }
