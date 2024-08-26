@@ -856,10 +856,12 @@ draw_bar(Monitor *monitor) {
             if ((uchar)(*s) < ' ') {
                 temp = *s;
                 *s = '\0';
+
                 text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
                 drw_text(drw, monitor->win_w - status_text_pixels + x, 0,
                          (uint) text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
+
                 *s = temp;
                 text = s + 1;
             }
@@ -950,7 +952,7 @@ draw_bar(Monitor *monitor) {
     }
     drw_map(drw, monitor->bar_window, 0, 0, (uint) monitor->win_w, bar_height);
 
-    if (monitor == current_monitor) { /* extra status is only drawn on selected monitor */
+    if (monitor == current_monitor) {
         char *text;
         char *s;
 
@@ -3299,7 +3301,7 @@ update_status(void) {
         return;
     }
 
-    separator = strchr(text, statussep);
+    separator = strchr(text, status_separator);
     if (separator) {
         *separator = '\0';
         separator += 1;

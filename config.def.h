@@ -13,7 +13,7 @@ static const int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no standard bar */
 static const int topbar             = 1;        /* 0 means standard bar at bottom */
 static const int extrabar           = 1;        /* 0 means no extra bar */
-static const char statussep         = '!';      /* separator between statuses */
+static const char status_separator  = -1;      /* separator between statuses */
 #define ICONSIZE 18   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
