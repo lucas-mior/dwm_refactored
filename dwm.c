@@ -2277,8 +2277,10 @@ move_mouse(const Arg *arg) {
             handler[event.type](&event);
             break;
         case MotionNotify: {
+            Monitor *monitor = current_monitor;
             int nx;
             int ny;
+
             if ((event.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
             lasttime = event.xmotion.time;
@@ -2286,21 +2288,21 @@ move_mouse(const Arg *arg) {
             nx = ocx + (event.xmotion.x - x);
             ny = ocy + (event.xmotion.y - y);
 
-            if (abs(current_monitor->win_x - nx) < SNAP_PIXELS)
-                nx = current_monitor->win_x;
-            else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < SNAP_PIXELS)
-                nx = current_monitor->win_x + current_monitor->win_w - WIDTH(client);
+            if (abs(monitor->win_x - nx) < SNAP_PIXELS)
+                nx = monitor->win_x;
+            else if (abs((monitor->win_x + monitor->win_w) - (nx + WIDTH(client))) < SNAP_PIXELS)
+                nx = monitor->win_x + monitor->win_w - WIDTH(client);
 
-            if (abs(current_monitor->win_y - ny) < SNAP_PIXELS)
-                ny = current_monitor->win_y;
-            else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < SNAP_PIXELS)
-                ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
+            if (abs(monitor->win_y - ny) < SNAP_PIXELS)
+                ny = monitor->win_y;
+            else if (abs((monitor->win_y + monitor->win_h) - (ny + HEIGHT(client))) < SNAP_PIXELS)
+                ny = monitor->win_y + monitor->win_h - HEIGHT(client);
 
-            if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
+            if (!client->is_floating && monitor->layout[monitor->lay_i]->arrange
             && (abs(nx - client->x) > SNAP_PIXELS || abs(ny - client->y) > SNAP_PIXELS))
                 toggle_floating(NULL);
 
-            if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
+            if (!monitor->layout[monitor->lay_i]->arrange || client->is_floating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
         }
