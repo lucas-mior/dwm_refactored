@@ -1029,8 +1029,9 @@ focus_direction(const Arg *arg) {
             break;
         }
 
-        if (client_score < score || ((arg->i == 0 || arg->i == 2) && client_score <= score)) {
-            score = client_score;
+        if (client_score < (int)score
+            || ((arg->i == 0 || arg->i == 2) && client_score <= (int)score)) {
+            score = (uint)client_score;
             f = client;
         }
     }
