@@ -1307,7 +1307,7 @@ void
 layout_tile(Monitor *m) {
     int n = 0;
     int i = 0;
-    uint mon_w = 0;
+    int mon_w = 0;
     int mon_y = 0;
     int tile_y = 0;
 
@@ -1321,17 +1321,17 @@ layout_tile(Monitor *m) {
 
     if (n > m->nmaster) {
         if (m->nmaster != 0)
-            mon_w = (uint) ((float)m->win_w*m->master_fact);
+            mon_w = (int)((float)m->win_w*m->master_fact);
         else
             mon_w = 0;
     } else {
-        mon_w = (uint) m->win_w;
+        mon_w = m->win_w;
     }
 
     for (Client *client = next_tiled(m->clients);
                  client;
                  client = next_tiled(client->next)) {
-        uint h;
+        int h;
         if (i < m->nmaster) {
             h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
             resize(client,
@@ -1412,6 +1412,7 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
     uint32 icon_height;
     uint32 area_find = 0;
     Atom real;
+    Picture drw_picture;
 
     if (XGetWindowProperty(display, window, netatom[NetWMIcon],
                            0L, LONG_MAX, False, AnyPropertyType,
@@ -1503,12 +1504,12 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
         pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
     }
 
-    Picture ret = drw_picture_create_resized(drw, (char *)pixel_find,
+    drw_picture = drw_picture_create_resized(drw, (char *)pixel_find,
                                              width_find, height_find,
                                              icon_width, icon_height);
     XFree(prop_return);
 
-    return ret;
+    return drw_picture;
 }
 
 int
