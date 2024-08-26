@@ -2807,9 +2807,11 @@ set_client_tag_prop(Client *client) {
 
 void
 tag(const Arg *arg) {
-    if (current_monitor->selected_client && arg->ui & TAGMASK) {
+    uint which_tag = arg->ui & TAGMASK;
+
+    if (which_tag && current_monitor->selected_client) {
         Client *client = current_monitor->selected_client;
-        client->tags = arg->ui & TAGMASK;
+        client->tags = which_tag;
         set_client_tag_prop(client);
         focus(NULL);
         arrange(current_monitor);
