@@ -122,7 +122,7 @@ struct Client {
     Client *snext;
     Client *allnext;
     Monitor *monitor;
-    Window win;
+    Window window;
 };
 
 typedef struct {
@@ -448,7 +448,7 @@ apply_rules(Client *client) {
     /* rule matching */
     client->isfloating = 0;
     client->tags = 0;
-    XGetClassHint(display, client->win, &class_hint);
+    XGetClassHint(display, client->window, &class_hint);
     class    = class_hint.res_class ? class_hint.res_class : broken;
     instance = class_hint.res_name  ? class_hint.res_name  : broken;
 
@@ -624,7 +624,7 @@ aspect_resize(const Arg *arg) {
     nw = client->w + w;
     nh = client->h + h;
 
-    XRaiseWindow(display, client->win);
+    XRaiseWindow(display, client->window);
     resize(client, client->x, client->y, nw, nh, True);
     return;
 }
@@ -696,8 +696,8 @@ configure(Client *client) {
 
     conf_event.type = ConfigureNotify;
     conf_event.display = display;
-    conf_event.event = client->win;
-    conf_event.window = client->win;
+    conf_event.event = client->window;
+    conf_event.window = client->window;
     conf_event.x = client->x;
     conf_event.y = client->y;
     conf_event.width = client->w;
@@ -705,7 +705,7 @@ configure(Client *client) {
     conf_event.border_width = client->border_width;
     conf_event.above = None;
     conf_event.override_redirect = False;
-    XSendEvent(display, client->win,
+    XSendEvent(display, client->window,
                False, StructureNotifyMask, (XEvent *)&conf_event);
     return;
 }
@@ -878,7 +878,7 @@ draw_bar(Monitor *monitor) {
                 icontagclient[i] = client;
             if (!masterclientontag[i] && client->tags & (1<<i)) {
                 XClassHint ch = { NULL, NULL };
-                XGetClassHint(display, client->win, &ch);
+                XGetClassHint(display, client->window, &ch);
                 masterclientontag[i] = ch.res_class;
             }
         }
@@ -967,7 +967,7 @@ focus(Client *client) {
         detach_stack(client);
         attach_stack(client);
         grab_buttons(client, 1);
-        XSetWindowBorder(display, client->win, scheme[SchemeSel][ColBorder].pixel);
+        XSetWindowBorder(display, client->window, scheme[SchemeSel][ColBorder].pixel);
         set_focus(client);
     } else {
         XSetInputFocus(display, current_monitor->bar_window, RevertToPointerRoot, CurrentTime);
@@ -1357,7 +1357,7 @@ get_atom_property(Client *client, Atom property) {
     Atom atom = None;
     Atom *atom_aux = NULL;
 
-    if (XGetWindowProperty(display, client->win, property,
+    if (XGetWindowProperty(display, client->window, property,
                            0L, sizeof(atom), False, XA_ATOM,
                            &da, &di, &dl, &dl, (uchar **) &atom_aux) == Success && atom_aux) {
         atom = *atom_aux;
@@ -1394,11 +1394,11 @@ get_status_bar_pid(void) {
 }
 
 Picture
-get_icon_property(Window win, uint *picture_width, uint *picture_height) {
+get_icon_property(Window window, uint *picture_width, uint *picture_height) {
     int format;
     ulong nitems_return;
     ulong extra;
-    ulong *propreturn = NULL;
+    ulong *prop_return = NULL;
     ulong *pixel_find = NULL;
     uint32 width_find;
     uint32 height_find;
@@ -1407,29 +1407,29 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     uint32 area_find = 0;
     Atom real;
 
-    if (XGetWindowProperty(display, win, netatom[NetWMIcon],
+    if (XGetWindowProperty(display, window, netatom[NetWMIcon],
                            0L, LONG_MAX, False, AnyPropertyType,
                            &real, &format,
-                           &nitems_return, &extra, (uchar **)&propreturn) != Success) {
+                           &nitems_return, &extra, (uchar **)&prop_return) != Success) {
         return None;
     }
     if (nitems_return == 0 || format != 32) {
-        XFree(propreturn);
+        XFree(prop_return);
         return None;
     }
 
     do {
         ulong *i;
-        const ulong *end = propreturn + nitems_return;
+        const ulong *end = prop_return + nitems_return;
         uint32 bstd = UINT32_MAX;
         uint32 d;
 
-        for (i = propreturn; i < (end - 1); i += area_find) {
+        for (i = prop_return; i < (end - 1); i += area_find) {
             uint32 max_dim;
             uint32 w = (uint32)*i++;
             uint32 h = (uint32)*i++;
             if (w >= 16384 || h >= 16384) {
-                XFree(propreturn);
+                XFree(prop_return);
                 return None;
             }
             if ((area_find = w*h) > (end - i))
@@ -1443,12 +1443,12 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         }
         if (pixel_find)
             break;
-        for (i = propreturn; i < (end - 1); i += area_find) {
+        for (i = prop_return; i < (end - 1); i += area_find) {
             uint32 max_dim;
             uint32 w = (uint32)*i++;
             uint32 h = (uint32)*i++;
             if (w >= 16384 || h >= 16384) {
-                XFree(propreturn);
+                XFree(prop_return);
                 return None;
             }
             if ((area_find = w*h) > (end - i))
@@ -1463,14 +1463,14 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     } while (false);
 
     if (!pixel_find) {
-        XFree(propreturn);
+        XFree(prop_return);
         return None;
     }
 
     width_find = (uint32) pixel_find[-2];
     height_find = (uint32) pixel_find[-1];
     if ((width_find == 0) || (height_find == 0)) {
-        XFree(propreturn);
+        XFree(prop_return);
         return None;
     }
 
@@ -1500,7 +1500,7 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
     Picture ret = drw_picture_create_resized(drw, (char *)pixel_find,
                                              width_find, height_find,
                                              icon_width, icon_height);
-    XFree(propreturn);
+    XFree(prop_return);
 
     return ret;
 }
@@ -1515,25 +1515,25 @@ get_root_pointer(int *x, int *y) {
 }
 
 long
-get_state(Window win) {
+get_state(Window window) {
     int format;
     long result = -1;
-    uchar *propreturn = NULL;
+    uchar *prop_return = NULL;
     ulong n, extra;
     Atom real;
 
-    if (XGetWindowProperty(display, win, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
-        &real, &format, &n, &extra, (uchar **)&propreturn) != Success) {
+    if (XGetWindowProperty(display, window, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
+        &real, &format, &n, &extra, (uchar **)&prop_return) != Success) {
         return -1;
     }
     if (n != 0)
-        result = *propreturn;
-    XFree(propreturn);
+        result = *prop_return;
+    XFree(prop_return);
     return result;
 }
 
 int
-get_text_property(Window win, Atom atom, char *text, uint size) {
+get_text_property(Window window, Atom atom, char *text, uint size) {
     char **list = NULL;
     int n;
     XTextProperty name;
@@ -1541,7 +1541,7 @@ get_text_property(Window win, Atom atom, char *text, uint size) {
     if (!text || size == 0)
         return 0;
     text[0] = '\0';
-    if (!XGetTextProperty(display, win, &name, atom) || !name.nitems)
+    if (!XGetTextProperty(display, window, &name, atom) || !name.nitems)
         return 0;
     if (name.encoding == XA_STRING) {
         strncpy(text, (char *)name.value, size - 1);
@@ -1559,9 +1559,9 @@ grab_buttons(Client *client, int focused) {
     uint modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 
     update_numlock_mask();
-    XUngrabButton(display, AnyButton, AnyModifier, client->win);
+    XUngrabButton(display, AnyButton, AnyModifier, client->window);
     if (!focused) {
-        XGrabButton(display, AnyButton, AnyModifier, client->win, False,
+        XGrabButton(display, AnyButton, AnyModifier, client->window, False,
                     BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
     }
     for (int i = 0; i < LENGTH(buttons); i += 1) {
@@ -1569,7 +1569,7 @@ grab_buttons(Client *client, int focused) {
             for (int j = 0; j < LENGTH(modifiers); j += 1) {
                 XGrabButton(display, (uint) buttons[i].button,
                             buttons[i].mask | modifiers[j],
-                            client->win, False, BUTTONMASK,
+                            client->window, False, BUTTONMASK,
                             GrabModeAsync, GrabModeSync, None, None);
             }
         }
@@ -1741,7 +1741,7 @@ handler_configure_request(XEvent *e) {
             if ((event->value_mask & (CWX|CWY)) && !(event->value_mask & (CWWidth|CWHeight)))
                 configure(client);
             if (ISVISIBLE(client))
-                XMoveResizeWindow(display, client->win,
+                XMoveResizeWindow(display, client->window,
                                   client->x, client->y, (uint)client->w, (uint)client->h);
         } else {
             configure(client);
@@ -1834,7 +1834,7 @@ handler_focus_in(XEvent *event) {
     if (!(current_monitor->selected_client))
         return;
 
-    if (focus_change_event->window != current_monitor->selected_client->win)
+    if (focus_change_event->window != current_monitor->selected_client->window)
         set_focus(current_monitor->selected_client);
     return;
 }
@@ -1926,7 +1926,7 @@ handler_property_notify(XEvent *event) {
         default:
             break;
         case XA_WM_TRANSIENT_FOR:
-            if (!client->isfloating && (XGetTransientForHint(display, client->win, &trans)) &&
+            if (!client->isfloating && (XGetTransientForHint(display, client->window, &trans)) &&
                 (client->isfloating = (window_to_client(trans)) != NULL))
                 arrange(client->monitor);
             break;
@@ -2009,7 +2009,7 @@ kill_client(const Arg *arg) {
         XGrabServer(display);
         XSetErrorHandler(xerrordummy);
         XSetCloseDownMode(display, DestroyAll);
-        XKillClient(display, current_monitor->selected_client->win);
+        XKillClient(display, current_monitor->selected_client->window);
         XSync(display, False);
         XSetErrorHandler(xerror);
         XUngrabServer(display);
@@ -2018,13 +2018,13 @@ kill_client(const Arg *arg) {
 }
 
 void
-manage(Window win, XWindowAttributes *window_attributes) {
+manage(Window window, XWindowAttributes *window_attributes) {
     Client *client, *t = NULL;
     Window trans = None;
     XWindowChanges window_changes;
 
     client = ecalloc(1, sizeof(*client));
-    client->win = win;
+    client->window = window;
     /* geometry */
     client->x = client->old_x = window_attributes->x;
     client->y = client->old_y = window_attributes->y;
@@ -2034,7 +2034,7 @@ manage(Window win, XWindowAttributes *window_attributes) {
 
     update_icon(client);
     update_title(client);
-    if (XGetTransientForHint(display, win, &trans) && (t = window_to_client(trans))) {
+    if (XGetTransientForHint(display, window, &trans) && (t = window_to_client(trans))) {
         client->monitor = t->monitor;
         client->tags = t->tags;
     } else {
@@ -2051,8 +2051,8 @@ manage(Window win, XWindowAttributes *window_attributes) {
     client->border_width = border_pixels;
 
     window_changes.border_width = client->border_width;
-    XConfigureWindow(display, win, CWBorderWidth, &window_changes);
-    XSetWindowBorder(display, win, scheme[SchemeNorm][ColBorder].pixel);
+    XConfigureWindow(display, window, CWBorderWidth, &window_changes);
+    XSetWindowBorder(display, window, scheme[SchemeNorm][ColBorder].pixel);
     configure(client); /* propagates border_width, if size doesn't change */
     update_window_type(client);
     update_size_hints(client);
@@ -2062,7 +2062,7 @@ manage(Window win, XWindowAttributes *window_attributes) {
         ulong *data, n, extra;
         Monitor *m;
         Atom atom;
-        if (XGetWindowProperty(display, client->win, netatom[NetClientInfo], 0L, 2L, False, XA_CARDINAL,
+        if (XGetWindowProperty(display, client->window, netatom[NetClientInfo], 0L, 2L, False, XA_CARDINAL,
                 &atom, &format, &n, &extra, (uchar **)&data) == Success && n == 2) {
             client->tags = (uint) *data;
             for (m = monitors; m; m = m->next) {
@@ -2083,26 +2083,26 @@ manage(Window win, XWindowAttributes *window_attributes) {
     client->stored_fh = client->h;
     client->x = client->monitor->mon_x + (client->monitor->mon_w - WIDTH(client)) / 2;
     client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
-    XSelectInput(display, win, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
+    XSelectInput(display, window, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
     grab_buttons(client, 0);
     if (!client->isfloating)
         client->isfloating = client->oldstate = trans != None || client->isfixed;
     if (client->isfloating)
-        XRaiseWindow(display, client->win);
+        XRaiseWindow(display, client->window);
     attach(client);
     attach_stack(client);
     XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
-        (uchar *) &(client->win), 1);
+        (uchar *) &(client->window), 1);
 
     /* some windows require this */
-    XMoveResizeWindow(display, client->win,
+    XMoveResizeWindow(display, client->window,
                       client->x + 2*screen_width, client->y, client->w, client->h);
     set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
         unfocus(current_monitor->selected_client, 0);
     client->monitor->selected_client = client;
     arrange(client->monitor);
-    XMapWindow(display, client->win);
+    XMapWindow(display, client->window);
     focus(NULL);
     return;
 }
@@ -2255,7 +2255,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
         }
     }
 
-    XConfigureWindow(display, client->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &window_changes);
+    XConfigureWindow(display, client->window, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &window_changes);
     configure(client);
     XSync(display, False);
     return;
@@ -2287,7 +2287,7 @@ resize_mouse(const Arg *arg) {
         return;
     }
 
-    XWarpPointer(display, None, client->win,
+    XWarpPointer(display, None, client->window,
                  0, 0, 0, 0,
                  client->w + client->border_width - 1,
                  client->h + client->border_width - 1);
@@ -2326,7 +2326,7 @@ resize_mouse(const Arg *arg) {
         }
     } while (ev.type != ButtonRelease);
 
-    XWarpPointer(display, None, client->win,
+    XWarpPointer(display, None, client->window,
                  0, 0, 0, 0,
                  client->w + client->border_width - 1,
                  client->h + client->border_width - 1);
@@ -2352,14 +2352,14 @@ restack(Monitor *m) {
     if (!m->selected_client)
         return;
     if (m->selected_client->isfloating || !m->layout[m->layout_index]->arrange)
-        XRaiseWindow(display, m->selected_client->win);
+        XRaiseWindow(display, m->selected_client->window);
     if (m->layout[m->layout_index]->arrange) {
         window_changes.stack_mode = Below;
         window_changes.sibling = m->bar_window;
         for (client = m->stack; client; client = client->snext) {
             if (!client->isfloating && ISVISIBLE(client)) {
-                XConfigureWindow(display, client->win, CWSibling|CWStackMode, &window_changes);
-                window_changes.sibling = client->win;
+                XConfigureWindow(display, client->window, CWSibling|CWStackMode, &window_changes);
+                window_changes.sibling = client->window;
             }
         }
     }
@@ -2429,7 +2429,7 @@ void
 set_client_state(Client *client, long state) {
     long data[] = { state, None };
 
-    XChangeProperty(display, client->win, wmatom[WMState], wmatom[WMState], 32,
+    XChangeProperty(display, client->window, wmatom[WMState], wmatom[WMState], 32,
                     PropModeReplace, (uchar *)data, 2);
     return;
 }
@@ -2441,19 +2441,19 @@ send_event(Client *client, Atom proto) {
     bool exists = false;
     XEvent event;
 
-    if (XGetWMProtocols(display, client->win, &protocols, &n)) {
+    if (XGetWMProtocols(display, client->window, &protocols, &n)) {
         while (!exists && n--)
             exists = protocols[n] == proto;
         XFree(protocols);
     }
     if (exists) {
         event.type = ClientMessage;
-        event.xclient.window = client->win;
+        event.xclient.window = client->window;
         event.xclient.message_type = wmatom[WMProtocols];
         event.xclient.format = 32;
         event.xclient.data.l[0] = proto;
         event.xclient.data.l[1] = CurrentTime;
-        XSendEvent(display, client->win, False, NoEventMask, &event);
+        XSendEvent(display, client->window, False, NoEventMask, &event);
     }
     return exists;
 }
@@ -2461,10 +2461,10 @@ send_event(Client *client, Atom proto) {
 void
 set_focus(Client *client) {
     if (!client->neverfocus) {
-        XSetInputFocus(display, client->win, RevertToPointerRoot, CurrentTime);
+        XSetInputFocus(display, client->window, RevertToPointerRoot, CurrentTime);
         XChangeProperty(display, root, netatom[NetActiveWindow],
             XA_WINDOW, 32, PropModeReplace,
-            (uchar *) &(client->win), 1);
+            (uchar *) &(client->window), 1);
     }
     send_event(client, wmatom[WMTakeFocus]);
     return;
@@ -2473,7 +2473,7 @@ set_focus(Client *client) {
 void
 set_fullscreen(Client *client, int fullscreen) {
     if (fullscreen && !client->isfullscreen) {
-        XChangeProperty(display, client->win, netatom[NetWMState], XA_ATOM, 32,
+        XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
         client->isfullscreen = 1;
         if (client->isfakefullscreen) {
@@ -2488,9 +2488,9 @@ set_fullscreen(Client *client, int fullscreen) {
         resize_client(client,
                       client->monitor->mon_x, client->monitor->mon_y,
                       client->monitor->mon_w, client->monitor->mon_h);
-        XRaiseWindow(display, client->win);
+        XRaiseWindow(display, client->window);
     } else if (!fullscreen && client->isfullscreen) {
-        XChangeProperty(display, client->win, netatom[NetWMState], XA_ATOM, 32,
+        XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)0, 0);
         client->isfullscreen = 0;
         if (client->isfakefullscreen) {
@@ -2670,10 +2670,10 @@ set_urgent(Client *client, int urgent) {
     XWMHints *wm_hints;
 
     client->isurgent = urgent;
-    if (!(wm_hints = XGetWMHints(display, client->win)))
+    if (!(wm_hints = XGetWMHints(display, client->window)))
         return;
     wm_hints->flags = urgent ? (wm_hints->flags | XUrgencyHint) : (wm_hints->flags & ~XUrgencyHint);
-    XSetWMHints(display, client->win, wm_hints);
+    XSetWMHints(display, client->window, wm_hints);
     XFree(wm_hints);
     return;
 }
@@ -2688,7 +2688,7 @@ show_hide(Client *client) {
             client->y = client->monitor->win_y + (client->monitor->win_h / 2 - HEIGHT(client) / 2);
         }
         /* show clients top down */
-        XMoveWindow(display, client->win, client->x, client->y);
+        XMoveWindow(display, client->window, client->x, client->y);
         if ((!client->monitor->layout[client->monitor->layout_index]->arrange || client->isfloating)
                 && (!client->isfullscreen || client->isfakefullscreen))
             resize(client, client->x, client->y, client->w, client->h, 0);
@@ -2696,7 +2696,7 @@ show_hide(Client *client) {
     } else {
         /* hide clients bottom up */
         show_hide(client->snext);
-        XMoveWindow(display, client->win, -2*WIDTH(client), client->y);
+        XMoveWindow(display, client->window, -2*WIDTH(client), client->y);
     }
     return;
 }
@@ -2718,7 +2718,7 @@ signal_status_bar(const Arg *arg) {
 void
 set_client_tag_(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
-    XChangeProperty(display, client->win, netatom[NetClientInfo], XA_CARDINAL, 32,
+    XChangeProperty(display, client->window, netatom[NetClientInfo], XA_CARDINAL, 32,
                     PropModeReplace, (uchar *) data, 2);
     return;
 }
@@ -2954,7 +2954,7 @@ unfocus(Client *client, int set_focus) {
     if (!client)
         return;
     grab_buttons(client, 0);
-    XSetWindowBorder(display, client->win, scheme[SchemeNorm][ColBorder].pixel);
+    XSetWindowBorder(display, client->window, scheme[SchemeNorm][ColBorder].pixel);
     if (set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
@@ -2974,9 +2974,9 @@ unmanage(Client *client, int destroyed) {
         window_changes.border_width = client->oldbw;
         XGrabServer(display); /* avoid race conditions */
         XSetErrorHandler(xerrordummy);
-        XSelectInput(display, client->win, NoEventMask);
-        XConfigureWindow(display, client->win, CWBorderWidth, &window_changes); /* restore border */
-        XUngrabButton(display, AnyButton, AnyModifier, client->win);
+        XSelectInput(display, client->window, NoEventMask);
+        XConfigureWindow(display, client->window, CWBorderWidth, &window_changes); /* restore border */
+        XUngrabButton(display, AnyButton, AnyModifier, client->window);
         set_client_state(client, WithdrawnState);
         XSync(display, False);
         XSetErrorHandler(xerror);
@@ -3000,28 +3000,28 @@ update_bars(void) {
     };
     XClassHint ch = {"dwm", "dwm"};
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        Window win;
+        Window window;
         ulong value_mask = CWOverrideRedirect
                            | CWBackPixel | CWBorderPixel
                            | CWColormap |CWEventMask;
         if (!monitor->bar_window) {
-            win = XCreateWindow(display, root,
+            window = XCreateWindow(display, root,
                                 monitor->win_x, monitor->bar_y,
                                 (uint) monitor->win_w, bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
-            monitor->bar_window = win;
+            monitor->bar_window = window;
             XDefineCursor(display, monitor->bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->bar_window);
             XSetClassHint(display, monitor->bar_window, &ch);
         }
         if (!monitor->extra_bar_window) {
-            win = XCreateWindow(display, root,
+            window = XCreateWindow(display, root,
                                 monitor->win_x, monitor->extra_bar_y,
                                 (uint) monitor->win_w, bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
-            monitor->extra_bar_window = win;
+            monitor->extra_bar_window = window;
             XDefineCursor(display, monitor->extra_bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->extra_bar_window);
             XSetClassHint(display, monitor->extra_bar_window, &ch);
@@ -3058,7 +3058,7 @@ update_client_list(void) {
         for (Client *client = monitor->clients; client; client = client->next) {
             XChangeProperty(display, root, netatom[NetClientList],
                             XA_WINDOW, 32, PropModeAppend,
-                            (uchar *) &(client->win), 1);
+                            (uchar *) &(client->window), 1);
         }
     }
     return;
@@ -3169,7 +3169,7 @@ update_size_hints(Client *client) {
     long msize;
     XSizeHints size;
 
-    if (!XGetWMNormalHints(display, client->win, &size, &msize))
+    if (!XGetWMNormalHints(display, client->window, &size, &msize))
         /* size is uninitialized, ensure that size.flags aren't used */
         size.flags = PSize;
     if (size.flags & PBaseSize) {
@@ -3252,8 +3252,8 @@ update_status(void) {
 
 void
 update_title(Client *client) {
-    if (!get_text_property(client->win, netatom[NetWMName], client->name, sizeof(client->name)))
-        get_text_property(client->win, XA_WM_NAME, client->name, sizeof(client->name));
+    if (!get_text_property(client->window, netatom[NetWMName], client->name, sizeof(client->name)))
+        get_text_property(client->window, XA_WM_NAME, client->name, sizeof(client->name));
     if (client->name[0] == '\0') /* hack to mark broken clients */
         strcpy(client->name, broken);
     return;
@@ -3262,7 +3262,7 @@ update_title(Client *client) {
 void
 update_icon(Client *client) {
     free_icon(client);
-    client->icon = get_icon_property(client->win, &client->icon_width, &client->icon_height);
+    client->icon = get_icon_property(client->window, &client->icon_width, &client->icon_height);
     return;
 }
 
@@ -3282,14 +3282,14 @@ void
 update_wm_hints(Client *client) {
     XWMHints *wm_hints;
 
-    if ((wm_hints = XGetWMHints(display, client->win))) {
+    if ((wm_hints = XGetWMHints(display, client->window))) {
         if (client == current_monitor->selected_client && wm_hints->flags & XUrgencyHint) {
             wm_hints->flags &= ~XUrgencyHint;
-            XSetWMHints(display, client->win, wm_hints);
+            XSetWMHints(display, client->window, wm_hints);
         } else {
             client->isurgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
             if (client->isurgent)
-                XSetWindowBorder(display, client->win, scheme[SchemeUrg][ColBorder].pixel);
+                XSetWindowBorder(display, client->window, scheme[SchemeUrg][ColBorder].pixel);
         }
         if (wm_hints->flags & InputHint)
             client->neverfocus = !wm_hints->input;
@@ -3348,10 +3348,10 @@ view(const Arg *arg) {
 }
 
 Client *
-window_to_client(Window win) {
+window_to_client(Window window) {
     for (Monitor *m = monitors; m; m = m->next) {
         for (Client *client = m->clients; client; client = client->next) {
-            if (client->win == win)
+            if (client->window == window)
                 return client;
         }
     }
