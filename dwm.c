@@ -979,7 +979,6 @@ focus_direction(const Arg *arg) {
     Client *next;
 
     uint score = -1;
-    uint client_score;
     int dist;
     int direction_weight = 20;
     int isfloating = s->isfloating;
@@ -991,6 +990,7 @@ focus_direction(const Arg *arg) {
     if (!next)
         next = s->monitor->clients;
     for (client = next; client != s; client = next) {
+        uint client_score;
 
         next = client->next;
         if (!next)
@@ -1002,28 +1002,20 @@ focus_direction(const Arg *arg) {
         switch (arg->i) {
         case 0: // left
             dist = s->x - client->x - client->w;
-            client_score =
-                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
-                abs(s->y - client->y);
+            client_score = direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_w)) + abs(s->y - client->y);
             break;
         case 1: // right
             dist = client->x - s->x - s->w;
-            client_score =
-                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
-                abs(client->y - s->y);
+            client_score = direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_w)) + abs(client->y - s->y);
             break;
         case 2: // up
             dist = s->y - client->y - client->h;
-            client_score =
-                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
-                abs(s->x - client->x);
+            client_score = direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_h)) + abs(s->x - client->x);
             break;
         default:
         case 3: // down
             dist = client->y - s->y - s->h;
-            client_score =
-                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
-                abs(client->x - s->x);
+            client_score = direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_h)) + abs(client->x - s->x);
             break;
         }
 
