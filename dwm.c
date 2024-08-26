@@ -143,7 +143,7 @@ struct Monitor {
     float master_fact;
     int nmaster;
     int num;
-    int bar_y;
+    int top_bar_y;
     int bottom_bar_y;
     int mon_x, mon_y, mon_w, mon_h;  /* screen size */
     int win_x, win_y, win_w, win_h;  /* window area */
@@ -1876,7 +1876,7 @@ handler_configure_notify(XEvent *event) {
                                   m->mon_x, m->mon_y, m->mon_w, m->mon_h);
             }
             XMoveResizeWindow(display, m->top_bar_window,
-                              m->win_x, m->bar_y, (uint)m->win_w, bar_height);
+                              m->win_x, m->top_bar_y, (uint)m->win_w, bar_height);
             XMoveResizeWindow(display, m->bottom_bar_window,
                               m->win_x, m->bottom_bar_y, (uint)m->win_w, bar_height);
         }
@@ -2867,7 +2867,7 @@ toggle_top_bar(const Arg *arg) {
     monitor->show_top_bar = monitor->pertag->top_bars[monitor->pertag->current_tag] = !monitor->show_top_bar;
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->top_bar_window,
-                      monitor->win_x, monitor->bar_y,
+                      monitor->win_x, monitor->top_bar_y,
                       (uint) monitor->win_w, bar_height);
     arrange(monitor);
     return;
@@ -3115,7 +3115,7 @@ update_bars(void) {
                            | CWColormap |CWEventMask;
         if (!monitor->top_bar_window) {
             window = XCreateWindow(display, root,
-                                monitor->win_x, monitor->bar_y,
+                                monitor->win_x, monitor->top_bar_y,
                                 (uint) monitor->win_w, bar_height,
                                 0, depth, InputOutput, visual,
                                 value_mask, &window_attributes);
@@ -3146,10 +3146,10 @@ update_bar_position(Monitor *monitor) {
 
     if (monitor->show_top_bar) {
         monitor->win_h -= bar_height;
-        monitor->bar_y = monitor->win_y;
+        monitor->top_bar_y = monitor->win_y;
         monitor->win_y = monitor->win_y + bar_height;
     } else {
-        monitor->bar_y = - (int) bar_height;
+        monitor->top_bar_y = - (int) bar_height;
     }
 
     if (monitor->show_bottom_bar) {
