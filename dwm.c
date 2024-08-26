@@ -1437,13 +1437,16 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         }
         if (!pixel_find) {
             for (i = propreturn; i < (end - 1); i += sz) {
+                uint32 max_dim;
                 if ((w = *i++) >= 16384 || (h = *i++) >= 16384) {
                     XFree(propreturn);
                     return None;
                 }
                 if ((sz = w*h) > (end - i))
                     break;
-                if ((d = ICONSIZE - (w > h ? w : h)) < bstd) {
+
+                max_dim = w > h ? w : h;
+                if ((d = ICONSIZE - max_dim) < bstd) {
                     bstd = d;
                     pixel_find = i;
                 }
