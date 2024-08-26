@@ -2391,7 +2391,8 @@ mouse_resize(const Arg *arg) {
                     && (abs(nw - client->w) > SNAP_PIXELS || abs(nh - client->h) > SNAP_PIXELS))
                     toggle_floating(NULL);
             }
-            if (!current_monitor->layout[current_monitor->lay_i]->function || client->is_floating)
+            if (client->is_floating
+                || !current_monitor->layout[current_monitor->lay_i]->function)
                 resize(client, client->x, client->y, nw, nh, 1);
             break;
         }
