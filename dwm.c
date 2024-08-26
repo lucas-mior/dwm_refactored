@@ -231,6 +231,7 @@ static void manage(Window, XWindowAttributes *window_attributes);
 static void move_mouse(const Arg *);
 static Client *next_tiled(Client *);
 static void pop(Client *);
+static void promote_to_master(const Arg *);
 static void quit_dwm(const Arg *);
 static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *, int x, int y, int w, int h, int interact);
@@ -238,7 +239,7 @@ static void resize_client(Client *, int x, int y, int w, int h);
 static void resize_mouse(const Arg *);
 static void restack(Monitor *);
 static void run(void);
-static void scan(void);
+static void scan_windows(void);
 static bool send_event(Client *, Atom proto);
 static void send_monitor(Client *, Monitor *);
 static void set_client_state(Client *, long state);
@@ -284,7 +285,6 @@ static int xerror(Display *, XErrorEvent *ee);
 static int xerrordummy(Display *, XErrorEvent *ee);
 static int xerrorstart(Display *, XErrorEvent *ee);
 static void xinitvisual(void);
-static void promote_to_master(const Arg *);
 
 /* variables */
 static const char broken[] = "broken";
@@ -2508,7 +2508,7 @@ run(void) {
 }
 
 void
-scan(void) {
+scan_windows(void) {
     Window root_return;
     Window parent_return;
     Window *children_return = NULL;
@@ -3715,7 +3715,7 @@ main(int argc, char *argv[]) {
     if (pledge("stdio rpath proc exec", NULL) == -1)
         die("pledge");
 #endif /* __OpenBSD__ */
-    scan();
+    scan_windows();
     run();
     if (restart) {
         debug_dwm("restarting...");
