@@ -2334,7 +2334,14 @@ move_mouse(const Arg *arg) {
 
 Client *
 next_tiled(Client *client) {
-    for (; client && (client->is_floating || !ISVISIBLE(client)); client = client->next);
+    while (true) {
+        if (!client)
+            break;
+        if (!client->is_floating && ISVISIBLE(client))
+            break;
+
+        client = client->next;
+    }
     return client;
 }
 
