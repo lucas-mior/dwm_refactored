@@ -1711,19 +1711,21 @@ handler_button_press(XEvent *event) {
         char *s = &extra_status[0];
 
         click = ClickExtraBar;
+        x = (uint) (current_monitor->win_w - status_text_pixels);
         statussig = 0;
-        for (char *text = s; *s && x <= button_event->x; s += 1) {
+
+        for (char *text = s ; *s && (int) x <= button_event->x; s += 1) {
             if ((uchar)(*s) < ' ') {
-                char byte = *s;
+                char ch = *s;
                 *s = '\0';
 
                 x += TEXT_PIXELS(text) - lrpad;
 
-                *s = byte;
+                *s = ch;
                 text = s + 1;
-                if (x >= button_event->x)
+                if ((int) x >= button_event->x)
                     break;
-                statussig = byte;
+                statussig = ch;
             }
         }
     } else if ((client = window_to_client(button_event->window))) {
