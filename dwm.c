@@ -2509,20 +2509,22 @@ run(void) {
 
 void
 scan(void) {
-    Window d1, d2;
+    Window root_return;
+    Window parent_return;
     Window *children_return = NULL;
     uint nchildren_return;
     XWindowAttributes window_attributes;
     int sucess;
 
-    sucess = XQueryTree(display, root, &d1, &d2,
+    sucess = XQueryTree(display, root,
+                        &root_return, &parent_return,
                         &children_return, &nchildren_return);
     if (!sucess)
         return;
 
     for (uint i = 0; i < nchildren_return; i += 1) {
         if (!XGetWindowAttributes(display, children_return[i], &window_attributes)
-        || window_attributes.override_redirect || XGetTransientForHint(display, children_return[i], &d1))
+        || window_attributes.override_redirect || XGetTransientForHint(display, children_return[i], &root_return))
             continue;
         if (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState)
             manage(children_return[i], &window_attributes);
@@ -2530,7 +2532,7 @@ scan(void) {
     for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
         if (!XGetWindowAttributes(display, children_return[i], &window_attributes))
             continue;
-        if (XGetTransientForHint(display, children_return[i], &d1)
+        if (XGetTransientForHint(display, children_return[i], &root_return)
         && (window_attributes.map_state == IsViewable || get_window_state(children_return[i]) == IconicState))
             manage(children_return[i], &window_attributes);
     }
