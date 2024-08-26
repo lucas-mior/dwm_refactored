@@ -59,7 +59,7 @@ typedef unsigned char uchar;
 #define CLEANMASK(mask)         \
     (mask & ~(numlockmask|LockMask) \
     & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
-#define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->seltags]))
+#define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->selected_tags]))
 #define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)  ((X)->w + 2*(X)->border_width)
@@ -147,7 +147,7 @@ struct Monitor {
     int bottom_bar_y;
     int mon_x, mon_y, mon_w, mon_h;  /* screen size */
     int win_x, win_y, win_w, win_h;  /* window area */
-    uint seltags;
+    uint selected_tags;
     uint layout_index;
     uint tagset[2];
     int show_top_bar;
@@ -492,7 +492,7 @@ apply_rules(Client *client) {
         XFree(class_hint.res_name);
     client->tags = client->tags & TAGMASK
                    ? client->tags & TAGMASK
-                   : (client->monitor->tagset[client->monitor->seltags]
+                   : (client->monitor->tagset[client->monitor->selected_tags]
                       & (uint) ~SPTAGMASK);
     return;
 }
@@ -914,7 +914,7 @@ draw_bar(Monitor *monitor) {
         }
         tag_width[i] = w = (int) TEXT_PIXELS(tagdisp);
 
-        if (monitor->tagset[monitor->seltags] & 1 << i)
+        if (monitor->tagset[monitor->selected_tags] & 1 << i)
             which_scheme = SchemeSelected;
         else
             which_scheme = SchemeNormal;
@@ -2542,7 +2542,7 @@ send_monitor(Client *client, Monitor *m) {
     detach(client);
     detach_stack(client);
     client->monitor = m;
-    client->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
+    client->tags = m->tagset[m->selected_tags]; /* assign tags of target monitor */
     attach(client);
     attach_stack(client);
     set_client_tag_prop(client);
@@ -2986,16 +2986,16 @@ toggle_scratch(const Arg *arg) {
          client = client->next);
 
     if (found) {
-        uint this_tag = client->tags & current_monitor->tagset[current_monitor->seltags];
-        uint new_tagset = current_monitor->tagset[current_monitor->seltags] ^ scrath_tag;
+        uint this_tag = client->tags & current_monitor->tagset[current_monitor->selected_tags];
+        uint new_tagset = current_monitor->tagset[current_monitor->selected_tags] ^ scrath_tag;
 
         if (this_tag) {
             client->tags = scrath_tag;
         } else {
-            client->tags |= current_monitor->tagset[current_monitor->seltags];
+            client->tags |= current_monitor->tagset[current_monitor->selected_tags];
         }
         if (new_tagset) {
-            current_monitor->tagset[current_monitor->seltags] = new_tagset;
+            current_monitor->tagset[current_monitor->selected_tags] = new_tagset;
             focus(NULL);
             arrange(current_monitor);
         }
@@ -3004,7 +3004,7 @@ toggle_scratch(const Arg *arg) {
             restack(current_monitor);
         }
     } else {
-        current_monitor->tagset[current_monitor->seltags] |= scrath_tag;
+        current_monitor->tagset[current_monitor->selected_tags] |= scrath_tag;
         spawn(&scratchpad_arg);
     }
     return;
@@ -3029,11 +3029,11 @@ toggle_tag(const Arg *arg) {
 void
 toggle_view(const Arg *arg) {
     Monitor *monitor = current_monitor;
-    uint new_tagset = monitor->tagset[monitor->seltags] ^ (arg->ui & TAGMASK);
+    uint new_tagset = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
 
     if (new_tagset) {
         uint current_tag;
-        monitor->tagset[monitor->seltags] = new_tagset;
+        monitor->tagset[monitor->selected_tags] = new_tagset;
 
         if (new_tagset == (uint) ~0) {
             monitor->pertag->previous_tag = monitor->pertag->current_tag;
@@ -3458,13 +3458,13 @@ view_tag(const Arg *arg) {
     uint current_tag;
     Monitor *monitor = current_monitor;
 
-    if ((arg_tags & TAGMASK) == monitor->tagset[monitor->seltags])
+    if ((arg_tags & TAGMASK) == monitor->tagset[monitor->selected_tags])
         return;
 
-    monitor->seltags ^= 1; /* toggle selected_client tagset */
+    monitor->selected_tags ^= 1; /* toggle selected_client tagset */
 
     if (arg_tags & TAGMASK) {
-        monitor->tagset[monitor->seltags] = arg_tags & TAGMASK;
+        monitor->tagset[monitor->selected_tags] = arg_tags & TAGMASK;
         monitor->pertag->previous_tag = monitor->pertag->current_tag;
 
         if (arg_tags == (uint) ~0) {
