@@ -3317,6 +3317,7 @@ update_size_hints(Client *client) {
     if (!XGetWMNormalHints(display, client->window, &size_hints, &supplied_return))
         /* size_hints is uninitialized, ensure that size_hints.flags aren't used */
         size_hints.flags = PSize;
+
     if (size_hints.flags & PBaseSize) {
         client->base_w = size_hints.base_width;
         client->base_h = size_hints.base_height;
@@ -3355,9 +3356,11 @@ update_size_hints(Client *client) {
     } else {
         client->max_a = client->min_a = 0.0;
     }
+
     has_maxes = client->maxw && client->maxh;
     mins_match_maxes = client->maxw == client->minw && client->maxh == client->minh;
     client->is_fixed = has_maxes && mins_match_maxes;
+
     client->hintsvalid = 1;
     return;
 }
