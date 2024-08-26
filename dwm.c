@@ -2281,19 +2281,27 @@ move_mouse(const Arg *arg) {
             bool is_floating = client->is_floating;
             int nx = ocx + (event.xmotion.x - x);
             int ny = ocy + (event.xmotion.y - y);
+            int over_x[2] = {
+                abs(monitor->win_x - nx),
+                abs((monitor->win_x + monitor->win_w) - (nx + WIDTH(client))),
+            };
+            int over_y[2] = {
+                abs(monitor->win_y - ny),
+                abs((monitor->win_y + monitor->win_h) - (ny + HEIGHT(client))),
+            };
 
             if ((event.xmotion.time - lasttime) <= (1000 / 60))
                 continue;
             lasttime = event.xmotion.time;
 
-            if (abs(monitor->win_x - nx) < SNAP_PIXELS)
+            if (over_x[0] < SNAP_PIXELS)
                 nx = monitor->win_x;
-            else if (abs((monitor->win_x + monitor->win_w) - (nx + WIDTH(client))) < SNAP_PIXELS)
+            else if (over_x[1] < SNAP_PIXELS)
                 nx = monitor->win_x + monitor->win_w - WIDTH(client);
 
-            if (abs(monitor->win_y - ny) < SNAP_PIXELS)
+            if (over_y[0] < SNAP_PIXELS)
                 ny = monitor->win_y;
-            else if (abs((monitor->win_y + monitor->win_h) - (ny + HEIGHT(client))) < SNAP_PIXELS)
+            else if (over_y[1] < SNAP_PIXELS)
                 ny = monitor->win_y + monitor->win_h - HEIGHT(client);
 
             if (!is_floating && monitor->layout[monitor->lay_i]->arrange
