@@ -95,7 +95,7 @@ static const Layout layouts[] = {
 /* key definitions */
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
-	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
+	{ MODKEY,                       KEY,      view_tag,           {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggle_view,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggle_tag,      {.ui = 1 << TAG} },
@@ -116,7 +116,7 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_j,      aspect_resize,      {.i = -25} },
 	{ MODKEY|ControlMask,        XK_semicolon, aspect_resize,      {.i = +25} },
 	{ MODKEY|ShiftMask,             XK_Return, zoom,               {0} },
-	{ MODKEY,                       XK_Tab,    view,               {0} },
+	{ MODKEY,                       XK_Tab,    view_tag,               {0} },
 	{ MODKEY,                       XK_q,      kill_client,        {0} },
 	{ MODKEY,                       XK_t,      set_layout,         {.v = &layouts[0]} },
 	{ MODKEY|ShiftMask,             XK_f,      set_layout,         {.v = &layouts[1]} },
@@ -124,7 +124,7 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_g,      set_layout,         {.v = &layouts[3]} },
 	{ MODKEY|ShiftMask,             XK_c,      set_layout,         {.v = &layouts[4]} },
 	{ MODKEY,                       XK_space,  toggle_floating,    {0} },
-	{ MODKEY,                   XK_apostrophe, view,               {.ui = (uint) ~0 } },
+	{ MODKEY,                   XK_apostrophe, view_tag,               {.ui = (uint) ~0 } },
 	{ MODKEY|ShiftMask,         XK_apostrophe, tag,                {.ui = (uint) ~0 } },
 	{ MODKEY|ControlMask,           XK_k,      focus_monitor,      {.i = -1 } },
 	{ MODKEY|ControlMask,           XK_l,      focus_monitor,      {.i = +1 } },
@@ -169,7 +169,7 @@ static const Button buttons[] = {
 	{ ClickBottomBar,         0,              Button5,        signal_status_bar,   {.i = 5} },
 	{ ClickBottomBar,         ShiftMask,      Button1,        signal_status_bar,   {.i = 6} },
 	{ ClickBottomBar,         ControlMask,    Button1,        signal_status_bar,   {.i = 7} },
-	{ ClickTagBar,            0,              Button1,        view,           {0} },
+	{ ClickTagBar,            0,              Button1,        view_tag,           {0} },
 	{ ClickTagBar,            0,              Button3,        toggle_view,     {0} },
 	{ ClickTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClickTagBar,            MODKEY,         Button3,        toggle_tag,      {0} },

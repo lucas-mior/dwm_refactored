@@ -275,7 +275,7 @@ static void update_title(Client *);
 static void update_icon(Client *);
 static void update_window_type(Client *);
 static void update_wm_hints(Client *);
-static void view(const Arg *);
+static void view_tag(const Arg *);
 static Client *window_to_client(Window);
 static Monitor *window_to_monitor(Window);
 static void window_view(const Arg* arg);
@@ -368,7 +368,7 @@ alt_tab(const Arg *arg) {
         return;
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        view(&(Arg){ .ui = (uint) ~0 });
+        view_tag(&(Arg){ .ui = (uint) ~0 });
     focus_next(&(Arg){ .i = alt_tab_direction });
 
     for (int i = 0; i < 100; i += 1) {
@@ -482,7 +482,7 @@ apply_rules(Client *client) {
 
             if (rule->switchtotag) {
                 Arg a = { .ui = rule->tags };
-                view(&a);
+                view_tag(&a);
             }
         }
     }
@@ -657,7 +657,7 @@ cleanup(void) {
     Arg a = {.ui = (uint) ~0};
     Layout layout = { "", NULL };
 
-    view(&a);
+    view_tag(&a);
     current_monitor->layout[current_monitor->layout_index] = &layout;
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         while (monitor->stack)
@@ -1203,7 +1203,7 @@ focus_urgent(const Arg *arg) {
                 i += 1;
             if (i < LENGTH(tags)) {
                 const Arg a = {.ui = 1 << i};
-                view(&a);
+                view_tag(&a);
                 focus(client);
             }
         }
@@ -2777,13 +2777,13 @@ setup_once(void) {
         current_monitor = monitor;
         focus(NULL);
 
-        view(&tag8);
+        view_tag(&tag8);
         set_layout(&layout_monocle);
         toggle_top_bar(0);
 
-        view(&tag0);
+        view_tag(&tag0);
         set_layout(&lay_grid);
-        view(&tag1);
+        view_tag(&tag1);
     }
     return;
 }
@@ -3448,7 +3448,7 @@ update_wm_hints(Client *client) {
 }
 
 void
-view(const Arg *arg) {
+view_tag(const Arg *arg) {
     uint arg_tags = arg->ui;
     uint tmptag;
     uint current_tag;
@@ -3552,7 +3552,7 @@ window_view(const Arg* arg) {
         return;
 
     view_arg.ui = client->tags;
-    view(&view_arg);
+    view_tag(&view_arg);
     return;
 }
 
