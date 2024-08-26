@@ -1748,7 +1748,10 @@ handler_configure_request(XEvent *e) {
     if ((client = window_to_client(event->window))) {
         if (event->value_mask & CWBorderWidth) {
             client->border_width = event->border_width;
-        } else if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
+            XSync(display, False);
+            return;
+        }
+        if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
             m = client->monitor;
             if (event->value_mask & CWX) {
                 client->old_x = client->x;
