@@ -3321,31 +3321,36 @@ update_size_hints(Client *client) {
     } else if (size.flags & PMinSize) {
         client->base_w = size.min_width;
         client->base_h = size.min_height;
-    } else
+    } else {
         client->base_w = client->base_h = 0;
+    }
     if (size.flags & PResizeInc) {
         client->incw = size.width_inc;
         client->inch = size.height_inc;
-    } else
+    } else {
         client->incw = client->inch = 0;
+    }
     if (size.flags & PMaxSize) {
         client->maxw = size.max_width;
         client->maxh = size.max_height;
-    } else
+    } else {
         client->maxw = client->maxh = 0;
+    }
     if (size.flags & PMinSize) {
         client->minw = size.min_width;
         client->minh = size.min_height;
     } else if (size.flags & PBaseSize) {
         client->minw = size.base_width;
         client->minh = size.base_height;
-    } else
+    } else {
         client->minw = client->minh = 0;
+    }
     if (size.flags & PAspect) {
         client->min_a = (float)size.min_aspect.y / (float)size.min_aspect.x;
         client->max_a = (float)size.max_aspect.x / (float)size.max_aspect.y;
-    } else
+    } else {
         client->max_a = client->min_a = 0.0;
+    }
     client->is_fixed = (client->maxw && client->maxh && client->maxw == client->minw && client->maxh == client->minh);
     client->hintsvalid = 1;
     return;
