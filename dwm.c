@@ -1407,17 +1407,21 @@ layout_tile(Monitor *m) {
 
 Atom
 get_atom_property(Client *client, Atom property) {
-    int di;
-    ulong dl;
-    Atom da;
+    int actual_format_return;
+    ulong nitems_return;
+    Atom actual_type_return;
     Atom atom = None;
-    Atom *atom_aux = NULL;
+    Atom *prop_return = NULL;
+    int sucess;
 
-    if (XGetWindowProperty(display, client->window, property,
-                           0L, sizeof(atom), False, XA_ATOM,
-                           &da, &di, &dl, &dl, (uchar **) &atom_aux) == Success && atom_aux) {
-        atom = *atom_aux;
-        XFree(atom_aux);
+    sucess = XGetWindowProperty(display, client->window, property,
+                                0L, sizeof(atom), False, XA_ATOM,
+                                &actual_type_return, &actual_format_return,
+                                &nitems_return, &nitems_return,
+                                (uchar **) &prop_return);
+    if (sucess == Success && prop_return) {
+        atom = *prop_return;
+        XFree(prop_return);
     }
     return atom;
 }
