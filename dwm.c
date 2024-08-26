@@ -960,14 +960,11 @@ draw_bar(Monitor *monitor) {
     }
     drw_map(drw, monitor->bar_window, 0, 0, (uint) monitor->win_w, bar_height);
 
+    drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
     if (monitor == current_monitor) {
         char *text;
         char *s;
-
-        drw_setscheme(drw, scheme[SchemeNormal]);
-        /* clear default bar draw buffer by drawing a blank rectangle */
-        drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
 
         x = 0;
         for (text = s = &extra_status[0]; *s; s += 1) {
@@ -991,9 +988,9 @@ draw_bar(Monitor *monitor) {
         drw_text(drw,
                  monitor->win_w - extra_status_pixels + x, 0,
                  (uint) text_pixels, bar_height, 0, text, 0);
-        drw_map(drw, monitor->extra_bar_window,
-                0, 0, (uint) monitor->win_w, bar_height);
     }
+    drw_map(drw, monitor->extra_bar_window,
+            0, 0, (uint) monitor->win_w, bar_height);
     return;
 }
 
