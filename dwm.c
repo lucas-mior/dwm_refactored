@@ -1468,7 +1468,8 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
     if (XGetWindowProperty(display, window, netatom[NetWMIcon],
                            0L, LONG_MAX, False, AnyPropertyType,
                            &real, &format,
-                           &nitems_return, &bytes_after_return, (uchar **)&prop_return) != Success) {
+                           &nitems_return, &bytes_after_return,
+                           (uchar **)&prop_return) != Success) {
         return None;
     }
     if (nitems_return == 0 || format != 32) {
