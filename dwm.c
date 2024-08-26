@@ -108,7 +108,8 @@ struct Client {
     int stored_fx, stored_fy, stored_fw, stored_fh;
     int old_x, old_y, old_w, old_h;
     int base_w, base_h;
-    int incw, inch, maxw, maxh, minw, minh, hintsvalid;
+    int incw, inch;
+    int maxw, maxh, minw, minh, hintsvalid;
     int border_width, oldbw;
     uint tags;
 
