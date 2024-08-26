@@ -2842,6 +2842,7 @@ void
 show_hide(Client *client) {
     if (!client)
         return;
+
     if (ISVISIBLE(client)) {
         if ((client->tags & SPTAGMASK) && client->is_floating) {
             client->x = client->monitor->win_x + (client->monitor->win_w / 2 - WIDTH(client) / 2);
