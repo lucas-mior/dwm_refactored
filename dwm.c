@@ -1209,8 +1209,8 @@ layout_columns(Monitor *monitor) {
 void
 layout_gapless_grid(Monitor *monitor) {
     uint n = 0;
-    uint cols = 0;
-    uint rows;
+    uint ncolumns = 0;
+    uint nrows;
     uint cn;
     uint rn;
     uint cw;
@@ -1224,32 +1224,32 @@ layout_gapless_grid(Monitor *monitor) {
         return;
 
     /* grid dimensions */
-    while (cols*cols < n) {
-        if (cols > (n / 2))
+    while (ncolumns*ncolumns < n) {
+        if (ncolumns > (n / 2))
             break;
-        cols += 1;
+        ncolumns += 1;
     }
 
     if (n == 5) /* set layout against the general calculation: not 1:2:2, but 2:3 */
-        cols = 2;
-    rows = n/cols;
+        ncolumns = 2;
+    nrows = n/ncolumns;
 
     /* window geometries */
-    cw = cols ? monitor->win_w / cols : monitor->win_w;
+    cw = ncolumns ? monitor->win_w / ncolumns : monitor->win_w;
     cn = 0; /* current column number */
     rn = 0; /* current row number */
     for (Client *client = next_tiled(monitor->clients);
                  client;
                  client = next_tiled(client->next)) {
-        if (i/rows + 1 > cols - n%cols)
-            rows = n/cols + 1;
-        ch = rows ? monitor->win_h / rows : monitor->win_h;
+        if (i/nrows + 1 > ncolumns - n%ncolumns)
+            nrows = n/ncolumns + 1;
+        ch = nrows ? monitor->win_h / nrows : monitor->win_h;
         resize(client,
                monitor->win_x + cn*cw, monitor->win_y + rn*ch,
                cw - 2*client->border_width, ch - 2*client->border_width,
                False);
         rn += 1;
-        if (rn >= rows) {
+        if (rn >= nrows) {
             rn = 0;
             cn += 1;
         }
@@ -1435,8 +1435,8 @@ get_icon_property(Window win, uint *picture_width, uint *picture_height) {
         }
     }
 
-    w = *(bstp - 2);
-    h = *(bstp - 1);
+    w = (uint32) *(bstp - 2);
+    h = (uint32) *(bstp - 1);
     if ((w == 0) || (h == 0)) {
         XFree(propreturn);
         return None;
