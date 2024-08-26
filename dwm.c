@@ -1578,14 +1578,17 @@ get_state(Window window) {
     int format;
     long result = -1;
     uchar *prop_return = NULL;
-    ulong n, extra;
+    ulong nitems_return;
+    ulong bytes_after_return;
     Atom real;
 
-    if (XGetWindowProperty(display, window, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
-        &real, &format, &n, &extra, (uchar **)&prop_return) != Success) {
+    if (XGetWindowProperty(display, window, wmatom[WMState],
+                           0L, 2L, False, wmatom[WMState],
+                           &real, &format, &nitems_return, &bytes_after_return,
+                           (uchar **)&prop_return) != Success) {
         return -1;
     }
-    if (n != 0)
+    if (nitems_return != 0)
         result = *prop_return;
     XFree(prop_return);
     return result;
