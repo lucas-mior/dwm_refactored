@@ -1858,7 +1858,10 @@ handler_configure_request(XEvent *event) {
         window_changes.border_width = conf_request_event->border_width;
         window_changes.sibling = conf_request_event->above;
         window_changes.stack_mode = conf_request_event->detail;
-        XConfigureWindow(display, conf_request_event->window, (uint) conf_request_event->value_mask, &window_changes);
+
+        XConfigureWindow(display, conf_request_event->window,
+                         (uint) conf_request_event->value_mask,
+                         &window_changes);
     }
     XSync(display, False);
     return;
@@ -2281,17 +2284,21 @@ move_mouse(const Arg *arg) {
 
             nx = ocx + (event.xmotion.x - x);
             ny = ocy + (event.xmotion.y - y);
+
             if (abs(current_monitor->win_x - nx) < snap)
                 nx = current_monitor->win_x;
             else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < snap)
                 nx = current_monitor->win_x + current_monitor->win_w - WIDTH(client);
+
             if (abs(current_monitor->win_y - ny) < snap)
                 ny = current_monitor->win_y;
             else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < snap)
                 ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
+
             if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
             && (abs(nx - client->x) > snap || abs(ny - client->y) > snap))
                 toggle_floating(NULL);
+
             if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
