@@ -458,7 +458,7 @@ apply_rules(Client *client) {
 
     for (int i = 0; i < LENGTH(rules); i += 1) {
         const Rule *rule = &rules[i];
-        Monitor *monitor;
+        Monitor *monitor_aux;
 
         if ((!rule->title || strstr(client->name, rule->title))
             && (!rule->class || strstr(class, rule->class))
@@ -472,11 +472,11 @@ apply_rules(Client *client) {
                 client->y = monitor->win_y + monitor->win_h / 2 - HEIGHT(client) / 2;
             }
 
-            for (monitor = monitors;
-                 monitor && monitor->num != rule->monitor;
-                 monitor = monitor->next);
-            if (monitor)
-                client->monitor = monitor;
+            for (monitor_aux = monitors;
+                 monitor_aux && monitor_aux->num != rule->monitor;
+                 monitor_aux = monitor_aux->next);
+            if (monitor_aux)
+                client->monitor = monitor_aux;
 
             if (rule->switchtotag) {
                 Arg a = { .ui = rule->tags };
@@ -2030,7 +2030,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
 
     client = ecalloc(1, sizeof(*client));
     client->window = window;
-    /* geometry */
+
     client->x = client->old_x = window_attributes->x;
     client->y = client->old_y = window_attributes->y;
     client->w = client->old_w = window_attributes->width;
