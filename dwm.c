@@ -66,7 +66,7 @@ typedef unsigned char uchar;
 #define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
 #define NUMTAGS   (LENGTH(tags) + LENGTH(scratchpads))
 #define TAGMASK   ((1 << NUMTAGS) - 1)
-#define SPTAG(i)  (uint) ((1 << LENGTH(tags)) << (i))
+#define SPTAG(i)  (uint)((1 << LENGTH(tags)) << (i))
 #define SPTAGMASK (((1 << LENGTH(scratchpads))-1) << LENGTH(tags))
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
 
@@ -370,7 +370,7 @@ alt_tab(const Arg *arg) {
         return;
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        view_tag(&(Arg){ .ui = (uint) ~0 });
+        view_tag(&(Arg){ .ui = (uint)~0 });
     focus_next(&(Arg){ .i = alt_tab_direction });
 
     for (int i = 0; i < 100; i += 1) {
@@ -496,7 +496,7 @@ apply_rules(Client *client) {
     client->tags = client->tags & TAGMASK
                    ? client->tags & TAGMASK
                    : (client->monitor->tagset[client->monitor->selected_tags]
-                      & (uint) ~SPTAGMASK);
+                      & (uint)~SPTAGMASK);
     return;
 }
 
@@ -657,7 +657,7 @@ attach_stack(Client *client) {
 
 void
 cleanup(void) {
-    Arg a = {.ui = (uint) ~0};
+    Arg a = {.ui = (uint)~0};
     Layout layout = { "", NULL };
 
     view_tag(&a);
@@ -867,7 +867,7 @@ draw_bar(Monitor *monitor) {
 
                 text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
                 drw_text(drw, monitor->win_w - status_text_pixels + x, 0,
-                         (uint) text_pixels, bar_height, 0, text, 0);
+                         (uint)text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
 
                 *s = temp;
@@ -877,7 +877,7 @@ draw_bar(Monitor *monitor) {
         text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
         drw_text(drw,
                  monitor->win_w - status_text_pixels + x, 0,
-                 (uint) text_pixels, bar_height, 0, text, 0);
+                 (uint)text_pixels, bar_height, 0, text, 0);
         text_pixels = status_text_pixels;
     }
 
@@ -924,7 +924,7 @@ draw_bar(Monitor *monitor) {
             which_scheme = SchemeNormal;
         drw_setscheme(drw, scheme[which_scheme]);
 
-        drw_text(drw, x, 0, (uint) w,
+        drw_text(drw, x, 0, (uint)w,
                  bar_height, lrpad / 2, tagdisp, (int) urgent & 1 << i);
         x += w;
         if (client) {
@@ -940,7 +940,7 @@ draw_bar(Monitor *monitor) {
     }
     w = (int) TEXT_PIXELS(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
-    x = drw_text(drw, x, 0, (uint) w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
+    x = drw_text(drw, x, 0, (uint)w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - text_pixels - x) > (int) bar_height) {
         int boxs = drw->fonts->h / 9;
@@ -955,21 +955,21 @@ draw_bar(Monitor *monitor) {
             drw_setscheme(drw, scheme[scheme_index]);
 
             drw_text(drw,
-                     x, 0, (uint) w, bar_height,
+                     x, 0, (uint)w, bar_height,
                      lrpad / 2, monitor->selected_client->name, 0);
             if (monitor->selected_client->is_floating)
                 drw_rect(drw, x + boxs, boxs,
-                         (uint) boxw, (uint) boxw,
+                         (uint)boxw, (uint)boxw,
                          monitor->selected_client->is_fixed, 0);
         } else {
             drw_setscheme(drw, scheme[SchemeNormal]);
-            drw_rect(drw, x, 0, (uint) w, bar_height, 1, 1);
+            drw_rect(drw, x, 0, (uint)w, bar_height, 1, 1);
         }
     }
-    drw_map(drw, monitor->top_bar_window, 0, 0, (uint) monitor->win_w, bar_height);
+    drw_map(drw, monitor->top_bar_window, 0, 0, (uint)monitor->win_w, bar_height);
 
     drw_setscheme(drw, scheme[SchemeNormal]);
-    drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
+    drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
     if (monitor == current_monitor) {
         char *text;
         char *s;
@@ -985,7 +985,7 @@ draw_bar(Monitor *monitor) {
                 text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
                 drw_text(drw,
                          monitor->win_w - bottom_status_pixels + x, 0,
-                         (uint) text_pixels, bar_height, 0, text, 0);
+                         (uint)text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
 
                 *s = temp;
@@ -995,10 +995,10 @@ draw_bar(Monitor *monitor) {
         text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
         drw_text(drw,
                  monitor->win_w - bottom_status_pixels + x, 0,
-                 (uint) text_pixels, bar_height, 0, text, 0);
+                 (uint)text_pixels, bar_height, 0, text, 0);
     }
     drw_map(drw, monitor->bottom_bar_window,
-            0, 0, (uint) monitor->win_w, bar_height);
+            0, 0, (uint)monitor->win_w, bar_height);
     return;
 }
 
@@ -1048,7 +1048,7 @@ focus_direction(const Arg *arg) {
     Client *client;
     Client *next;
 
-    uint score = (uint) -1;
+    uint score = (uint)-1;
     int is_floating = selected->is_floating;
 
     if (!selected)
@@ -1650,7 +1650,7 @@ grab_buttons(Client *client, int focused) {
     for (int i = 0; i < LENGTH(buttons); i += 1) {
         if (buttons[i].click == ClickClientWin) {
             for (int j = 0; j < LENGTH(modifiers); j += 1) {
-                XGrabButton(display, (uint) buttons[i].button,
+                XGrabButton(display, (uint)buttons[i].button,
                             buttons[i].mask | modifiers[j],
                             client->window, False, BUTTONMASK,
                             GrabModeAsync, GrabModeSync, None, None);
@@ -1678,7 +1678,7 @@ grab_keys(void) {
             /* skip modifier codes, we do that ourselves */
             if (keys[i].keysym == key_sym[(k - start)*skip]) {
                 for (int j = 0; j < LENGTH(modifiers); j += 1)
-                    XGrabKey(display, k, (uint) keys[i].mod | modifiers[j],
+                    XGrabKey(display, k, (uint)keys[i].mod | modifiers[j],
                              root, True, GrabModeAsync, GrabModeAsync);
             }
         }
@@ -1707,17 +1707,17 @@ handler_button_press(XEvent *event) {
         uint x = 0;
 
         do {
-            x += (uint) tag_width[i];
-        } while ((uint) button_event->x >= x && ++i < LENGTH(tags));
+            x += (uint)tag_width[i];
+        } while ((uint)button_event->x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClickTagBar;
             arg.ui = 1 << i;
-        } else if ((uint) button_event->x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
+        } else if ((uint)button_event->x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
             click = ClickLayoutSymbol;
         } else if (button_event->x > current_monitor->win_w - status_text_pixels) {
             char *s;
 
-            x = (uint) (current_monitor->win_w - status_text_pixels);
+            x = (uint)(current_monitor->win_w - status_text_pixels);
             click = ClickStatusText;
             statussig = 0;
 
@@ -1860,7 +1860,7 @@ handler_configure_request(XEvent *event) {
         window_changes.stack_mode = conf_request_event->detail;
 
         XConfigureWindow(display, conf_request_event->window,
-                         (uint) conf_request_event->value_mask,
+                         (uint)conf_request_event->value_mask,
                          &window_changes);
     }
     XSync(display, False);
@@ -1880,7 +1880,7 @@ handler_configure_notify(XEvent *event) {
     screen_width = configure_event->width;
     screen_height = configure_event->height;
     if (update_geometry() || dirty) {
-        drw_resize(drw, (uint) screen_width, bar_height);
+        drw_resize(drw, (uint)screen_width, bar_height);
         update_bars();
         for (Monitor *m = monitors; m; m = m->next) {
             for (Client *client = m->clients; client; client = client->next) {
@@ -2184,7 +2184,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
                                     &nitems_return, &bytes_after_return,
                                     (uchar **)&prop_return);
         if (sucess == Success && nitems_return == 2) {
-            client->tags = (uint) *prop_return;
+            client->tags = (uint)*prop_return;
             for (Monitor *m = monitors; m; m = m->next) {
                 if (m->num == (int) *(prop_return+1)) {
                     client->monitor = m;
@@ -2226,7 +2226,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
     /* some windows require this */
     XMoveResizeWindow(display, client->window,
                       client->x + 2*screen_width, client->y,
-                      (uint) client->w, (uint) client->h);
+                      (uint)client->w, (uint)client->h);
     set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
         unfocus(current_monitor->selected_client, 0);
@@ -2766,8 +2766,8 @@ setup_once(void) {
     root = RootWindow(display, screen);
     xinitvisual();
     drw = drw_create(display, screen, root,
-                     (uint) screen_width, (uint) screen_height,
-                     visual, (uint) depth, cmap);
+                     (uint)screen_width, (uint)screen_height,
+                     visual, (uint)depth, cmap);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
         die("no fonts could be loaded.");
     lrpad = drw->fonts->h / 2;
@@ -2836,7 +2836,7 @@ setup_once(void) {
         Arg lay_grid = {.v = &layouts[3]};
         Arg tag8 = {.ui = 1 << 5};
         Arg tag1 = {.ui = 1 << 0};
-        Arg tag0 = {.ui = (uint) ~0};
+        Arg tag0 = {.ui = (uint)~0};
 
         unfocus(current_monitor->selected_client, 0);
         current_monitor = monitor;
@@ -2969,7 +2969,7 @@ toggle_top_bar(const Arg *arg) {
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->top_bar_window,
                       monitor->win_x, monitor->top_bar_y,
-                      (uint) monitor->win_w, bar_height);
+                      (uint)monitor->win_w, bar_height);
 
     arrange(monitor);
     return;
@@ -2984,7 +2984,7 @@ toggle_bottom_bar(const Arg *arg) {
     update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->bottom_bar_window,
                       monitor->win_x, monitor->bottom_bar_y,
-                      (uint) monitor->win_w, bar_height);
+                      (uint)monitor->win_w, bar_height);
     arrange(monitor);
     return;
 }
@@ -3113,7 +3113,7 @@ toggle_view(const Arg *arg) {
         uint current_tag;
         monitor->tagset[monitor->selected_tags] = new_tagset;
 
-        if (new_tagset == (uint) ~0) {
+        if (new_tagset == (uint)~0) {
             monitor->pertag->previous_tag = monitor->pertag->current_tag;
             monitor->pertag->current_tag = 0;
         }
@@ -3221,7 +3221,7 @@ update_bars(void) {
         if (!monitor->top_bar_window) {
             window = XCreateWindow(display, root,
                                    monitor->win_x, monitor->top_bar_y,
-                                   (uint) monitor->win_w, bar_height,
+                                   (uint)monitor->win_w, bar_height,
                                    0, depth, InputOutput, visual,
                                    value_mask, &window_attributes);
             monitor->top_bar_window = window;
@@ -3233,7 +3233,7 @@ update_bars(void) {
         if (!monitor->bottom_bar_window) {
             window = XCreateWindow(display, root,
                                    monitor->win_x, monitor->bottom_bar_y,
-                                   (uint) monitor->win_w, bar_height,
+                                   (uint)monitor->win_w, bar_height,
                                    0, depth, InputOutput, visual,
                                    value_mask, &window_attributes);
             monitor->bottom_bar_window = window;
@@ -3563,7 +3563,7 @@ view_tag(const Arg *arg) {
         monitor->tagset[monitor->selected_tags] = arg_tags & TAGMASK;
         monitor->pertag->previous_tag = monitor->pertag->current_tag;
 
-        if (arg_tags == (uint) ~0) {
+        if (arg_tags == (uint)~0) {
             monitor->pertag->current_tag = 0;
         } else {
             uint i = 0;
