@@ -959,12 +959,10 @@ draw_bar(Monitor *monitor) {
         drw_rect(drw, 0, 0, (uint) monitor->win_w, bar_height, 1, 1);
 
         x = 0;
-        int kk = 0;
         for (text = s = &extra_status[0]; *s; s += 1) {
             char temp;
 
             if ((uchar)(*s) < ' ') {
-                kk += 1;
                 temp = *s;
                 *s = '\0';
 
