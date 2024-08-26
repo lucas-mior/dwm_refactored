@@ -800,12 +800,12 @@ detach(Client *client) {
 
 void
 detach_stack(Client *client) {
-    Client **tc;
+    Client **client_aux;
 
-    for (tc = &client->monitor->stack;
-         *tc && *tc != client;
-         tc = &(*tc)->snext);
-    *tc = client->snext;
+    for (client_aux = &client->monitor->stack;
+         *client_aux && *client_aux != client;
+         client_aux = &(*client_aux)->snext);
+    *client_aux = client->snext;
 
     if (client == client->monitor->selected_client) {
         Client *t;
