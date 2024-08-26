@@ -112,8 +112,8 @@ struct Client {
     int border_width, oldbw;
     uint tags;
 
-    bool isfixed, isfloating, isurgent;
-    bool neverfocus, oldstate, isfullscreen, isfakefullscreen;
+    bool is_fixed, is_floating, is_urgent;
+    bool never_focus, old_state, is_fullscreen, is_fake_fullscreen;
 
     uint icon_width, icon_height;
     Picture icon;
@@ -168,8 +168,8 @@ typedef struct {
     const char *title;
     uint tags;
     uint switchtotag;
-    int isfloating;
-    int isfakefullscreen;
+    int is_floating;
+    int is_fake_fullscreen;
     int monitor;
 } Rule;
 
@@ -452,7 +452,7 @@ apply_rules(Client *client) {
     XClassHint class_hint = { NULL, NULL };
 
     /* rule matching */
-    client->isfloating = 0;
+    client->is_floating = 0;
     client->tags = 0;
     XGetClassHint(display, client->window, &class_hint);
     class    = class_hint.res_class ? class_hint.res_class : broken;
@@ -465,10 +465,10 @@ apply_rules(Client *client) {
         if ((!rule->title || strstr(client->name, rule->title))
             && (!rule->class || strstr(class, rule->class))
             && (!rule->instance || strstr(instance, rule->instance))) {
-            client->isfloating = rule->isfloating;
-            client->isfakefullscreen = rule->isfakefullscreen;
+            client->is_floating = rule->is_floating;
+            client->is_fake_fullscreen = rule->is_fake_fullscreen;
             client->tags |= rule->tags;
-            if ((rule->tags & SPTAGMASK) && rule->isfloating) {
+            if ((rule->tags & SPTAGMASK) && rule->is_floating) {
                 Monitor *monitor = client->monitor;
                 client->x = monitor->win_x + monitor->win_w / 2 - WIDTH(client) / 2;
                 client->y = monitor->win_y + monitor->win_h / 2 - HEIGHT(client) / 2;
@@ -531,7 +531,7 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         *w = (int) bar_height;
 
     if (resizehints
-        || client->isfloating
+        || client->is_floating
         || !client->monitor->layout[client->monitor->layout_index]->arrange) {
         if (!client->hintsvalid)
             update_size_hints(client);
@@ -619,7 +619,7 @@ aspect_resize(const Arg *arg) {
     if (!client || !arg)
         return;
 
-    if (!client->isfloating
+    if (!client->is_floating
         && current_monitor->layout[current_monitor->layout_index]->arrange) {
         return;
     }
@@ -880,7 +880,7 @@ draw_bar(Monitor *monitor) {
     }
 
     for (Client *client = monitor->clients; client; client = client->next) {
-        if (client->isurgent)
+        if (client->is_urgent)
             urgent |= client->tags;
         for (int i = 0; i < LENGTH(tags); i += 1) {
             if (client->icon && client->tags & (1 << i))
@@ -949,10 +949,10 @@ draw_bar(Monitor *monitor) {
             drw_text(drw,
                      x, 0, (uint) w, bar_height,
                      lrpad / 2, monitor->selected_client->name, 0);
-            if (monitor->selected_client->isfloating)
+            if (monitor->selected_client->is_floating)
                 drw_rect(drw, x + boxs, boxs,
                          (uint) boxw, (uint) boxw,
-                         monitor->selected_client->isfixed, 0);
+                         monitor->selected_client->is_fixed, 0);
         } else {
             drw_setscheme(drw, scheme[SchemeNormal]);
             drw_rect(drw, x, 0, (uint) w, bar_height, 1, 1);
@@ -1016,7 +1016,7 @@ focus(Client *client) {
     if (client) {
         if (client->monitor != current_monitor)
             current_monitor = client->monitor;
-        if (client->isurgent)
+        if (client->is_urgent)
             set_urgent(client, 0);
         detach_stack(client);
         attach_stack(client);
@@ -1041,7 +1041,7 @@ focus_direction(const Arg *arg) {
     Client *next;
 
     uint score = (uint) -1;
-    int isfloating = selected->isfloating;
+    int is_floating = selected->is_floating;
 
     if (!selected)
         return;
@@ -1057,7 +1057,7 @@ focus_direction(const Arg *arg) {
         if (!next)
             next = selected->monitor->clients;
 
-        if (!ISVISIBLE(client) || client->isfloating != isfloating) // || HIDDEN(client)
+        if (!ISVISIBLE(client) || client->is_floating != is_floating) // || HIDDEN(client)
             continue;
 
         switch (arg->i) {
@@ -1150,7 +1150,7 @@ focus_stack(const Arg *arg) {
 
     if (!current_monitor->selected_client)
         return;
-    if (current_monitor->selected_client->isfullscreen && lockfullscreen)
+    if (current_monitor->selected_client->is_fullscreen && lockfullscreen)
         return;
 
     if (arg->i > 0) {
@@ -1191,7 +1191,7 @@ focus_urgent(const Arg *arg) {
         Client *client;
 
         for (client = monitor->clients;
-             client && !client->isurgent;
+             client && !client->is_urgent;
              client = client->next);
 
         if (client) {
@@ -1789,9 +1789,9 @@ handler_client_message(XEvent *e) {
         || (ulong) cme->data.l[2] == netatom[NetWMFullscreen])
             set_fullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
                       || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
-                                      && (!client->isfullscreen || client->isfakefullscreen))));
+                                      && (!client->is_fullscreen || client->is_fake_fullscreen))));
     } else if (cme->message_type == netatom[NetActiveWindow]) {
-        if (client != current_monitor->selected_client && !client->isurgent)
+        if (client != current_monitor->selected_client && !client->is_urgent)
             set_urgent(client, 1);
     }
     return;
@@ -1810,7 +1810,7 @@ handler_configure_request(XEvent *e) {
             XSync(display, False);
             return;
         }
-        if (client->isfloating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
+        if (client->is_floating || !current_monitor->layout[current_monitor->layout_index]->arrange) {
             monitor = client->monitor;
             if (event->value_mask & CWX) {
                 client->old_x = client->x;
@@ -1828,9 +1828,9 @@ handler_configure_request(XEvent *e) {
                 client->old_h = client->h;
                 client->h = event->height;
             }
-            if ((client->x + client->w) > monitor->mon_x + monitor->mon_w && client->isfloating)
+            if ((client->x + client->w) > monitor->mon_x + monitor->mon_w && client->is_floating)
                 client->x = monitor->mon_x + (monitor->mon_w / 2 - WIDTH(client) / 2);
-            if ((client->y + client->h) > monitor->mon_y + monitor->mon_h && client->isfloating)
+            if ((client->y + client->h) > monitor->mon_y + monitor->mon_h && client->is_floating)
                 client->y = monitor->mon_y + (monitor->mon_h / 2 - HEIGHT(client) / 2);
             if ((event->value_mask & (CWX|CWY)) && !(event->value_mask & (CWWidth|CWHeight)))
                 configure(client);
@@ -1871,7 +1871,7 @@ handler_configure_notify(XEvent *event) {
         update_bars();
         for (Monitor *m = monitors; m; m = m->next) {
             for (Client *client = m->clients; client; client = client->next) {
-                if (client->isfullscreen && !client->isfakefullscreen)
+                if (client->is_fullscreen && !client->is_fake_fullscreen)
                     resize_client(client,
                                   m->mon_x, m->mon_y, m->mon_w, m->mon_h);
             }
@@ -2022,8 +2022,8 @@ handler_property_notify(XEvent *event) {
         default:
             break;
         case XA_WM_TRANSIENT_FOR:
-            if (!client->isfloating && (XGetTransientForHint(display, client->window, &trans)) &&
-                (client->isfloating = (window_to_client(trans)) != NULL))
+            if (!client->is_floating && (XGetTransientForHint(display, client->window, &trans)) &&
+                (client->is_floating = (window_to_client(trans)) != NULL))
                 arrange(client->monitor);
             break;
         case XA_WM_NORMAL_HINTS:
@@ -2184,9 +2184,9 @@ manage(Window window, XWindowAttributes *window_attributes) {
     client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
     XSelectInput(display, window, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
     grab_buttons(client, 0);
-    if (!client->isfloating)
-        client->isfloating = client->oldstate = trans != None || client->isfixed;
-    if (client->isfloating)
+    if (!client->is_floating)
+        client->is_floating = client->old_state = trans != None || client->is_fixed;
+    if (client->is_floating)
         XRaiseWindow(display, client->window);
     attach(client);
     attach_stack(client);
@@ -2222,7 +2222,7 @@ move_mouse(const Arg *arg) {
         return;
 
     /* no support moving fullscreen windows by mouse */
-    if (client->isfullscreen && !client->isfakefullscreen)
+    if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
     restack(current_monitor);
@@ -2257,10 +2257,10 @@ move_mouse(const Arg *arg) {
                 ny = current_monitor->win_y;
             else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < snap)
                 ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
-            if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
+            if (!client->is_floating && current_monitor->layout[current_monitor->layout_index]->arrange
             && (abs(nx - client->x) > snap || abs(ny - client->y) > snap))
                 toggle_floating(NULL);
-            if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->isfloating)
+            if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->is_floating)
                 resize(client, nx, ny, client->w, client->h, 1);
             break;
         default:
@@ -2281,7 +2281,7 @@ move_mouse(const Arg *arg) {
 
 Client *
 next_tiled(Client *client) {
-    for (; client && (client->isfloating || !ISVISIBLE(client)); client = client->next);
+    for (; client && (client->is_floating || !ISVISIBLE(client)); client = client->next);
     return client;
 }
 
@@ -2347,7 +2347,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
         n += 1;
     }
 
-    if (!(client->isfloating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
+    if (!(client->is_floating) && current_monitor->layout[current_monitor->layout_index]->arrange) {
         if (current_monitor->layout[current_monitor->layout_index]->arrange == layout_monocle || n == 1) {
             window_changes.border_width = 0;
             client->w = window_changes.width += client->border_width*2;
@@ -2374,7 +2374,7 @@ resize_mouse(const Arg *arg) {
         return;
 
     /* no support resizing fullscreen windows by mouse */
-    if (client->isfullscreen && !client->isfakefullscreen)
+    if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
     restack(current_monitor);
@@ -2414,11 +2414,11 @@ resize_mouse(const Arg *arg) {
                 && client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w
                 && client->monitor->win_y + nh >= current_monitor->win_y
                 && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
-                if (!client->isfloating && current_monitor->layout[current_monitor->layout_index]->arrange
+                if (!client->is_floating && current_monitor->layout[current_monitor->layout_index]->arrange
                     && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
                     toggle_floating(NULL);
             }
-            if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->isfloating)
+            if (!current_monitor->layout[current_monitor->layout_index]->arrange || client->is_floating)
                 resize(client, client->x, client->y, nw, nh, 1);
             break;
         default:
@@ -2451,13 +2451,13 @@ restack(Monitor *m) {
     draw_bar(m);
     if (!m->selected_client)
         return;
-    if (m->selected_client->isfloating || !m->layout[m->layout_index]->arrange)
+    if (m->selected_client->is_floating || !m->layout[m->layout_index]->arrange)
         XRaiseWindow(display, m->selected_client->window);
     if (m->layout[m->layout_index]->arrange) {
         window_changes.stack_mode = Below;
         window_changes.sibling = m->top_bar_window;
         for (client = m->stack; client; client = client->snext) {
-            if (!client->isfloating && ISVISIBLE(client)) {
+            if (!client->is_floating && ISVISIBLE(client)) {
                 XConfigureWindow(display, client->window, CWSibling|CWStackMode, &window_changes);
                 window_changes.sibling = client->window;
             }
@@ -2560,7 +2560,7 @@ send_event(Client *client, Atom proto) {
 
 void
 set_focus(Client *client) {
-    if (!client->neverfocus) {
+    if (!client->never_focus) {
         XSetInputFocus(display, client->window, RevertToPointerRoot, CurrentTime);
         XChangeProperty(display, root, netatom[NetActiveWindow],
             XA_WINDOW, 32, PropModeReplace,
@@ -2572,32 +2572,32 @@ set_focus(Client *client) {
 
 void
 set_fullscreen(Client *client, int fullscreen) {
-    if (fullscreen && !client->isfullscreen) {
+    if (fullscreen && !client->is_fullscreen) {
         XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
-        client->isfullscreen = 1;
-        if (client->isfakefullscreen) {
+        client->is_fullscreen = 1;
+        if (client->is_fake_fullscreen) {
             resize_client(client, client->x, client->y, client->w, client->h);
             return;
         }
-        client->oldstate = client->isfloating;
+        client->old_state = client->is_floating;
         client->oldbw = client->border_width;
         client->border_width = 0;
-        client->isfloating = 1;
+        client->is_floating = 1;
 
         resize_client(client,
                       client->monitor->mon_x, client->monitor->mon_y,
                       client->monitor->mon_w, client->monitor->mon_h);
         XRaiseWindow(display, client->window);
-    } else if (!fullscreen && client->isfullscreen) {
+    } else if (!fullscreen && client->is_fullscreen) {
         XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)0, 0);
-        client->isfullscreen = 0;
-        if (client->isfakefullscreen) {
+        client->is_fullscreen = 0;
+        if (client->is_fake_fullscreen) {
             resize_client(client, client->x, client->y, client->w, client->h);
             return;
         }
-        client->isfloating = client->oldstate;
+        client->is_floating = client->old_state;
         client->border_width = client->oldbw;
         client->x = client->old_x;
         client->y = client->old_y;
@@ -2770,7 +2770,7 @@ void
 set_urgent(Client *client, int urgent) {
     XWMHints *wm_hints;
 
-    client->isurgent = urgent;
+    client->is_urgent = urgent;
     if (!(wm_hints = XGetWMHints(display, client->window)))
         return;
     wm_hints->flags = urgent ? (wm_hints->flags | XUrgencyHint) : (wm_hints->flags & ~XUrgencyHint);
@@ -2784,14 +2784,14 @@ show_hide(Client *client) {
     if (!client)
         return;
     if (ISVISIBLE(client)) {
-        if ((client->tags & SPTAGMASK) && client->isfloating) {
+        if ((client->tags & SPTAGMASK) && client->is_floating) {
             client->x = client->monitor->win_x + (client->monitor->win_w / 2 - WIDTH(client) / 2);
             client->y = client->monitor->win_y + (client->monitor->win_h / 2 - HEIGHT(client) / 2);
         }
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
-        if ((!client->monitor->layout[client->monitor->layout_index]->arrange || client->isfloating)
-                && (!client->isfullscreen || client->isfakefullscreen))
+        if ((!client->monitor->layout[client->monitor->layout_index]->arrange || client->is_floating)
+                && (!client->is_fullscreen || client->is_fake_fullscreen))
             resize(client, client->x, client->y, client->w, client->h, 0);
         show_hide(client->snext);
     } else {
@@ -2844,7 +2844,7 @@ tag_monitor(const Arg *arg) {
     if (!current_monitor->selected_client || !monitors->next)
         return;
 
-    if (current_monitor->selected_client->isfloating) {
+    if (current_monitor->selected_client->is_floating) {
         current_monitor->selected_client->x += monitor->mon_x - current_monitor->mon_x;
         current_monitor->selected_client->y += monitor->mon_y - current_monitor->mon_y;
     }
@@ -2897,11 +2897,11 @@ toggle_floating(const Arg *arg) {
         return;
 
     /* no support for fullscreen windows */
-    if (client->isfullscreen && !client->isfakefullscreen)
+    if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
-    client->isfloating = !client->isfloating || client->isfixed;
-    if (client->isfloating) {
+    client->is_floating = !client->is_floating || client->is_fixed;
+    if (client->is_floating) {
         resize(client,
                client->stored_fx, client->stored_fy,
                client->stored_fw, client->stored_fh,
@@ -2924,7 +2924,7 @@ void
 toggle_fullscreen(const Arg *arg) {
     (void) arg;
     if (current_monitor->selected_client)
-        set_fullscreen(current_monitor->selected_client, !current_monitor->selected_client->isfullscreen);
+        set_fullscreen(current_monitor->selected_client, !current_monitor->selected_client->is_fullscreen);
     return;
 }
 
@@ -3319,7 +3319,7 @@ update_size_hints(Client *client) {
         client->max_a = (float)size.max_aspect.x / (float)size.max_aspect.y;
     } else
         client->max_a = client->min_a = 0.0;
-    client->isfixed = (client->maxw && client->maxh && client->maxw == client->minw && client->maxh == client->minh);
+    client->is_fixed = (client->maxw && client->maxh && client->maxw == client->minw && client->maxh == client->minh);
     client->hintsvalid = 1;
     return;
 }
@@ -3399,7 +3399,7 @@ update_window_type(Client *client) {
     if (state == netatom[NetWMFullscreen])
         set_fullscreen(client, 1);
     if (window_type == netatom[NetWMWindowTypeDialog])
-        client->isfloating = 1;
+        client->is_floating = 1;
     return;
 }
 
@@ -3412,14 +3412,14 @@ update_wm_hints(Client *client) {
             wm_hints->flags &= ~XUrgencyHint;
             XSetWMHints(display, client->window, wm_hints);
         } else {
-            client->isurgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
-            if (client->isurgent)
+            client->is_urgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
+            if (client->is_urgent)
                 XSetWindowBorder(display, client->window, scheme[SchemeUrgent][ColBorder].pixel);
         }
         if (wm_hints->flags & InputHint)
-            client->neverfocus = !wm_hints->input;
+            client->never_focus = !wm_hints->input;
         else
-            client->neverfocus = 0;
+            client->never_focus = 0;
         XFree(wm_hints);
     }
     return;
@@ -3614,7 +3614,7 @@ zoom(const Arg *arg) {
     Monitor *monitor = current_monitor;
     (void) arg;
 
-    if (!monitor->layout[monitor->layout_index]->arrange || !client || client->isfloating)
+    if (!monitor->layout[monitor->layout_index]->arrange || !client || client->is_floating)
         return;
     if (client == next_tiled(monitor->clients) && !(client = next_tiled(client->next)))
         return;
