@@ -3775,8 +3775,10 @@ main(int argc, char *argv[]) {
         die("dwm-"VERSION);
     else if (argc != 1)
         die("usage: dwm [-v]");
+
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
         fputs("warning: no locale support\n", stderr);
+
     if (!(display = XOpenDisplay(NULL)))
         die("dwm: cannot open display");
     {
@@ -3791,18 +3793,23 @@ main(int argc, char *argv[]) {
         XSetErrorHandler(xerror);
         XSync(display, False);
     }
+
     setup_once();
+
 #ifdef __OpenBSD__
     if (pledge("stdio rpath proc exec", NULL) == -1)
         die("pledge");
 #endif /* __OpenBSD__ */
+
     scan_windows();
     run();
+
     if (restart) {
         debug_dwm("restarting...");
         execvp(argv[0], argv);
     }
+
     cleanup();
     XCloseDisplay(display);
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
