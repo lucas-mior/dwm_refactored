@@ -981,7 +981,7 @@ focus_direction(const Arg *arg) {
     uint score = -1;
     uint client_score;
     int dist;
-    int dirweight = 20;
+    int direction_weight = 20;
     int isfloating = s->isfloating;
 
     if (!s)
@@ -1003,26 +1003,26 @@ focus_direction(const Arg *arg) {
         case 0: // left
             dist = s->x - client->x - client->w;
             client_score =
-                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
+                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
                 abs(s->y - client->y);
             break;
         case 1: // right
             dist = client->x - s->x - s->w;
             client_score =
-                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
+                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_w)) +
                 abs(client->y - s->y);
             break;
         case 2: // up
             dist = s->y - client->y - client->h;
             client_score =
-                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
+                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
                 abs(s->x - client->x);
             break;
         default:
         case 3: // down
             dist = client->y - s->y - s->h;
             client_score =
-                dirweight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
+                direction_weight*MIN(abs(dist), abs(dist + s->monitor->win_h)) +
                 abs(client->x - s->x);
             break;
         }
@@ -3039,21 +3039,22 @@ update_geometry(void) {
 
         /* only consider unique geometries as separate screens */
         unique = ecalloc(nn, sizeof(*unique));
-        for (i = 0, j = 0; i < nn; i++)
+        for (i = 0, j = 0; i < nn; i += 1) {
             if (is_unique_geometry(unique, j, &info[i]))
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
+        }
         XFree(info);
         nn = j;
 
         /* new monitors if nn > n */
-        for (i = n; i < nn; i++) {
+        for (i = n; i < nn; i += 1) {
             for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
             if (monitor)
                 monitor->next = create_monitor();
             else
                 monitors = create_monitor();
         }
-        for (i = 0, monitor = monitors; i < nn && monitor; monitor = monitor->next, i++)
+        for (i = 0, monitor = monitors; i < nn && monitor; monitor = monitor->next, i += 1)
             if (i >= n
             || unique[i].x_org != monitor->mon_x || unique[i].y_org != monitor->mon_y
             || unique[i].width != monitor->mon_w || unique[i].height != monitor->mon_h) {
@@ -3066,7 +3067,7 @@ update_geometry(void) {
                 update_bar_position(monitor);
             }
         /* removed monitors if n > nn */
-        for (i = nn; i < n; i++) {
+        for (i = nn; i < n; i += 1) {
             for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
             while ((client = monitor->clients)) {
                 dirty = 1;
@@ -3107,8 +3108,8 @@ update_numlock_mask(void) {
 
     numlockmask = 0;
     modmap = XGetModifierMapping(display);
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < modmap->max_keypermod; j++) {
+    for (int i = 0; i < 8; i += 1) {
+        for (int j = 0; j < modmap->max_keypermod; j += 1) {
             if (modmap->modifiermap[i*modmap->max_keypermod + j]
                 == XKeysymToKeycode(display, XK_Num_Lock))
                 numlockmask = (1 << i);
@@ -3178,7 +3179,8 @@ update_status(void) {
 
     separator = strchr(text, statussep);
     if (separator) {
-        *separator = '\0'; separator++;
+        *separator = '\0';
+        separator += 1;
         strncpy(extra_status, separator, sizeof(extra_status) - 1);
     } else {
         extra_status[0] = '\0';
@@ -3186,7 +3188,7 @@ update_status(void) {
 
     strncpy(stext, text, sizeof(stext) - 1);
     statusw = 0;
-    for (text2 = s = stext; *s; s++) {
+    for (text2 = s = stext; *s; s += 1) {
         char ch;
         if ((uchar)(*s) < ' ') {
             ch = *s;
@@ -3414,7 +3416,7 @@ xinitvisual(void) {
 
     infos = XGetVisualInfo(display, masks, &tpl, &nitems);
     visual = NULL;
-    for (int i = 0; i < nitems; i ++) {
+    for (int i = 0; i < nitems; i += 1) {
         fmt = XRenderFindVisualFormat(display, infos[i].visual);
         if (fmt->type == PictTypeDirect && fmt->direct.alphaMask) {
             visual = infos[i].visual;
