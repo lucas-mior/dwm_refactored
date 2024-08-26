@@ -2093,7 +2093,9 @@ manage(Window window, XWindowAttributes *window_attributes) {
     update_wm_hints(client);
     {
         int format;
-        ulong *data, nitems_return, extra;
+        ulong *data;
+        ulong nitems_return;
+        ulong extra;
         Atom atom;
         if (XGetWindowProperty(display, client->window, netatom[NetClientInfo],
                                0L, 2L, False, XA_CARDINAL,
@@ -2755,8 +2757,8 @@ signal_status_bar(const Arg *arg) {
 void
 set_client_tag_(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
-    XChangeProperty(display, client->window, netatom[NetClientInfo], XA_CARDINAL, 32,
-                    PropModeReplace, (uchar *) data, 2);
+    XChangeProperty(display, client->window, netatom[NetClientInfo],
+                    XA_CARDINAL, 32, PropModeReplace, (uchar *) data, 2);
     return;
 }
 
