@@ -2285,18 +2285,18 @@ move_mouse(const Arg *arg) {
             nx = ocx + (event.xmotion.x - x);
             ny = ocy + (event.xmotion.y - y);
 
-            if (abs(current_monitor->win_x - nx) < snap)
+            if (abs(current_monitor->win_x - nx) < snap_pixels)
                 nx = current_monitor->win_x;
-            else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < snap)
+            else if (abs((current_monitor->win_x + current_monitor->win_w) - (nx + WIDTH(client))) < snap_pixels)
                 nx = current_monitor->win_x + current_monitor->win_w - WIDTH(client);
 
-            if (abs(current_monitor->win_y - ny) < snap)
+            if (abs(current_monitor->win_y - ny) < snap_pixels)
                 ny = current_monitor->win_y;
-            else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < snap)
+            else if (abs((current_monitor->win_y + current_monitor->win_h) - (ny + HEIGHT(client))) < snap_pixels)
                 ny = current_monitor->win_y + current_monitor->win_h - HEIGHT(client);
 
             if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
-            && (abs(nx - client->x) > snap || abs(ny - client->y) > snap))
+            && (abs(nx - client->x) > snap_pixels || abs(ny - client->y) > snap_pixels))
                 toggle_floating(NULL);
 
             if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
@@ -2455,7 +2455,7 @@ resize_mouse(const Arg *arg) {
                 && client->monitor->win_y + nh >= current_monitor->win_y
                 && client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h) {
                 if (!client->is_floating && current_monitor->layout[current_monitor->lay_i]->arrange
-                    && (abs(nw - client->w) > snap || abs(nh - client->h) > snap))
+                    && (abs(nw - client->w) > snap_pixels || abs(nh - client->h) > snap_pixels))
                     toggle_floating(NULL);
             }
             if (!current_monitor->layout[current_monitor->lay_i]->arrange || client->is_floating)
