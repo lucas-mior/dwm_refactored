@@ -2338,8 +2338,6 @@ mouse_resize(const Arg *arg) {
     Monitor *monitor;
     XEvent event;
     Time last_time = 0;
-    int ocx;
-    int ocy;
 
     (void) arg;
 
@@ -2351,8 +2349,6 @@ mouse_resize(const Arg *arg) {
         return;
 
     restack(current_monitor);
-    ocx = client->x;
-    ocy = client->y;
 
     if (XGrabPointer(display, root,
                      False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -2373,8 +2369,13 @@ mouse_resize(const Arg *arg) {
             handler[event.type](&event);
             break;
         case MotionNotify: {
-            int nw = MAX(event.xmotion.x - ocx - 2*client->border_pixels + 1, 1);
-            int nh = MAX(event.xmotion.y - ocy - 2*client->border_pixels + 1, 1);
+            int nw;
+            int nh;
+            event.xmotion.x += (-client->x - 2*client->border_pixels + 1);
+            event.xmotion.y += (-client->y - 2*client->border_pixels + 1);
+
+            nw = MAX(event.xmotion.x, 1);
+            nh = MAX(event.xmotion.y, 1);
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
                 continue;
