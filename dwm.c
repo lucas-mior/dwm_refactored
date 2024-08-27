@@ -1600,6 +1600,36 @@ direction_to_monitor(int direction) {
     return monitor;
 }
 
+void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
+    char *text;
+    char *s = status_text;
+    int x = 0;
+    int text_pixels = 0;
+
+    for (text = status_text; *s; s += 1) {
+        char temp;
+
+        if ((uchar)(*s) < ' ') {
+            temp = *s;
+            *s = '\0';
+
+            text_pixels = (int)(TEXT_PIXELS(text) - lrpad);
+            drw_text(drw,
+                     mon_win_w - status_pixels + x, 0,
+                     (uint)text_pixels, bar_height, 0, text, 0);
+            x += text_pixels;
+
+            *s = temp;
+            text = s + 1;
+        }
+    }
+    text_pixels = (int)(TEXT_PIXELS(text) - lrpad + 2);
+    drw_text(drw,
+             mon_win_w - status_pixels + x, 0,
+             (uint)text_pixels, bar_height, 0, text, 0);
+    return;
+}
+
 void
 monitor_draw_bar(Monitor *monitor) {
     int x;
@@ -1616,30 +1646,9 @@ monitor_draw_bar(Monitor *monitor) {
     /* draw status first so it can be overdrawn by tags later */
     /* only drawn status on selected monitor */
     if (monitor == current_monitor) {
-        char *text;
-        char *s;
-        char temp;
         drw_setscheme(drw, scheme[SchemeNormal]);
 
-        x = 0;
-        for (text = s = &top_status[0]; *s; s += 1) {
-            if ((uchar)(*s) < ' ') {
-                temp = *s;
-                *s = '\0';
-
-                text_pixels = (int)(TEXT_PIXELS(text) - lrpad);
-                drw_text(drw, monitor->win_w - status_text_pixels + x, 0,
-                         (uint)text_pixels, bar_height, 0, text, 0);
-                x += text_pixels;
-
-                *s = temp;
-                text = s + 1;
-            }
-        }
-        text_pixels = (int)(TEXT_PIXELS(text) - lrpad + 2);
-        drw_text(drw,
-                 monitor->win_w - status_text_pixels + x, 0,
-                 (uint)text_pixels, bar_height, 0, text, 0);
+        draw_status_text(top_status, status_text_pixels, monitor->win_w);
         text_pixels = status_text_pixels;
     }
 
@@ -1741,31 +1750,7 @@ monitor_draw_bar(Monitor *monitor) {
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
     if (monitor == current_monitor) {
-        char *text;
-        char *s;
-
-        x = 0;
-        for (text = s = &bottom_status[0]; *s; s += 1) {
-            char temp;
-
-            if ((uchar)(*s) < ' ') {
-                temp = *s;
-                *s = '\0';
-
-                text_pixels = (int)(TEXT_PIXELS(text) - lrpad);
-                drw_text(drw,
-                         monitor->win_w - bottom_status_pixels + x, 0,
-                         (uint)text_pixels, bar_height, 0, text, 0);
-                x += text_pixels;
-
-                *s = temp;
-                text = s + 1;
-            }
-        }
-        text_pixels = (int)(TEXT_PIXELS(text) - lrpad + 2);
-        drw_text(drw,
-                 monitor->win_w - bottom_status_pixels + x, 0,
-                 (uint)text_pixels, bar_height, 0, text, 0);
+        draw_status_text(bottom_status, bottom_status_pixels, monitor->win_w);
     }
     drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
