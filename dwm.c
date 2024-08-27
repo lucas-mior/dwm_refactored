@@ -1359,7 +1359,7 @@ client_apply_size_hints(Client *client,
         if (client->min_a > 0 && client->max_a > 0) {
             if (client->max_a < (float)*w / (float)*h)
                 *w = *h*((int)(client->max_a + 0.5f));
-            else if (client->min_a < (float)*h / (float) *w)
+            else if (client->min_a < (float)*h / (float)*w)
                 *h = *w*((int)(client->min_a + 0.5f));
         }
 
@@ -3682,8 +3682,8 @@ client_update_icon(Client *client) {
         return;
     }
 
-    width_find = (uint32) pixel_find[-2];
-    height_find = (uint32) pixel_find[-1];
+    width_find = (uint32)pixel_find[-2];
+    height_find = (uint32)pixel_find[-1];
     if ((width_find == 0) || (height_find == 0)) {
         XFree(prop_return);
         return;
@@ -3705,7 +3705,7 @@ client_update_icon(Client *client) {
 
     pixel_find32 = (uint32 *)pixel_find;
     for (uint32 i = 0; i < width_find*height_find; i += 1) {
-        uint32 pixel = (uint32) pixel_find[i];
+        uint32 pixel = (uint32)pixel_find[i];
         uint8 a = pixel >> 24u;
         uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
         uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
