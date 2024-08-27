@@ -1653,6 +1653,7 @@ monitor_draw_bar(Monitor *monitor) {
         for (int i = 0; i < LENGTH(tags); i += 1) {
             if (client->icon && client->tags & (1 << i))
                 clients_with_icon[i] = client;
+
             if (!masters_names[i] && client->tags & (1<<i)) {
                 XClassHint class_hint = { NULL, NULL };
                 XGetClassHint(display, client->window, &class_hint);
