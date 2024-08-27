@@ -1306,8 +1306,8 @@ client_apply_rules(Client *client) {
 }
 
 int
-client_apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
-    int baseismin;
+client_apply_size_hints(Client *client,
+                        int *x, int *y, int *w, int *h, int interact) {
     Monitor *monitor = client->monitor;
 
     *w = MAX(1, *w);
@@ -1341,6 +1341,8 @@ client_apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int inte
     if (resizehints
         || client->is_floating
         || !client->monitor->layout[client->monitor->lay_i]->function) {
+        int baseismin;
+
         if (!client->hintsvalid)
             client_update_size_hints(client);
 
