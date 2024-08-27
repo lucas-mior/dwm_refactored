@@ -3393,8 +3393,8 @@ update_geometry(void) {
         Monitor *monitor;
         XineramaScreenInfo *info;
         XineramaScreenInfo *unique = NULL;
-        int i;
-        int j;
+        int i = 0;
+        int j = 0;
         int n = 0;
         int number;
 
@@ -3404,9 +3404,10 @@ update_geometry(void) {
 
         /* only consider unique geometries as separate screens */
         unique = ecalloc((size_t) number, sizeof(*unique));
-        for (i = 0, j = 0; i < number; i += 1) {
+        while (i < number) {
             if (is_unique_geometry(unique, (size_t) j, &info[i]))
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
+            i += 1;
         }
         XFree(info);
         number = j;
