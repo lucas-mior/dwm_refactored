@@ -2192,7 +2192,8 @@ handler_button_press(XEvent *event) {
         client_focus(NULL);
     }
 
-    if (button_event->window == current_monitor->top_bar_window) {
+    monitor = current_monitor;
+    if (button_event->window == monitor->top_bar_window) {
         uint i = 0;
         int x = 0;
 
@@ -2203,22 +2204,22 @@ handler_button_press(XEvent *event) {
         if (i < LENGTH(tags)) {
             click = ClickBarTags;
             arg.ui = 1 << i;
-        } else if (button_x < x + (int)(TEXT_PIXELS(current_monitor->layout_symbol))) {
+        } else if (button_x < x + (int)(TEXT_PIXELS(monitor->layout_symbol))) {
             click = ClickBarLayoutSymbol;
-        } else if (button_x > current_monitor->win_w - status_text_pixels) {
-            int x0 = current_monitor->win_w - status_text_pixels;
+        } else if (button_x > monitor->win_w - status_text_pixels) {
+            int x0 = monitor->win_w - status_text_pixels;
             click = ClickBarStatus;
             get_signal_number(top_status, x0, button_x);
         } else {
             click = ClickBarTitle;
         }
-    } else if (button_event->window == current_monitor->bottom_bar_window) {
-        int x0 = current_monitor->win_w - bottom_status_pixels;
+    } else if (button_event->window == monitor->bottom_bar_window) {
+        int x0 = monitor->win_w - bottom_status_pixels;
         click = ClickBottomBar;
         get_signal_number(bottom_status, x0, button_x);
     } else if ((client = window_to_client(button_event->window))) {
         client_focus(client);
-        monitor_restack(current_monitor);
+        monitor_restack(monitor);
         XAllowEvents(display, ReplayPointer, CurrentTime);
         click = ClickClientWin;
     }
