@@ -276,7 +276,7 @@ static long get_window_state(Window);
 static pid_t get_status_bar_pid(void);
 static int get_text_property(Window, Atom, char *, uint);
 static void grab_keys(void);
-static void get_signal_number(char *, uint, uint);
+static void get_signal_number(char *, int, int);
 
 static void manage(Window, XWindowAttributes *);
 static Monitor *rectangle_to_monitor(int, int, int, int);
@@ -2206,14 +2206,14 @@ handler_button_press(XEvent *event) {
         } else if ((uint)button_x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
             click = ClickBarLayoutSymbol;
         } else if (button_x > current_monitor->win_w - status_text_pixels) {
-            uint x0 = (uint)(current_monitor->win_w - status_text_pixels);
+            int x0 = current_monitor->win_w - status_text_pixels;
             click = ClickBarStatus;
             get_signal_number(top_status, x0, button_x);
         } else {
             click = ClickBarTitle;
         }
     } else if (button_event->window == current_monitor->bottom_bar_window) {
-        uint x0 = (uint)(current_monitor->win_w - bottom_status_pixels);
+        int x0 = current_monitor->win_w - bottom_status_pixels;
         click = ClickBottomBar;
         get_signal_number(bottom_status, x0, button_x);
     } else if ((client = window_to_client(button_event->window))) {
@@ -2241,11 +2241,11 @@ handler_button_press(XEvent *event) {
 }
 
 void
-get_signal_number(char *status, uint x, uint max_x) {
+get_signal_number(char *status, int x, int max_x) {
     char *s = status;
     status_signal = 0;
 
-    for (char *text = status; *s && (int)x <= max_x; s += 1) {
+    for (char *text = status; *s && x <= max_x; s += 1) {
         if ((uchar)(*s) < ' ') {
             char byte = *s;
             *s = '\0';
@@ -2255,7 +2255,7 @@ get_signal_number(char *status, uint x, uint max_x) {
             *s = byte;
             text = s + 1;
 
-            if ((int)x < max_x) {
+            if (x < max_x) {
                 status_signal = byte;
             } else {
                 break;
