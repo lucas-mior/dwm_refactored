@@ -145,6 +145,9 @@ typedef struct {
 typedef struct Pertag Pertag;
 struct Monitor {
     char layout_symbol[16];
+    const Layout *layout[2];
+    uint lay_i;
+
     float master_fact;
     int number_masters;
     int num;
@@ -156,14 +159,15 @@ struct Monitor {
     uint tagset[2];
     bool show_top_bar;
     bool show_bottom_bar;
+
     Client *clients;
     Client *selected_client;
     Client *stack;
     Monitor *next;
+
     Window top_bar_window;
     Window bottom_bar_window;
-    const Layout *layout[2];
-    uint lay_i;
+
     Pertag *pertag;
 };
 
@@ -171,6 +175,7 @@ typedef struct {
     const char *class;
     const char *instance;
     const char *title;
+
     uint tags;
     uint switchtotag;
     int is_floating;
@@ -346,7 +351,6 @@ static Drw *drw;
 static Monitor *monitors;
 static Monitor *current_monitor;
 static Client *all_clients = NULL;
-static int alt_tab_direction = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.def.h"
@@ -373,6 +377,7 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 void
 user_alt_tab(const Arg *) {
+    static bool alt_tab_direction = false;
     bool grabbed = false;
     int grab_status = 1000;
     if (all_clients == NULL)
