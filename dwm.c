@@ -2945,18 +2945,23 @@ scan_windows(void) {
 }
 
 void
-client_send_monitor(Client *client, Monitor *m) {
-    if (client->monitor == m)
+client_send_monitor(Client *client, Monitor *monitor) {
+    if (client->monitor == monitor)
         return;
+
     client_unfocus(client, true);
     client_detach(client);
     client_detach_stack(client);
-    client->monitor = m;
-    client->tags = m->tagset[m->selected_tags]; /* assign tags of target monitor */
+
+    client->monitor = monitor;
+    /* assign tags of target monitor */
+    client->tags = monitor->tagset[monitor->selected_tags];
+
     client_attach(client);
     client_attach_stack(client);
     client_set_client_tag_prop(client);
     client_focus(NULL);
+
     monitor_arrange(NULL);
     return;
 }
