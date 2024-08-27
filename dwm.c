@@ -3746,15 +3746,17 @@ client_update_window_type(Client *client) {
 void
 client_update_wm_hints(Client *client) {
     XWMHints *wm_hints;
+    bool urgent;
 
     if (!(wm_hints = XGetWMHints(display, client->window)))
         return;
 
-    if (client == current_monitor->selected_client && wm_hints->flags & XUrgencyHint) {
+    urgent = wm_hints->flags & XUrgencyHint;
+    if (urgent && client == current_monitor->selected_client) {
         wm_hints->flags &= ~XUrgencyHint;
         XSetWMHints(display, client->window, wm_hints);
     } else {
-        client->is_urgent = wm_hints->flags & XUrgencyHint;
+        client->is_urgent = urgent;
         if (client->is_urgent) {
             XSetWindowBorder(display, client->window,
                              scheme[SchemeUrgent][ColBorder].pixel);
