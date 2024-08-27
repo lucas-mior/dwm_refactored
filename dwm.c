@@ -108,11 +108,12 @@ struct Client {
     int old_x, old_y, old_w, old_h;
     int base_w, base_h;
     int increment_w, increment_h;
-    int max_w, max_h, min_w, min_h, hintsvalid;
+    int max_w, max_h, min_w, min_h;
     int border_pixels;
     int old_border_pixels;
     uint tags;
 
+    bool hintsvalid;
     bool is_fixed, is_floating, is_urgent;
     bool never_focus, old_state, is_fullscreen, is_fake_fullscreen;
 
@@ -2523,7 +2524,7 @@ handler_property_notify(XEvent *event) {
         }
         break;
     case XA_WM_NORMAL_HINTS:
-        client->hintsvalid = 0;
+        client->hintsvalid = false;
         break;
     case XA_WM_HINTS:
         client_update_wm_hints(client);
@@ -3470,7 +3471,7 @@ client_update_size_hints(Client *client) {
                        && client->max_h == client->min_h;
     client->is_fixed = has_maxes && mins_match_maxes;
 
-    client->hintsvalid = 1;
+    client->hintsvalid = true;
     return;
 }
 
