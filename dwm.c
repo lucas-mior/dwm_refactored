@@ -64,10 +64,8 @@ typedef unsigned char uchar;
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)  ((X)->w + 2*(X)->border_pixels)
 #define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
-#define NUMTAGS   (LENGTH(tags) + LENGTH(scratchpads))
+#define NUMTAGS   (LENGTH(tags))
 #define TAGMASK   ((1 << NUMTAGS) - 1)
-#define SPTAG(i)  (uint)((1 << LENGTH(tags)) << (i))
-#define SPTAGMASK (((1 << LENGTH(scratchpads))-1) << LENGTH(tags))
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
 
 #define OPAQUE    0xffU
@@ -198,7 +196,6 @@ static void user_tag_monitor(const Arg *);
 static void user_toggle_bottom_bar(const Arg *);
 static void user_toggle_floating(const Arg *);
 static void user_toggle_fullscreen(const Arg *);
-static void user_toggle_scratch(const Arg *);
 static void user_toggle_tag(const Arg *);
 static void user_toggle_top_bar(const Arg *);
 static void user_toggle_view(const Arg *);
@@ -1086,42 +1083,6 @@ user_spawn(const Arg *arg) {
 }
 
 void
-user_toggle_scratch(const Arg *arg) {
-    Client *client;
-    uint found = 0;
-    uint scrath_tag = SPTAG(arg->ui);
-    Arg scratchpad_arg = {.v = scratchpads[arg->ui].cmd};
-
-    for (client = current_monitor->clients;
-         client && !(found = client->tags & scrath_tag);
-         client = client->next);
-
-    if (found) {
-        uint this_tag = client->tags & current_monitor->tagset[current_monitor->selected_tags];
-        uint new_tagset = current_monitor->tagset[current_monitor->selected_tags] ^ scrath_tag;
-
-        if (this_tag) {
-            client->tags = scrath_tag;
-        } else {
-            client->tags |= current_monitor->tagset[current_monitor->selected_tags];
-        }
-        if (new_tagset) {
-            current_monitor->tagset[current_monitor->selected_tags] = new_tagset;
-            client_focus(NULL);
-            monitor_arrange(current_monitor);
-        }
-        if (ISVISIBLE(client)) {
-            client_focus(client);
-            monitor_restack(current_monitor);
-        }
-    } else {
-        current_monitor->tagset[current_monitor->selected_tags] |= scrath_tag;
-        user_spawn(&scratchpad_arg);
-    }
-    return;
-}
-
-void
 user_toggle_tag(const Arg *arg) {
     uint newtags;
 
@@ -1293,7 +1254,7 @@ client_apply_rules(Client *client) {
             client->is_fake_fullscreen = rule->is_fake_fullscreen;
             client->tags |= rule->tags;
 
-            if ((rule->tags & SPTAGMASK) && rule->is_floating) {
+            if (rule->is_floating) {
                 Monitor *monitor = client->monitor;
                 client->x = monitor->win_x + monitor->win_w / 2 - WIDTH(client) / 2;
                 client->y = monitor->win_y + monitor->win_h / 2 - HEIGHT(client) / 2;
@@ -1320,7 +1281,7 @@ client_apply_rules(Client *client) {
         client->tags = client->tags & TAGMASK;
     } else {
         uint which_tags = client->monitor->selected_tags;
-        client->tags = client->monitor->tagset[which_tags] & (uint)~SPTAGMASK;
+        client->tags = client->monitor->tagset[which_tags];
     }
     return;
 }
@@ -3254,7 +3215,7 @@ client_show_hide(Client *client) {
         return;
 
     if (ISVISIBLE(client)) {
-        if ((client->tags & SPTAGMASK) && client->is_floating) {
+        if ((client->tags) && client->is_floating) {
             client->x = client->monitor->win_x;
             client->x += (client->monitor->win_w / 2 - WIDTH(client) / 2);
 
