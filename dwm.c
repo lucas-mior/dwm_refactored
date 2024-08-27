@@ -248,7 +248,7 @@ static void client_set_fullscreen(Client *, bool);
 static void client_set_urgent(Client *, int);
 static void client_show_hide(Client *);
 static void client_free_icon(Client *);
-static void client_unfocus(Client *, int client_set_focus);
+static void client_unfocus(Client *, bool);
 static void client_unmanage(Client *, int);
 static void client_update_size_hints(Client *);
 static void client_update_title(Client *);
@@ -431,7 +431,7 @@ user_alt_tab(const Arg *) {
             XButtonPressedEvent *button_event = &(event.xbutton);
             monitor = window_to_monitor(button_event->window);
             if (monitor && (monitor != current_monitor)) {
-                client_unfocus(current_monitor->selected_client, 1);
+                client_unfocus(current_monitor->selected_client, true);
                 current_monitor = monitor;
                 client_focus(NULL);
             }
@@ -554,7 +554,7 @@ user_focus_monitor(const Arg *arg) {
     if ((monitor = direction_to_monitor(arg->i)) == current_monitor)
         return;
 
-    client_unfocus(current_monitor->selected_client, 0);
+    client_unfocus(current_monitor->selected_client, false);
     current_monitor = monitor;
     client_focus(NULL);
     return;
@@ -569,7 +569,7 @@ user_focus_next(const Arg *arg) {
     client = m->selected_client;
     while (client == NULL && m->next) {
         m = m->next;
-        client_unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, true);
         current_monitor = m;
         client_focus(NULL);
         client = m->selected_client;
@@ -645,7 +645,7 @@ user_focus_urgent(const Arg *) {
 
         if (client) {
             int i = 0;
-            client_unfocus(current_monitor->selected_client, 0);
+            client_unfocus(current_monitor->selected_client, false);
             current_monitor = monitor;
 
             while (i < LENGTH(tags) && !((1 << i) & client->tags))
@@ -1782,7 +1782,7 @@ client_focus(Client *client) {
     }
 
     if (selected && selected != client)
-        client_unfocus(selected, 0);
+        client_unfocus(selected, false);
 
     if (client) {
         if (client->monitor != current_monitor)
@@ -2186,7 +2186,7 @@ handler_button_press(XEvent *event) {
     /* focus monitor if necessary */
     monitor = window_to_monitor(button_event->window);
     if (monitor && monitor != current_monitor) {
-        client_unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, true);
         current_monitor = monitor;
         client_focus(NULL);
     }
@@ -2442,7 +2442,7 @@ handler_enter_notify(XEvent *event) {
         monitor = window_to_monitor(crossing_event->window);
 
     if (monitor != current_monitor) {
-        client_unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, true);
         current_monitor = monitor;
     } else if (client == current_monitor->selected_client) {
         return;
@@ -2535,7 +2535,7 @@ handler_motion_notify(XEvent *event) {
 
     m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1);
     if (m != monitor_save && monitor_save) {
-        client_unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, true);
         current_monitor = m;
         client_focus(NULL);
     }
@@ -2763,7 +2763,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
                       (uint)client->w, (uint)client->h);
     client_set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
-        client_unfocus(current_monitor->selected_client, 0);
+        client_unfocus(current_monitor->selected_client, false);
     client->monitor->selected_client = client;
     monitor_arrange(client->monitor);
     XMapWindow(display, client->window);
@@ -2942,7 +2942,7 @@ void
 client_send_monitor(Client *client, Monitor *m) {
     if (client->monitor == m)
         return;
-    client_unfocus(client, 1);
+    client_unfocus(client, true);
     client_detach(client);
     client_detach_stack(client);
     client->monitor = m;
@@ -3232,12 +3232,14 @@ client_free_icon(Client *client) {
 }
 
 void
-client_unfocus(Client *client, int client_set_focus) {
+client_unfocus(Client *client, bool set_focus) {
     if (!client)
         return;
+
     client_grab_buttons(client, 0);
     XSetWindowBorder(display, client->window, scheme[SchemeNormal][ColBorder].pixel);
-    if (client_set_focus) {
+
+    if (set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
