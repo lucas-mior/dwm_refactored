@@ -1034,10 +1034,9 @@ user_toggle_bottom_bar(const Arg *) {
 
 void
 user_toggle_floating(const Arg *) {
-    Monitor *monitor = current_monitor;
-    Client *client = monitor->selected_client;
+    Client *client = current_monitor->selected_client;
 
-    if (!monitor->selected_client)
+    if (!client)
         return;
 
     /* no support for fullscreen windows */
@@ -1060,7 +1059,7 @@ user_toggle_floating(const Arg *) {
     client->x = client->monitor->mon_x + (client->monitor->mon_w - WIDTH(client)) / 2;
     client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
 
-    monitor_arrange(monitor);
+    monitor_arrange(current_monitor);
     return;
 }
 
