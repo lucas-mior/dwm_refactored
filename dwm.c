@@ -1786,11 +1786,11 @@ monitor_draw_bar(Monitor *monitor) {
     drw_map(drw, monitor->top_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
 
+    /* bottom bar */
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
-    if (monitor == current_monitor) {
+    if (monitor == current_monitor)
         draw_status_text(bottom_status, bottom_status_pixels, monitor->win_w);
-    }
     drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
     return;
