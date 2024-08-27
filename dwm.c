@@ -484,9 +484,7 @@ user_focus_direction(const Arg *arg) {
     Client *client = NULL;
     Client *client_aux;
     Client *next;
-
     uint best_score = (uint)-1;
-    int is_floating = selected->is_floating;
 
     if (!selected)
         return;
@@ -502,7 +500,7 @@ user_focus_direction(const Arg *arg) {
         if (!next)
             next = selected->monitor->clients;
 
-        if (!ISVISIBLE(client_aux) || client_aux->is_floating != is_floating) // || HIDDEN(client_aux)
+        if (!ISVISIBLE(client_aux) || client_aux->is_floating)
             continue;
 
         switch (arg->i) {
