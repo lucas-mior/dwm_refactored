@@ -357,7 +357,7 @@ struct Pertag {
     uint selected_layouts[LENGTH(tags) + 1];
 
     /* matrix of tags and layouts indexes */
-    const Layout *layout_tags_indexes[LENGTH(tags) + 1][2];
+    const Layout *layouts[LENGTH(tags) + 1][2];
 
     /* display bar for the current user_tag */
     bool top_bars[LENGTH(tags) + 1];
@@ -904,10 +904,11 @@ user_set_layout(const Arg *arg) {
     if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i])
         monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->tag] ^= 1;
 
-    if (arg && arg->v)
+    if (arg && arg->v) {
         monitor->layout[monitor->lay_i]
-            = monitor->pertag->layout_tags_indexes[monitor->pertag->tag][monitor->lay_i]
+            = monitor->pertag->layouts[monitor->pertag->tag][monitor->lay_i]
             = layout;
+    }
 
     strncpy(monitor->layout_symbol,
             monitor->layout[monitor->lay_i]->symbol,
@@ -1131,9 +1132,9 @@ user_toggle_view(const Arg *arg) {
         monitor->master_fact = monitor->pertag->master_facts[tag];
         monitor->lay_i = monitor->pertag->selected_layouts[tag];
         monitor->layout[monitor->lay_i]
-            = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i];
+            = monitor->pertag->layouts[tag][monitor->lay_i];
         monitor->layout[monitor->lay_i^1]
-            = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i^1];
+            = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
         if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
             user_toggle_top_bar(NULL);
@@ -1181,9 +1182,9 @@ user_view_tag(const Arg *arg) {
     monitor->master_fact = monitor->pertag->master_facts[tag];
     monitor->lay_i = monitor->pertag->selected_layouts[tag];
     monitor->layout[monitor->lay_i]
-        = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i];
+        = monitor->pertag->layouts[tag][monitor->lay_i];
     monitor->layout[monitor->lay_i^1]
-        = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i^1];
+        = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
         user_toggle_top_bar(NULL);
@@ -1480,8 +1481,8 @@ create_monitor(void) {
         monitor->pertag->number_masters[i] = monitor->number_masters;
         monitor->pertag->master_facts[i] = monitor->master_fact;
 
-        monitor->pertag->layout_tags_indexes[i][0] = monitor->layout[0];
-        monitor->pertag->layout_tags_indexes[i][1] = monitor->layout[1];
+        monitor->pertag->layouts[i][0] = monitor->layout[0];
+        monitor->pertag->layouts[i][1] = monitor->layout[1];
         monitor->pertag->selected_layouts[i] = monitor->lay_i;
 
         monitor->pertag->top_bars[i] = monitor->show_top_bar;
