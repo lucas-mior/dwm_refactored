@@ -2231,19 +2231,19 @@ handler_button_press(XEvent *event) {
 }
 
 void
-handler_client_message(XEvent *e) {
-    XClientMessageEvent *cme = &e->xclient;
-    Client *client = window_to_client(cme->window);
+handler_client_message(XEvent *event) {
+    XClientMessageEvent *client_message_event = &event->xclient;
+    Client *client = window_to_client(client_message_event->window);
 
     if (!client)
         return;
-    if (cme->message_type == netatom[NetWMState]) {
-        if ((ulong) cme->data.l[1] == netatom[NetWMFullscreen]
-        || (ulong) cme->data.l[2] == netatom[NetWMFullscreen])
-            client_set_fullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
-                      || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
+    if (client_message_event->message_type == netatom[NetWMState]) {
+        if ((ulong) client_message_event->data.l[1] == netatom[NetWMFullscreen]
+        || (ulong) client_message_event->data.l[2] == netatom[NetWMFullscreen])
+            client_set_fullscreen(client, (client_message_event->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
+                      || (client_message_event->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
                                       && (!client->is_fullscreen || client->is_fake_fullscreen))));
-    } else if (cme->message_type == netatom[NetActiveWindow]) {
+    } else if (client_message_event->message_type == netatom[NetActiveWindow]) {
         if (client != current_monitor->selected_client && !client->is_urgent)
             client_set_urgent(client, 1);
     }
