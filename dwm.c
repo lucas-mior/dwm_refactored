@@ -271,6 +271,7 @@ static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int);
 static void dwm_debug(char *, ...);
 static void draw_bars(void);
+static void draw_status_text(char *, int, int);
 static int get_root_pointer(int *, int *);
 static long get_window_state(Window);
 static pid_t get_status_bar_pid(void);
