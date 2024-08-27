@@ -306,7 +306,6 @@ static char bottom_status[TOP_STATUS_SIZE];
 static int top_status_pixels;
 static int bottom_status_pixels;
 static int status_signal;
-static pid_t status_program_pid = -1;
 
 static int screen;
 static int screen_width;
@@ -999,6 +998,7 @@ user_set_master_fact(const Arg *arg) {
 
 void
 user_signal_status_bar(const Arg *arg) {
+    pid_t status_program_pid;
     union sigval signal_value;
 
     if (!status_signal)
@@ -2063,23 +2063,9 @@ client_get_atom_property(Client *client, Atom property) {
 pid_t
 get_status_bar_pid(void) {
     char buffer[32];
-    char *string = buffer;
-    char *client;
     long pid_long;
     FILE *fp;
 
-    if (status_program_pid > 0) {
-        snprintf(buffer, sizeof(buffer),
-                 "/proc/%u/cmdline", status_program_pid);
-        if ((fp = fopen(buffer, "r"))) {
-            fgets(buffer, sizeof(buffer), fp);
-            while ((client = strchr(string, '/')))
-                string = client + 1;
-            fclose(fp);
-            if (!strcmp(string, STATUSBAR))
-                return status_program_pid;
-        }
-    }
     if (!(fp = popen("pidof -s "STATUSBAR, "r")))
         return -1;
     fgets(buffer, sizeof(buffer), fp);
