@@ -584,7 +584,9 @@ user_focus_next(const Arg *arg) {
         Client *last = client;
         if (last == all_clients)
             last = NULL;
-        for (client = all_clients; client->all_next != last; client = client->all_next);
+        for (client = all_clients;
+             client->all_next != last;
+             client = client->all_next);
     }
     client_focus(client);
     return;
