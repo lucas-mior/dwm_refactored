@@ -1992,7 +1992,7 @@ handler_map_request(XEvent *event) {
 
 void
 handler_motion_notify(XEvent *event) {
-    static Monitor *monitor = NULL;
+    static Monitor *monitor_save = NULL;
     Monitor *m;
     XMotionEvent *motion_event = &event->xmotion;
 
@@ -2000,12 +2000,12 @@ handler_motion_notify(XEvent *event) {
         return;
 
     m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1);
-    if (m != monitor && monitor) {
+    if (m != monitor_save && monitor_save) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = m;
         focus(NULL);
     }
-    monitor = m;
+    monitor_save = m;
     return;
 }
 
