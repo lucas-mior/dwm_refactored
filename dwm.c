@@ -297,7 +297,7 @@ static char top_status[STATUS_TEXT_SIZE];
 static char bottom_status[STATUS_TEXT_SIZE];
 static int status_text_pixels;
 static int bottom_status_pixels;
-static int statussig;
+static int status_signal;
 static pid_t statuspid = -1;
 
 static int screen;
@@ -334,8 +334,8 @@ static Window root;
 static Window wmcheckwin;
 static int depth;
 
-static int restart = 0;
-static bool running = true;
+static bool dwm_restart = false;
+static bool dwm_running = true;
 
 static Cur *cursor[CursorLast];
 static Clr **scheme;
@@ -1704,7 +1704,7 @@ handler_button_press(XEvent *event) {
 
             x = (uint)(current_monitor->win_w - status_text_pixels);
             click = ClickBarStatus;
-            statussig = 0;
+            status_signal = 0;
 
             for (char *text = s = top_status; *s && (int)x <= button_event->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
@@ -1717,7 +1717,7 @@ handler_button_press(XEvent *event) {
                     text = s + 1;
                     if ((int)x >= button_event->x)
                         break;
-                    statussig = ch;
+                    status_signal = ch;
                 }
             }
         } else {
@@ -1728,7 +1728,7 @@ handler_button_press(XEvent *event) {
         char *s = &bottom_status[0];
 
         click = ClickBottomBar;
-        statussig = 0;
+        status_signal = 0;
 
         for (char *text = s; *s && x <= button_event->x; s += 1) {
             if ((uchar)(*s) < ' ') {
@@ -1741,7 +1741,7 @@ handler_button_press(XEvent *event) {
                 text = s + 1;
                 if (x >= button_event->x)
                     break;
-                statussig = ch;
+                status_signal = ch;
             }
         }
     } else if ((client = window_to_client(button_event->window))) {
@@ -2450,8 +2450,8 @@ client_pop(Client *client) {
 void
 user_quit_dwm(const Arg *arg) {
     if (arg->i)
-        restart = 1;
-    running = false;
+        dwm_restart = true;
+    dwm_running = false;
     return;
 }
 
@@ -2887,16 +2887,16 @@ client_show_hide(Client *client) {
 
 void
 user_signal_status_bar(const Arg *arg) {
-    union sigval sv;
+    union sigval signal_value;
 
-    if (!statussig)
+    if (!status_signal)
         return;
-    sv.sival_int = arg->i | ((SIGRTMIN+statussig) << 3);
+    signal_value.sival_int = arg->i | ((SIGRTMIN+status_signal) << 3);
 
     if ((statuspid = get_status_bar_pid()) <= 0)
         return;
 
-    sigqueue(statuspid, SIGUSR1, sv);
+    sigqueue(statuspid, SIGUSR1, signal_value);
 }
 
 void
@@ -3766,13 +3766,13 @@ main(int argc, char *argv[]) {
         XEvent event;
         XSync(display, False);
 
-        while (running && !XNextEvent(display, &event)) {
+        while (dwm_running && !XNextEvent(display, &event)) {
             if (handler[event.type])
                 handler[event.type](&event);
         }
     }
 
-    if (restart) {
+    if (dwm_restart) {
         dwm_debug("restarting...");
         execvp(argv[0], argv);
     }
