@@ -557,7 +557,7 @@ user_focus_monitor(const Arg *arg) {
     return;
 }
 
-static void
+void
 user_focus_next(const Arg *arg) {
     Monitor *m;
     Client *client;
