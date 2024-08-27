@@ -1349,7 +1349,7 @@ client_apply_size_hints(Client *client,
             client_update_size_hints(client);
 
         /* see last two sentences in ICCCM 4.1.2.3 */
-        base_is_min = client->base_w == client->min_w 
+        base_is_min = client->base_w == client->min_w
                       && client->base_h == client->min_h;
         if (!base_is_min) { /* temporarily remove base dimensions */
             *w -= client->base_w;
@@ -2746,8 +2746,10 @@ client_new(Window window, XWindowAttributes *window_attributes) {
 
     client_grab_buttons(client, 0);
 
-    if (!client->is_floating)
-        client->is_floating = client->old_state = trans != None || client->is_fixed;
+    if (!client->is_floating) {
+        client->is_floating = trans != None || client->is_fixed;
+        client->old_state = client->is_floating;
+    }
     if (client->is_floating)
         XRaiseWindow(display, client->window);
 
