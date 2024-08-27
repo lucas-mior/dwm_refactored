@@ -3350,7 +3350,7 @@ update_geometry(void) {
         number = j;
 
         /* new monitors if number > n */
-        for (i = n; i < number; i += 1) {
+        for (int k = n; k < number; k += 1) {
             for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
             if (monitor)
                 monitor->next = create_monitor();
