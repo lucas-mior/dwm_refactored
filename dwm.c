@@ -3032,9 +3032,10 @@ client_set_fullscreen(Client *client, bool fullscreen) {
                             client->monitor->mon_w, client->monitor->mon_h);
         XRaiseWindow(display, client->window);
     } else if (!fullscreen && client->is_fullscreen) {
-        XChangeProperty(display, client->window, net_atoms[NetWMState], XA_ATOM, 32,
-            PropModeReplace, (uchar*)0, 0);
-        client->is_fullscreen = 0;
+        XChangeProperty(display, client->window,
+                        net_atoms[NetWMState], XA_ATOM, 32,
+                        PropModeReplace, (uchar*)0, 0);
+        client->is_fullscreen = false;
         if (client->is_fake_fullscreen) {
             client_resize_apply(client,
                                 client->x, client->y, client->w, client->h);
