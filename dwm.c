@@ -381,6 +381,7 @@ void error(char *format, ...) {
     int n;
     va_list args;
     char buffer[BUFSIZ];
+    char *notifiers[2] = { "dunstify", "notify-send" };
 
     va_start(args, format);
     n = vsnprintf(buffer, sizeof (buffer) - 1, format, args);
@@ -395,7 +396,6 @@ void error(char *format, ...) {
     (void) write(STDERR_FILENO, buffer, (size_t) n);
 
     switch (fork()) {
-        char *notifiers[2] = { "dunstify", "notify-send" };
         case -1:
             fprintf(stderr, "Error forking: %s\n", strerror(errno));
             break;
@@ -406,7 +406,6 @@ void error(char *format, ...) {
             }
             fprintf(stderr, "Error trying to exec dunstify.\n");
             exit(EXIT_FAILURE);
-            break;
         default:
             break;
     }
