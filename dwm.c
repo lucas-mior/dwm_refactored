@@ -2237,12 +2237,16 @@ handler_client_message(XEvent *event) {
 
     if (!client)
         return;
+
     if (client_message_event->message_type == netatom[NetWMState]) {
-        if ((ulong) client_message_event->data.l[1] == netatom[NetWMFullscreen]
-        || (ulong) client_message_event->data.l[2] == netatom[NetWMFullscreen])
-            client_set_fullscreen(client, (client_message_event->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
-                      || (client_message_event->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
-                                      && (!client->is_fullscreen || client->is_fake_fullscreen))));
+        long *data = client_message_event->data.l;
+        if ((ulong) data[1] == netatom[NetWMFullscreen]
+            || (ulong) data[2] == netatom[NetWMFullscreen]) {
+            /* _NET_WM_STATE_ADD *//* _NET_WM_STATE_TOGGLE */
+            bool fullscreen = data[0] == 1 || (data[0] == 2 
+                              && (!client->is_fullscreen || client->is_fake_fullscreen));
+            client_set_fullscreen(client, fullscreen);
+        }
     } else if (client_message_event->message_type == netatom[NetActiveWindow]) {
         if (client != current_monitor->selected_client && !client->is_urgent)
             client_set_urgent(client, 1);
