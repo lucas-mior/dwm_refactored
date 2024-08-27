@@ -1112,24 +1112,25 @@ user_toggle_tag(const Arg *arg) {
 void
 user_toggle_view(const Arg *arg) {
     Monitor *monitor = current_monitor;
-    uint new_tagset = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
+    uint new_tags;
     uint tag;
 
-    if (!new_tagset)
+    new_tags = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
+    if (!new_tags)
         return;
 
-    monitor->tagset[monitor->selected_tags] = new_tagset;
+    monitor->tagset[monitor->selected_tags] = new_tags;
 
-    if (new_tagset == (uint)~0) {
+    if (new_tags == (uint)~0) {
         monitor->pertag->old_tag = monitor->pertag->tag;
         monitor->pertag->tag = 0;
     }
 
     /* test if the user did not select the same user_tag */
-    if (!(new_tagset & 1 << (monitor->pertag->tag - 1))) {
+    if (!(new_tags & 1 << (monitor->pertag->tag - 1))) {
         uint i = 0;
         monitor->pertag->old_tag = monitor->pertag->tag;
-        while (!(new_tagset & 1 << i))
+        while (!(new_tags & 1 << i))
             i += 1;
         monitor->pertag->tag = i + 1;
     }
