@@ -401,7 +401,6 @@ user_alt_tab(const Arg *) {
 
     while (grabbed) {
         XEvent event;
-        XButtonPressedEvent *button_event;
         Client *client;
         Monitor *monitor;
 
@@ -428,8 +427,8 @@ user_alt_tab(const Arg *) {
                 user_window_view(0);
             }
             break;
-        case ButtonPress:
-            button_event = &(event.xbutton);
+        case ButtonPress: {
+            XButtonPressedEvent *button_event = &(event.xbutton);
             monitor = window_to_monitor(button_event->window);
             if (monitor && (monitor != current_monitor)) {
                 client_unfocus(current_monitor->selected_client, 1);
@@ -440,6 +439,7 @@ user_alt_tab(const Arg *) {
                 client_focus(client);
             XAllowEvents(display, AsyncBoth, CurrentTime);
             break;
+        }
         case ButtonRelease:
             XUngrabKeyboard(display, CurrentTime);
             XUngrabButton(display, AnyButton, AnyModifier, None);
