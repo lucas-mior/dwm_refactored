@@ -3131,6 +3131,7 @@ client_show_hide(Client *client) {
 
     if (ISVISIBLE(client)) {
         bool monitor_floating;
+
         if ((client->tags) && client->is_floating) {
             client->x = monitor->win_x;
             client->x += (monitor->win_w / 2 - WIDTH(client) / 2);
@@ -3140,8 +3141,8 @@ client_show_hide(Client *client) {
         }
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
-        monitor_floating = !monitor->layout[monitor->lay_i]->function;
 
+        monitor_floating = !monitor->layout[monitor->lay_i]->function;
         if ((monitor_floating || client->is_floating)
                 && (!client->is_fullscreen || client->is_fake_fullscreen)) {
             client_resize(client, client->x, client->y, client->w, client->h, 0);
