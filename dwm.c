@@ -2190,6 +2190,7 @@ handler_button_press(XEvent *event) {
         current_monitor = monitor;
         client_focus(NULL);
     }
+
     if (button_event->window == current_monitor->top_bar_window) {
         uint i = 0;
         uint x = 0;
