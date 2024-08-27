@@ -2188,16 +2188,16 @@ handler_button_press(XEvent *event) {
 
             for (char *text = s = top_status; *s && (int)x <= button_x; s += 1) {
                 if ((uchar)(*s) < ' ') {
-                    char ch = *s;
+                    char byte = *s;
                     *s = '\0';
 
                     x += TEXT_PIXELS(text) - lrpad;
 
-                    *s = ch;
+                    *s = byte;
                     text = s + 1;
                     if ((int)x >= button_x)
                         break;
-                    status_signal = ch;
+                    status_signal = byte;
                 }
             }
         } else {
@@ -2212,16 +2212,16 @@ handler_button_press(XEvent *event) {
 
         for (char *text = s; *s && x <= button_x; s += 1) {
             if ((uchar)(*s) < ' ') {
-                char ch = *s;
+                char byte = *s;
                 *s = '\0';
 
                 x += TEXT_PIXELS(text) - lrpad;
 
-                *s = ch;
+                *s = byte;
                 text = s + 1;
                 if (x >= button_x)
                     break;
-                status_signal = ch;
+                status_signal = byte;
             }
         }
     } else if ((client = window_to_client(button_event->window))) {
@@ -3505,12 +3505,12 @@ status_count_pixels(char *text) {
     char *text2;
     int pixels = 0;
     for (text2 = s = text; *s; s += 1) {
-        char ch;
+        char byte;
         if ((uchar)(*s) < ' ') {
-            ch = *s;
+            byte = *s;
             *s = '\0';
             pixels += TEXT_PIXELS(text2) - lrpad;
-            *s = ch;
+            *s = byte;
             text2 = s + 1;
         }
     }
