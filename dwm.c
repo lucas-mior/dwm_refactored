@@ -660,17 +660,17 @@ user_focus_urgent(const Arg *) {
 
 void
 user_increment_number_master(const Arg *arg) {
-    int nslave = -1;
+    int number_slaves = -1;
     int new_number_masters;
     uint tag;
 
     for (Client *client = current_monitor->clients;
                  client;
                  client = client_next_tiled(client->next)) {
-        nslave += 1;
+        number_slaves += 1;
     }
 
-    new_number_masters = MAX(MIN(current_monitor->nmaster + arg->i, nslave + 1), 0);
+    new_number_masters = MAX(MIN(current_monitor->nmaster + arg->i, number_slaves + 1), 0);
     tag = current_monitor->pertag->tag;
     current_monitor->nmaster = current_monitor->pertag->nmasters[tag] = new_number_masters;
 
