@@ -2339,10 +2339,11 @@ handler_configure_request(XEvent *event) {
             }
 
             if (client->is_floating) {
-                if ((client->x + client->w) > (monitor->mon_x + monitor->mon_w))
-                    client->x = monitor->mon_x + (monitor->mon_w / 2 - WIDTH(client) / 2);
+                Monitor *m = monitor;
+                if ((client->x + client->w) > (m->mon_x + m->mon_w))
+                    client->x = m->mon_x + (m->mon_w / 2 - WIDTH(client) / 2);
                 if ((client->y + client->h) > (monitor->mon_y + monitor->mon_h))
-                    client->y = monitor->mon_y + (monitor->mon_h / 2 - HEIGHT(client) / 2);
+                    client->y = m->mon_y + (m->mon_h / 2 - HEIGHT(client) / 2);
             }
 
             mask_xy = conf_request_event->value_mask & (CWX|CWY);
