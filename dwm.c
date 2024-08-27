@@ -64,8 +64,7 @@ typedef unsigned char uchar;
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)  ((X)->w + 2*(X)->border_pixels)
 #define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
-#define NUMTAGS   (LENGTH(tags))
-#define TAGMASK   ((1 << NUMTAGS) - 1)
+#define TAGMASK   ((1 << (LENGTH(tags))) - 1)
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define PAUSE_MILIS_AS_NANOS(X) ((X) * 1000 * 1000)
 
