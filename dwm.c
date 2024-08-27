@@ -72,6 +72,8 @@ typedef unsigned char uchar;
 #define TAG_DISPLAY_SIZE 32
 #define GRAB_TRIES 10
 
+#define X_INTERN_ATOM(X) XInternAtom(display, X, False)
+
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
 enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent }; /* color schemes */
@@ -3065,22 +3067,22 @@ setup_once(void) {
     update_geometry();
 
     /* init atoms */
-    utf8string = XInternAtom(display, "UTF8_STRING", False);
-    wmatom[WMProtocols] = XInternAtom(display, "WM_PROTOCOLS", False);
-    wmatom[WMDelete] = XInternAtom(display, "WM_DELETE_WINDOW", False);
-    wmatom[WMState] = XInternAtom(display, "WM_STATE", False);
-    wmatom[WMTakeFocus] = XInternAtom(display, "WM_TAKE_FOCUS", False);
-    netatom[NetActiveWindow] = XInternAtom(display, "_NET_ACTIVE_WINDOW", False);
-    netatom[NetSupported] = XInternAtom(display, "_NET_SUPPORTED", False);
-    netatom[NetWMName] = XInternAtom(display, "_NET_WM_NAME", False);
-    netatom[NetWMIcon] = XInternAtom(display, "_NET_WM_ICON", False);
-    netatom[NetWMState] = XInternAtom(display, "_NET_WM_STATE", False);
-    netatom[NetWMCheck] = XInternAtom(display, "_NET_SUPPORTING_WM_CHECK", False);
-    netatom[NetWMFullscreen] = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False);
-    netatom[NetWMWindowType] = XInternAtom(display, "_NET_WM_WINDOW_TYPE", False);
-    netatom[NetWMWindowTypeDialog] = XInternAtom(display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
-    netatom[NetClientList] = XInternAtom(display, "_NET_CLIENT_LIST", False);
-    netatom[NetClientInfo] = XInternAtom(display, "_NET_CLIENT_INFO", False);
+    utf8string = X_INTERN_ATOM("UTF8_STRING");
+    wmatom[WMProtocols] = X_INTERN_ATOM("WM_PROTOCOLS");
+    wmatom[WMDelete] = X_INTERN_ATOM("WM_DELETE_WINDOW");
+    wmatom[WMState] = X_INTERN_ATOM("WM_STATE");
+    wmatom[WMTakeFocus] = X_INTERN_ATOM("WM_TAKE_FOCUS");
+    netatom[NetActiveWindow] = X_INTERN_ATOM("_NET_ACTIVE_WINDOW");
+    netatom[NetSupported] = X_INTERN_ATOM("_NET_SUPPORTED");
+    netatom[NetWMName] = X_INTERN_ATOM("_NET_WM_NAME");
+    netatom[NetWMIcon] = X_INTERN_ATOM("_NET_WM_ICON");
+    netatom[NetWMState] = X_INTERN_ATOM("_NET_WM_STATE");
+    netatom[NetWMCheck] = X_INTERN_ATOM("_NET_SUPPORTING_WM_CHECK");
+    netatom[NetWMFullscreen] = X_INTERN_ATOM("_NET_WM_STATE_FULLSCREEN");
+    netatom[NetWMWindowType] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE");
+    netatom[NetWMWindowTypeDialog] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE_DIALOG");
+    netatom[NetClientList] = X_INTERN_ATOM("_NET_CLIENT_LIST");
+    netatom[NetClientInfo] = X_INTERN_ATOM("_NET_CLIENT_INFO");
 
     /* init cursors */
     cursor[CursorNormal] = drw_cur_create(drw, XC_left_ptr);
