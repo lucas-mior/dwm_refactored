@@ -2795,7 +2795,7 @@ client_pop(Client *client) {
 
 Monitor *
 rectangle_to_monitor(int x, int y, int w, int h) {
-    Monitor *r = current_monitor;
+    Monitor *monitor = current_monitor;
     int a;
     int max_area = 0;
 
@@ -2808,10 +2808,10 @@ rectangle_to_monitor(int x, int y, int w, int h) {
 
         if ((a = ax*ay) > max_area) {
             max_area = a;
-            r = m;
+            monitor = m;
         }
     }
-    return r;
+    return monitor;
 }
 
 void
