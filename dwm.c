@@ -753,11 +753,11 @@ user_mouse_move(const Arg *) {
             int new_y = client->y + (event.xmotion.y - y);
             int over_x[2] = {
                 abs(monitor->win_x - new_x),
-                abs((monitor->win_x + monitor->win_w) - (new_x + WIDTH(client))),
+                abs(monitor->win_x + monitor->win_w - (new_x + WIDTH(client))),
             };
             int over_y[2] = {
                 abs(monitor->win_y - new_y),
-                abs((monitor->win_y + monitor->win_h) - (new_y + HEIGHT(client))),
+                abs(monitor->win_y + monitor->win_h - (new_y + HEIGHT(client))),
             };
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
