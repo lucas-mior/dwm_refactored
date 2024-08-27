@@ -2176,7 +2176,9 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
 
     if (text_property.encoding == XA_STRING) {
         strncpy(text, (char *)text_property.value, size - 1);
-        goto end;
+        text[size - 1] = '\0';
+        XFree(text_property.value);
+        return 1;
     }
     if (XmbTextPropertyToTextList(display, &text_property,
                                   &list_return, &count_return) >= Success
@@ -2185,7 +2187,6 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
         XFreeStringList(list_return);
     }
 
-end:
     text[size - 1] = '\0';
     XFree(text_property.value);
     return 1;
