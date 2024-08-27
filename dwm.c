@@ -2262,6 +2262,7 @@ get_signal_number(char *status, int x, int max_x) {
             }
         }
     }
+    return;
 }
 
 void

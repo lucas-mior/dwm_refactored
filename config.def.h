@@ -131,6 +131,10 @@ static const Key keys[] = {
 /* click can be ClickBarTags, ClickBarLayoutSymbol, ClickBarStatus, ClickBarTitle, ClickClientWin, or ClickRootWin */
 static const Button buttons[] = {
 	/* click                event mask     button   function                argument */
+	{ ClickBarTags,         0,           Button1, user_view_tag,          {0} },
+	{ ClickBarTags,         0,           Button3, user_toggle_view,       {0} },
+	{ ClickBarTags,         MODKEY,      Button1, user_tag,               {0} },
+	{ ClickBarTags,         MODKEY,      Button3, user_toggle_tag,        {0} },
 	{ ClickBarLayoutSymbol, 0,           Button1, user_set_layout,        {0} },
 	{ ClickBarLayoutSymbol, 0,           Button3, user_set_layout,        {.v = &layouts[2]} },
 	{ ClickBarTitle,        0,           Button2, user_promote_to_master, {0} },
@@ -151,9 +155,5 @@ static const Button buttons[] = {
 	{ ClickBottomBar,       0,           Button5, user_signal_status_bar, {.i = 5} },
 	{ ClickBottomBar,       ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
 	{ ClickBottomBar,       ControlMask, Button1, user_signal_status_bar, {.i = 7} },
-	{ ClickBarTags,         0,           Button1, user_view_tag,          {0} },
-	{ ClickBarTags,         0,           Button3, user_toggle_view,       {0} },
-	{ ClickBarTags,         MODKEY,      Button1, user_tag,               {0} },
-	{ ClickBarTags,         MODKEY,      Button3, user_toggle_tag,        {0} },
 };
 
