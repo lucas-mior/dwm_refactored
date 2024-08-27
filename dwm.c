@@ -366,8 +366,6 @@ static int tag_width[LENGTH(tags)];
 /* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
-/* function implementations */
-
 void
 user_alt_tab(const Arg *) {
     int grabbed = 1;
