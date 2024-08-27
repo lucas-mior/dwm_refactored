@@ -962,6 +962,7 @@ user_signal_status_bar(const Arg *arg) {
         return;
 
     sigqueue(statuspid, SIGUSR1, signal_value);
+    return;
 }
 
 void
@@ -975,6 +976,7 @@ user_tag(const Arg *arg) {
         client_focus(NULL);
         monitor_arrange(current_monitor);
     }
+    return;
 }
 
 void
