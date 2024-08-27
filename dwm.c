@@ -12,7 +12,7 @@
  *
  * Each child of the root window is called a client, except windows which have
  * set the override_redirect flag. Clients are organized in a linked client
- * list on each monitor, the focus history is remembered through a stack list
+ * list on each monitor, the client_focus history is remembered through a stack list
  * on each monitor. Each client contains a bit array to indicate the tags of a
  * client.
  *
@@ -205,36 +205,36 @@ static void user_toggle_view(const Arg *);
 static void user_view_tag(const Arg *);
 static void user_window_view(const Arg *);
 
-static void apply_rules(Client *);
-static int apply_size_hints(Client *, int *, int *, int *, int *, int);
-static void attach(Client *);
-static void attach_stack(Client *);
-static void configure(Client *);
-static void detach(Client *);
-static void detach_stack(Client *);
-static void focus(Client *);
-static Atom get_atom_property(Client *, Atom );
-static void grab_buttons(Client *, int focused);
+static void client_apply_rules(Client *);
+static int client_apply_size_hints(Client *, int *, int *, int *, int *, int);
+static void client_attach(Client *);
+static void client_attach_stack(Client *);
+static void client_configure(Client *);
+static void client_detach(Client *);
+static void client_detach_stack(Client *);
+static void client_focus(Client *);
+static Atom client_get_atom_property(Client *, Atom );
+static void client_grab_buttons(Client *, int focused);
 static Client *next_tiled(Client *);
-static void pop(Client *);
-static void resize(Client *, int x, int y, int w, int h, int interact);
-static void resize_client(Client *, int x, int y, int w, int h);
-static bool send_event(Client *, Atom proto);
-static void send_monitor(Client *, Monitor *);
-static void set_client_state(Client *, long state);
-static void set_client_tag_prop(Client *);
-static void set_focus(Client *);
-static void set_fullscreen(Client *, int fullscreen);
-static void set_urgent(Client *, int urgent);
-static void show_hide(Client *);
-static void free_icon(Client *);
-static void unfocus(Client *, int set_focus);
-static void unmanage(Client *, int destroyed);
-static void update_size_hints(Client *);
-static void update_title(Client *);
-static void update_icon(Client *);
-static void update_window_type(Client *);
-static void update_wm_hints(Client *);
+static void client_pop(Client *);
+static void client_resize(Client *, int x, int y, int w, int h, int interact);
+static void client_resize_client(Client *, int x, int y, int w, int h);
+static bool client_send_event(Client *, Atom proto);
+static void client_send_monitor(Client *, Monitor *);
+static void client_set_client_state(Client *, long state);
+static void client_set_client_tag_prop(Client *);
+static void client_set_focus(Client *);
+static void client_set_fullscreen(Client *, int fullscreen);
+static void client_set_urgent(Client *, int urgent);
+static void client_show_hide(Client *);
+static void client_free_icon(Client *);
+static void client_unfocus(Client *, int client_set_focus);
+static void client_unmanage(Client *, int destroyed);
+static void client_update_size_hints(Client *);
+static void client_update_title(Client *);
+static void client_update_icon(Client *);
+static void client_update_window_type(Client *);
+static void client_update_wm_hints(Client *);
 
 static void arrange(Monitor *);
 static void arrange_monitor(Monitor *);
@@ -430,12 +430,12 @@ user_alt_tab(const Arg *) {
             button_event = &(event.xbutton);
             monitor = window_to_monitor(button_event->window);
             if (monitor && (monitor != current_monitor)) {
-                unfocus(current_monitor->selected_client, 1);
+                client_unfocus(current_monitor->selected_client, 1);
                 current_monitor = monitor;
-                focus(NULL);
+                client_focus(NULL);
             }
             if ((client = window_to_client(button_event->window)))
-                focus(client);
+                client_focus(client);
             XAllowEvents(display, AsyncBoth, CurrentTime);
             break;
         case ButtonRelease:
@@ -453,7 +453,7 @@ user_alt_tab(const Arg *) {
 }
 
 void
-apply_rules(Client *client) {
+client_apply_rules(Client *client) {
     const char *class, *instance;
     XClassHint class_hint = { NULL, NULL };
 
@@ -508,7 +508,7 @@ apply_rules(Client *client) {
 }
 
 int
-apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
+client_apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
     int baseismin;
     Monitor *monitor = client->monitor;
 
@@ -544,7 +544,7 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         || client->is_floating
         || !client->monitor->layout[client->monitor->lay_i]->function) {
         if (!client->hintsvalid)
-            update_size_hints(client);
+            client_update_size_hints(client);
 
         /* see last two sentences in ICCCM 4.1.2.3 */
         baseismin = client->base_w == client->minw && client->base_h == client->minh;
@@ -586,10 +586,10 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
 void
 arrange(Monitor *monitor) {
     if (monitor) {
-        show_hide(monitor->stack);
+        client_show_hide(monitor->stack);
     } else {
         for (monitor = monitors; monitor; monitor = monitor->next)
-            show_hide(monitor->stack);
+            client_show_hide(monitor->stack);
     }
     if (monitor) {
         arrange_monitor(monitor);
@@ -642,12 +642,12 @@ user_aspect_resize(const Arg *arg) {
     nh = client->h + h;
 
     XRaiseWindow(display, client->window);
-    resize(client, client->x, client->y, nw, nh, True);
+    client_resize(client, client->x, client->y, nw, nh, True);
     return;
 }
 
 void
-attach(Client *client) {
+client_attach(Client *client) {
     client->next = client->monitor->clients;
     client->all_next = all_clients;
     client->monitor->clients = client;
@@ -656,7 +656,7 @@ attach(Client *client) {
 }
 
 void
-attach_stack(Client *client) {
+client_attach_stack(Client *client) {
     client->stack_next = client->monitor->stack;
     client->monitor->stack = client;
     return;
@@ -681,7 +681,7 @@ cleanup_monitor(Monitor *monitor) {
 }
 
 void
-configure(Client *client) {
+client_configure(Client *client) {
     XConfigureEvent conf_event;
 
     conf_event.type = ConfigureNotify;
@@ -765,7 +765,7 @@ void dwm_debug(char *message, ...) {
 }
 
 void
-detach(Client *client) {
+client_detach(Client *client) {
     Client **clients;
 
     for (clients = &client->monitor->clients;
@@ -782,7 +782,7 @@ detach(Client *client) {
 }
 
 void
-detach_stack(Client *client) {
+client_detach_stack(Client *client) {
     Client **client_aux;
 
     for (client_aux = &client->monitor->stack;
@@ -990,7 +990,7 @@ draw_bars(void) {
 }
 
 void
-focus(Client *client) {
+client_focus(Client *client) {
     Client *selected = current_monitor->selected_client;
     if (!client || !ISVISIBLE(client)) {
         for (client = current_monitor->stack;
@@ -999,18 +999,18 @@ focus(Client *client) {
     }
 
     if (selected && selected != client)
-        unfocus(selected, 0);
+        client_unfocus(selected, 0);
 
     if (client) {
         if (client->monitor != current_monitor)
             current_monitor = client->monitor;
         if (client->is_urgent)
-            set_urgent(client, 0);
-        detach_stack(client);
-        attach_stack(client);
-        grab_buttons(client, 1);
+            client_set_urgent(client, 0);
+        client_detach_stack(client);
+        client_attach_stack(client);
+        client_grab_buttons(client, 1);
         XSetWindowBorder(display, client->window, scheme[SchemeSelected][ColBorder].pixel);
-        set_focus(client);
+        client_set_focus(client);
     } else {
         XSetInputFocus(display, current_monitor->top_bar_window, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
@@ -1080,7 +1080,7 @@ user_focus_direction(const Arg *arg) {
     }
 
     if (f && f != selected) {
-        focus(f);
+        client_focus(f);
         restack(f->monitor);
     }
     return;
@@ -1095,9 +1095,9 @@ user_focus_monitor(const Arg *arg) {
     if ((monitor = direction_to_monitor(arg->i)) == current_monitor)
         return;
 
-    unfocus(current_monitor->selected_client, 0);
+    client_unfocus(current_monitor->selected_client, 0);
     current_monitor = monitor;
-    focus(NULL);
+    client_focus(NULL);
     return;
 }
 
@@ -1110,9 +1110,9 @@ user_focus_next(const Arg *arg) {
     client = m->selected_client;
     while (client == NULL && m->next) {
         m = m->next;
-        unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, 1);
         current_monitor = m;
-        focus(NULL);
+        client_focus(NULL);
         client = m->selected_client;
     }
     if (client == NULL)
@@ -1129,7 +1129,7 @@ user_focus_next(const Arg *arg) {
             last = NULL;
         for (client = all_clients; client->all_next != last; client = client->all_next);
     }
-    focus(client);
+    client_focus(client);
     return;
 }
 
@@ -1167,7 +1167,7 @@ user_focus_stack(const Arg *arg) {
         }
     }
     if (client) {
-        focus(client);
+        client_focus(client);
         restack(current_monitor);
     }
     return;
@@ -1184,7 +1184,7 @@ user_focus_urgent(const Arg *) {
 
         if (client) {
             int i = 0;
-            unfocus(current_monitor->selected_client, 0);
+            client_unfocus(current_monitor->selected_client, 0);
             current_monitor = monitor;
 
             while (i < LENGTH(tags) && !((1 << i) & client->tags))
@@ -1192,7 +1192,7 @@ user_focus_urgent(const Arg *) {
             if (i < LENGTH(tags)) {
                 const Arg a = {.ui = 1 << i};
                 user_view_tag(&a);
-                focus(client);
+                client_focus(client);
             }
         }
     }
@@ -1231,14 +1231,14 @@ layout_columns(Monitor *monitor) {
         int h;
         if (i < monitor->nmaster) {
             w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
-            resize(client,
+            client_resize(client,
                    x + monitor->win_x, monitor->win_y,
                    w - (2*client->border_pixels),
                    monitor->win_h - (2*client->border_pixels), 0);
             x += WIDTH(client);
         } else {
             h = (monitor->win_h - y) / (n - i);
-            resize(client,
+            client_resize(client,
                    x + monitor->win_x, monitor->win_y + y,
                    monitor->win_w - x - (2*client->border_pixels),
                    h - (2*client->border_pixels), 0);
@@ -1303,7 +1303,7 @@ layout_gapless_grid(Monitor *monitor) {
         new_y = monitor->win_y + row_i*client_height;
         new_w = column_width - 2*client->border_pixels;
         new_h = client_height - 2*client->border_pixels;
-        resize(client, new_x, new_y, new_w, new_h, False);
+        client_resize(client, new_x, new_y, new_w, new_h, False);
 
         row_i += 1;
         if (row_i >= nrows) {
@@ -1334,7 +1334,7 @@ layout_monocle(Monitor *monitor) {
         int new_y = monitor->win_y;
         int new_w = monitor->win_w - 2*client->border_pixels;
         int new_h = monitor->win_h - 2*client->border_pixels;
-        resize(client, new_x, new_y, new_w, new_h, 0);
+        client_resize(client, new_x, new_y, new_w, new_h, 0);
     }
     return;
 }
@@ -1370,7 +1370,7 @@ layout_tile(Monitor *m) {
         int h;
         if (i < m->nmaster) {
             h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
-            resize(client,
+            client_resize(client,
                    m->win_x, m->win_y + mon_y,
                    mon_w - (2*client->border_pixels),
                    h - (2*client->border_pixels), 0);
@@ -1378,7 +1378,7 @@ layout_tile(Monitor *m) {
                 mon_y += HEIGHT(client);
         } else {
             h = (m->win_h - tile_y) / (n - i);
-            resize(client,
+            client_resize(client,
                    m->win_x + mon_w, m->win_y + tile_y,
                    m->win_w - mon_w - (2*client->border_pixels),
                    h - (2*client->border_pixels), 0);
@@ -1391,7 +1391,7 @@ layout_tile(Monitor *m) {
 }
 
 Atom
-get_atom_property(Client *client, Atom property) {
+client_get_atom_property(Client *client, Atom property) {
     int actual_format_return;
     ulong nitems_return;
     Atom actual_type_return;
@@ -1618,7 +1618,7 @@ end:
 }
 
 void
-grab_buttons(Client *client, int focused) {
+client_grab_buttons(Client *client, int focused) {
     uint modifiers[] = { 0, LockMask, numlock_mask, numlock_mask|LockMask };
 
     update_numlock_mask();
@@ -1676,11 +1676,11 @@ handler_button_press(XEvent *event) {
     XButtonPressedEvent *button_event = &event->xbutton;
 
     click = ClickRootWin;
-    /* focus monitor if necessary */
+    /* client_focus monitor if necessary */
     if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
-        unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, 1);
         current_monitor = monitor;
-        focus(NULL);
+        client_focus(NULL);
     }
     if (button_event->window == current_monitor->top_bar_window) {
         uint i = 0;
@@ -1740,7 +1740,7 @@ handler_button_press(XEvent *event) {
             }
         }
     } else if ((client = window_to_client(button_event->window))) {
-        focus(client);
+        client_focus(client);
         restack(current_monitor);
         XAllowEvents(display, ReplayPointer, CurrentTime);
         click = ClickClientWin;
@@ -1773,12 +1773,12 @@ handler_client_message(XEvent *e) {
     if (cme->message_type == netatom[NetWMState]) {
         if ((ulong) cme->data.l[1] == netatom[NetWMFullscreen]
         || (ulong) cme->data.l[2] == netatom[NetWMFullscreen])
-            set_fullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
+            client_set_fullscreen(client, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
                       || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
                                       && (!client->is_fullscreen || client->is_fake_fullscreen))));
     } else if (cme->message_type == netatom[NetActiveWindow]) {
         if (client != current_monitor->selected_client && !client->is_urgent)
-            set_urgent(client, 1);
+            client_set_urgent(client, 1);
     }
     return;
 }
@@ -1823,12 +1823,12 @@ handler_configure_request(XEvent *event) {
             }
 
             if ((conf_request_event->value_mask & (CWX|CWY)) && !(conf_request_event->value_mask & (CWWidth|CWHeight)))
-                configure(client);
+                client_configure(client);
             if (ISVISIBLE(client))
                 XMoveResizeWindow(display, client->window,
                                   client->x, client->y, (uint)client->w, (uint)client->h);
         } else {
-            configure(client);
+            client_configure(client);
         }
     } else {
         window_changes.x = conf_request_event->x;
@@ -1865,7 +1865,7 @@ handler_configure_notify(XEvent *event) {
         for (Monitor *m = monitors; m; m = m->next) {
             for (Client *client = m->clients; client; client = client->next) {
                 if (client->is_fullscreen && !client->is_fake_fullscreen)
-                    resize_client(client,
+                    client_resize_client(client,
                                   m->mon_x, m->mon_y, m->mon_w, m->mon_h);
             }
             XMoveResizeWindow(display, m->top_bar_window,
@@ -1873,7 +1873,7 @@ handler_configure_notify(XEvent *event) {
             XMoveResizeWindow(display, m->bottom_bar_window,
                               m->win_x, m->bottom_bar_y, (uint)m->win_w, bar_height);
         }
-        focus(NULL);
+        client_focus(NULL);
         arrange(NULL);
     }
     return;
@@ -1885,7 +1885,7 @@ handler_destroy_notify(XEvent *e) {
     XDestroyWindowEvent *destroy_window_event = &e->xdestroywindow;
 
     if ((client = window_to_client(destroy_window_event->window)))
-        unmanage(client, 1);
+        client_unmanage(client, 1);
     return;
 }
 
@@ -1907,18 +1907,18 @@ handler_enter_notify(XEvent *event) {
         monitor = window_to_monitor(crossing_event->window);
 
     if (monitor != current_monitor) {
-        unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, 1);
         current_monitor = monitor;
     } else if (client == current_monitor->selected_client) {
         return;
     } else if (!client) {
         return;
     }
-    focus(client);
+    client_focus(client);
     return;
 }
 
-/* there are some broken focus acquiring clients needing extra handling */
+/* there are some broken client_focus acquiring clients needing extra handling */
 void
 handler_focus_in(XEvent *event) {
     XFocusChangeEvent *focus_change_event = &event->xfocus;
@@ -1927,7 +1927,7 @@ handler_focus_in(XEvent *event) {
         return;
 
     if (focus_change_event->window != current_monitor->selected_client->window)
-        set_focus(current_monitor->selected_client);
+        client_set_focus(current_monitor->selected_client);
     return;
 }
 
@@ -2000,9 +2000,9 @@ handler_motion_notify(XEvent *event) {
 
     m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1);
     if (m != monitor_save && monitor_save) {
-        unfocus(current_monitor->selected_client, 1);
+        client_unfocus(current_monitor->selected_client, 1);
         current_monitor = m;
-        focus(NULL);
+        client_focus(NULL);
     }
     monitor_save = m;
     return;
@@ -2039,7 +2039,7 @@ handler_property_notify(XEvent *event) {
         client->hintsvalid = 0;
         break;
     case XA_WM_HINTS:
-        update_wm_hints(client);
+        client_update_wm_hints(client);
         draw_bars();
         break;
     default:
@@ -2048,16 +2048,16 @@ handler_property_notify(XEvent *event) {
 
     if (property_event->atom == XA_WM_NAME
         || property_event->atom == netatom[NetWMName]) {
-        update_title(client);
+        client_update_title(client);
         if (client == client->monitor->selected_client)
             draw_bar(client->monitor);
     } else if (property_event->atom == netatom[NetWMIcon]) {
-        update_icon(client);
+        client_update_icon(client);
         if (client == client->monitor->selected_client)
             draw_bar(client->monitor);
     }
     if (property_event->atom == netatom[NetWMWindowType])
-        update_window_type(client);
+        client_update_window_type(client);
     return;
 }
 
@@ -2068,9 +2068,9 @@ handler_unmap_notify(XEvent *event) {
 
     if ((client = window_to_client(unmap_event->window))) {
         if (unmap_event->send_event)
-            set_client_state(client, WithdrawnState);
+            client_set_client_state(client, WithdrawnState);
         else
-            unmanage(client, 0);
+            client_unmanage(client, 0);
     }
     return;
 }
@@ -2112,7 +2112,7 @@ user_kill_client(const Arg *) {
     if (!current_monitor->selected_client)
         return;
 
-    if (!send_event(current_monitor->selected_client, wmatom[WMDelete])) {
+    if (!client_send_event(current_monitor->selected_client, wmatom[WMDelete])) {
         XGrabServer(display);
         XSetErrorHandler(xerrordummy);
         XSetCloseDownMode(display, DestroyAll);
@@ -2142,14 +2142,14 @@ manage(Window window, XWindowAttributes *window_attributes) {
     client->h = client->old_h = window_attributes->height;
     client->old_border_pixels = window_attributes->border_width;
 
-    update_icon(client);
-    update_title(client);
+    client_update_icon(client);
+    client_update_title(client);
     if (XGetTransientForHint(display, window, &trans) && (t = window_to_client(trans))) {
         client->monitor = t->monitor;
         client->tags = t->tags;
     } else {
         client->monitor = current_monitor;
-        apply_rules(client);
+        client_apply_rules(client);
     }
 
     if (client->x + WIDTH(client) > client->monitor->win_x + client->monitor->win_w)
@@ -2163,10 +2163,10 @@ manage(Window window, XWindowAttributes *window_attributes) {
     window_changes.border_width = client->border_pixels;
     XConfigureWindow(display, window, CWBorderWidth, &window_changes);
     XSetWindowBorder(display, window, scheme[SchemeNormal][ColBorder].pixel);
-    configure(client); /* propagates border_pixels, if size doesn't change */
-    update_window_type(client);
-    update_size_hints(client);
-    update_wm_hints(client);
+    client_configure(client); /* propagates border_pixels, if size doesn't change */
+    client_update_window_type(client);
+    client_update_size_hints(client);
+    client_update_wm_hints(client);
     {
         int actual_format_return;
         ulong *prop_return;
@@ -2192,7 +2192,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
         if (nitems_return > 0)
             XFree(prop_return);
     }
-    set_client_tag_prop(client);
+    client_set_client_tag_prop(client);
 
     client->stored_fx = client->x;
     client->stored_fy = client->y;
@@ -2207,15 +2207,15 @@ manage(Window window, XWindowAttributes *window_attributes) {
                  |PropertyChangeMask
                  |StructureNotifyMask);
 
-    grab_buttons(client, 0);
+    client_grab_buttons(client, 0);
 
     if (!client->is_floating)
         client->is_floating = client->old_state = trans != None || client->is_fixed;
     if (client->is_floating)
         XRaiseWindow(display, client->window);
 
-    attach(client);
-    attach_stack(client);
+    client_attach(client);
+    client_attach_stack(client);
 
     XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW,
                     32, PropModeAppend, (uchar *) &(client->window), 1);
@@ -2224,13 +2224,13 @@ manage(Window window, XWindowAttributes *window_attributes) {
     XMoveResizeWindow(display, client->window,
                       client->x + 2*screen_width, client->y,
                       (uint)client->w, (uint)client->h);
-    set_client_state(client, NormalState);
+    client_set_client_state(client, NormalState);
     if (client->monitor == current_monitor)
-        unfocus(current_monitor->selected_client, 0);
+        client_unfocus(current_monitor->selected_client, 0);
     client->monitor->selected_client = client;
     arrange(client->monitor);
     XMapWindow(display, client->window);
-    focus(NULL);
+    client_focus(NULL);
     return;
 }
 
@@ -2306,7 +2306,7 @@ user_mouse_move(const Arg *) {
             }
 
             if (!monitor->layout[monitor->lay_i]->function || is_floating)
-                resize(client, nx, ny, client->w, client->h, 1);
+                client_resize(client, nx, ny, client->w, client->h, 1);
             break;
         }
         default:
@@ -2319,9 +2319,9 @@ user_mouse_move(const Arg *) {
     monitor_aux = rectangle_to_monitor(client->x, client->y,
                                        client->w, client->h);
     if (monitor_aux != current_monitor) {
-        send_monitor(client, monitor_aux);
+        client_send_monitor(client, monitor_aux);
         current_monitor = monitor_aux;
-        focus(NULL);
+        client_focus(NULL);
     }
     return;
 }
@@ -2396,7 +2396,7 @@ user_mouse_resize(const Arg *) {
             }
             if (client->is_floating
                 || !current_monitor->layout[current_monitor->lay_i]->function)
-                resize(client, client->x, client->y, nw, nh, 1);
+                client_resize(client, client->x, client->y, nw, nh, 1);
             break;
         }
         default:
@@ -2413,9 +2413,9 @@ user_mouse_resize(const Arg *) {
 
     monitor = rectangle_to_monitor(client->x, client->y, client->w, client->h);
     if (monitor != current_monitor) {
-        send_monitor(client, monitor);
+        client_send_monitor(client, monitor);
         current_monitor = monitor;
-        focus(NULL);
+        client_focus(NULL);
     }
     return;
 }
@@ -2434,10 +2434,10 @@ next_tiled(Client *client) {
 }
 
 void
-pop(Client *client) {
-    detach(client);
-    attach(client);
-    focus(client);
+client_pop(Client *client) {
+    client_detach(client);
+    client_attach(client);
+    client_focus(client);
     arrange(client->monitor);
     return;
 }
@@ -2472,14 +2472,14 @@ rectangle_to_monitor(int x, int y, int w, int h) {
 }
 
 void
-resize(Client *client, int x, int y, int w, int h, int interact) {
-    if (apply_size_hints(client, &x, &y, &w, &h, interact))
-        resize_client(client, x, y, w, h);
+client_resize(Client *client, int x, int y, int w, int h, int interact) {
+    if (client_apply_size_hints(client, &x, &y, &w, &h, interact))
+        client_resize_client(client, x, y, w, h);
     return;
 }
 
 void
-resize_client(Client *client, int x, int y, int w, int h) {
+client_resize_client(Client *client, int x, int y, int w, int h) {
     XWindowChanges window_changes;
     uint n = 0;
 
@@ -2512,7 +2512,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
 
     XConfigureWindow(display, client->window,
                      CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &window_changes);
-    configure(client);
+    client_configure(client);
     XSync(display, False);
     return;
 }
@@ -2596,24 +2596,24 @@ scan_windows(void) {
 }
 
 void
-send_monitor(Client *client, Monitor *m) {
+client_send_monitor(Client *client, Monitor *m) {
     if (client->monitor == m)
         return;
-    unfocus(client, 1);
-    detach(client);
-    detach_stack(client);
+    client_unfocus(client, 1);
+    client_detach(client);
+    client_detach_stack(client);
     client->monitor = m;
     client->tags = m->tagset[m->selected_tags]; /* assign tags of target monitor */
-    attach(client);
-    attach_stack(client);
-    set_client_tag_prop(client);
-    focus(NULL);
+    client_attach(client);
+    client_attach_stack(client);
+    client_set_client_tag_prop(client);
+    client_focus(NULL);
     arrange(NULL);
     return;
 }
 
 void
-set_client_state(Client *client, long state) {
+client_set_client_state(Client *client, long state) {
     long data[] = { state, None };
 
     XChangeProperty(display, client->window, wmatom[WMState], wmatom[WMState], 32,
@@ -2622,7 +2622,7 @@ set_client_state(Client *client, long state) {
 }
 
 bool
-send_event(Client *client, Atom proto) {
+client_send_event(Client *client, Atom proto) {
     int n;
     Atom *protocols;
     bool exists = false;
@@ -2646,25 +2646,25 @@ send_event(Client *client, Atom proto) {
 }
 
 void
-set_focus(Client *client) {
+client_set_focus(Client *client) {
     if (!client->never_focus) {
         XSetInputFocus(display, client->window, RevertToPointerRoot, CurrentTime);
         XChangeProperty(display, root, netatom[NetActiveWindow],
             XA_WINDOW, 32, PropModeReplace,
             (uchar *) &(client->window), 1);
     }
-    send_event(client, wmatom[WMTakeFocus]);
+    client_send_event(client, wmatom[WMTakeFocus]);
     return;
 }
 
 void
-set_fullscreen(Client *client, int fullscreen) {
+client_set_fullscreen(Client *client, int fullscreen) {
     if (fullscreen && !client->is_fullscreen) {
         XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
         client->is_fullscreen = 1;
         if (client->is_fake_fullscreen) {
-            resize_client(client, client->x, client->y, client->w, client->h);
+            client_resize_client(client, client->x, client->y, client->w, client->h);
             return;
         }
         client->old_state = client->is_floating;
@@ -2672,7 +2672,7 @@ set_fullscreen(Client *client, int fullscreen) {
         client->border_pixels = 0;
         client->is_floating = 1;
 
-        resize_client(client,
+        client_resize_client(client,
                       client->monitor->mon_x, client->monitor->mon_y,
                       client->monitor->mon_w, client->monitor->mon_h);
         XRaiseWindow(display, client->window);
@@ -2681,7 +2681,7 @@ set_fullscreen(Client *client, int fullscreen) {
             PropModeReplace, (uchar*)0, 0);
         client->is_fullscreen = 0;
         if (client->is_fake_fullscreen) {
-            resize_client(client, client->x, client->y, client->w, client->h);
+            client_resize_client(client, client->x, client->y, client->w, client->h);
             return;
         }
         client->is_floating = client->old_state;
@@ -2690,7 +2690,7 @@ set_fullscreen(Client *client, int fullscreen) {
         client->y = client->old_y;
         client->w = client->old_w;
         client->h = client->old_h;
-        resize_client(client, client->x, client->y, client->w, client->h);
+        client_resize_client(client, client->x, client->y, client->w, client->h);
         arrange(client->monitor);
     }
     return;
@@ -2829,12 +2829,12 @@ setup_once(void) {
     XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &window_attributes);
     XSelectInput(display, root, window_attributes.event_mask);
     grab_keys();
-    focus(NULL);
+    client_focus(NULL);
     return;
 }
 
 void
-set_urgent(Client *client, int urgent) {
+client_set_urgent(Client *client, int urgent) {
     XWMHints *wm_hints;
 
     client->is_urgent = urgent;
@@ -2852,7 +2852,7 @@ set_urgent(Client *client, int urgent) {
 }
 
 void
-show_hide(Client *client) {
+client_show_hide(Client *client) {
     if (!client)
         return;
 
@@ -2869,12 +2869,12 @@ show_hide(Client *client) {
 
         if ((!client->monitor->layout[client->monitor->lay_i]->function || client->is_floating)
                 && (!client->is_fullscreen || client->is_fake_fullscreen)) {
-            resize(client, client->x, client->y, client->w, client->h, 0);
+            client_resize(client, client->x, client->y, client->w, client->h, 0);
         }
-        show_hide(client->stack_next);
+        client_show_hide(client->stack_next);
     } else {
         /* hide clients bottom up */
-        show_hide(client->stack_next);
+        client_show_hide(client->stack_next);
         XMoveWindow(display, client->window, -2*WIDTH(client), client->y);
     }
     return;
@@ -2895,7 +2895,7 @@ user_signal_status_bar(const Arg *arg) {
 }
 
 void
-set_client_tag_prop(Client *client) {
+client_set_client_tag_prop(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
     XChangeProperty(display, client->window, netatom[NetClientInfo],
                     XA_CARDINAL, 32, PropModeReplace, (uchar *) data, 2);
@@ -2909,8 +2909,8 @@ user_tag(const Arg *arg) {
 
     if (which_tag && selected_client) {
         selected_client->tags = which_tag;
-        set_client_tag_prop(selected_client);
-        focus(NULL);
+        client_set_client_tag_prop(selected_client);
+        client_focus(NULL);
         arrange(current_monitor);
     }
 }
@@ -2927,9 +2927,9 @@ user_tag_monitor(const Arg *arg) {
         current_monitor->selected_client->y += monitor->mon_y - current_monitor->mon_y;
     }
 
-    send_monitor(current_monitor->selected_client, monitor);
+    client_send_monitor(current_monitor->selected_client, monitor);
     usleep(50);
-    focus(NULL);
+    client_focus(NULL);
     usleep(50);
     user_focus_monitor(arg);
     user_toggle_floating(NULL);
@@ -2981,7 +2981,7 @@ user_toggle_floating(const Arg *) {
 
     client->is_floating = !client->is_floating || client->is_fixed;
     if (client->is_floating) {
-        resize(client,
+        client_resize(client,
                client->stored_fx, client->stored_fy,
                client->stored_fw, client->stored_fh,
                False);
@@ -3002,7 +3002,7 @@ user_toggle_floating(const Arg *) {
 void
 user_toggle_fullscreen(const Arg *) {
     if (current_monitor->selected_client) {
-        set_fullscreen(current_monitor->selected_client,
+        client_set_fullscreen(current_monitor->selected_client,
                        !current_monitor->selected_client->is_fullscreen);
     }
     return;
@@ -3050,11 +3050,11 @@ user_toggle_scratch(const Arg *arg) {
         }
         if (new_tagset) {
             current_monitor->tagset[current_monitor->selected_tags] = new_tagset;
-            focus(NULL);
+            client_focus(NULL);
             arrange(current_monitor);
         }
         if (ISVISIBLE(client)) {
-            focus(client);
+            client_focus(client);
             restack(current_monitor);
         }
     } else {
@@ -3073,8 +3073,8 @@ user_toggle_tag(const Arg *arg) {
     newtags = current_monitor->selected_client->tags ^ (arg->ui & TAGMASK);
     if (newtags) {
         current_monitor->selected_client->tags = newtags;
-        set_client_tag_prop(current_monitor->selected_client);
-        focus(NULL);
+        client_set_client_tag_prop(current_monitor->selected_client);
+        client_focus(NULL);
         arrange(current_monitor);
     }
     return;
@@ -3117,14 +3117,14 @@ user_toggle_view(const Arg *arg) {
         if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
             user_toggle_top_bar(NULL);
 
-        focus(NULL);
+        client_focus(NULL);
         arrange(monitor);
     }
     return;
 }
 
 void
-free_icon(Client *client) {
+client_free_icon(Client *client) {
     if (client->icon) {
         XRenderFreePicture(display, client->icon);
         client->icon = None;
@@ -3133,12 +3133,12 @@ free_icon(Client *client) {
 }
 
 void
-unfocus(Client *client, int set_focus) {
+client_unfocus(Client *client, int client_set_focus) {
     if (!client)
         return;
-    grab_buttons(client, 0);
+    client_grab_buttons(client, 0);
     XSetWindowBorder(display, client->window, scheme[SchemeNormal][ColBorder].pixel);
-    if (set_focus) {
+    if (client_set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
@@ -3146,13 +3146,13 @@ unfocus(Client *client, int set_focus) {
 }
 
 void
-unmanage(Client *client, int destroyed) {
+client_unmanage(Client *client, int destroyed) {
     Monitor *monitor = client->monitor;
     XWindowChanges window_changes;
 
-    detach(client);
-    detach_stack(client);
-    free_icon(client);
+    client_detach(client);
+    client_detach_stack(client);
+    client_free_icon(client);
 
     if (!destroyed) {
         window_changes.border_width = client->old_border_pixels;
@@ -3164,7 +3164,7 @@ unmanage(Client *client, int destroyed) {
         /* restore border */
         XConfigureWindow(display, client->window, CWBorderWidth, &window_changes);
         XUngrabButton(display, AnyButton, AnyModifier, client->window);
-        set_client_state(client, WithdrawnState);
+        client_set_client_state(client, WithdrawnState);
 
         XSync(display, False);
         XSetErrorHandler(xerror);
@@ -3172,7 +3172,7 @@ unmanage(Client *client, int destroyed) {
     }
 
     free(client);
-    focus(NULL);
+    client_focus(NULL);
     update_client_list();
     arrange(monitor);
     return;
@@ -3317,10 +3317,10 @@ update_geometry(void) {
                 dirty = 1;
                 monitor->clients = client->next;
                 all_clients = client->all_next;
-                detach_stack(client);
+                client_detach_stack(client);
                 client->monitor = monitors;
-                attach(client);
-                attach_stack(client);
+                client_attach(client);
+                client_attach_stack(client);
             }
 
             if (monitor == current_monitor)
@@ -3364,7 +3364,7 @@ update_numlock_mask(void) {
 }
 
 void
-update_size_hints(Client *client) {
+client_update_size_hints(Client *client) {
     long supplied_return;
     bool has_maxes;
     bool mins_match_maxes;
@@ -3471,7 +3471,7 @@ update_status(void) {
 }
 
 void
-update_title(Client *client) {
+client_update_title(Client *client) {
     if (!get_text_property(client->window, netatom[NetWMName],
                            client->name, sizeof(client->name))) {
         get_text_property(client->window, XA_WM_NAME,
@@ -3483,26 +3483,26 @@ update_title(Client *client) {
 }
 
 void
-update_icon(Client *client) {
-    free_icon(client);
+client_update_icon(Client *client) {
+    client_free_icon(client);
     client->icon = get_icon_property(client->window, &client->icon_width, &client->icon_height);
     return;
 }
 
 void
-update_window_type(Client *client) {
-    Atom state = get_atom_property(client, netatom[NetWMState]);
-    Atom window_type = get_atom_property(client, netatom[NetWMWindowType]);
+client_update_window_type(Client *client) {
+    Atom state = client_get_atom_property(client, netatom[NetWMState]);
+    Atom window_type = client_get_atom_property(client, netatom[NetWMWindowType]);
 
     if (state == netatom[NetWMFullscreen])
-        set_fullscreen(client, 1);
+        client_set_fullscreen(client, 1);
     if (window_type == netatom[NetWMWindowTypeDialog])
         client->is_floating = 1;
     return;
 }
 
 void
-update_wm_hints(Client *client) {
+client_update_wm_hints(Client *client) {
     XWMHints *wm_hints;
 
     if ((wm_hints = XGetWMHints(display, client->window))) {
@@ -3565,7 +3565,7 @@ user_view_tag(const Arg *arg) {
     if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
         user_toggle_top_bar(NULL);
 
-    focus(NULL);
+    client_focus(NULL);
     arrange(monitor);
     return;
 }
@@ -3720,7 +3720,7 @@ user_promote_to_master(const Arg *) {
         return;
     if (client == next_tiled(monitor->clients) && !(client = next_tiled(client->next)))
         return;
-    pop(client);
+    client_pop(client);
     return;
 }
 
@@ -3774,7 +3774,7 @@ main(int argc, char *argv[]) {
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         while (monitor->stack)
-            unmanage(monitor->stack, 0);
+            client_unmanage(monitor->stack, 0);
     }
 
     XUngrabKey(display, AnyKey, AnyModifier, root);
