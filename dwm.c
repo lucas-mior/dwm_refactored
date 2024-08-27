@@ -255,7 +255,6 @@ static Monitor *rectangle_to_monitor(int x, int y, int w, int h);
 static void resize(Client *, int x, int y, int w, int h, int interact);
 static void resize_client(Client *, int x, int y, int w, int h);
 static void restack(Monitor *);
-static void run(void);
 static void scan_windows(void);
 static bool send_event(Client *, Atom proto);
 static void send_monitor(Client *, Monitor *);
@@ -2557,18 +2556,6 @@ restack(Monitor *m) {
 }
 
 void
-run(void) {
-    XEvent event;
-    XSync(display, False);
-
-    while (running && !XNextEvent(display, &event)) {
-        if (handler[event.type])
-            handler[event.type](&event);
-    }
-    return;
-}
-
-void
 scan_windows(void) {
     Window root_return;
     Window parent_return;
@@ -3807,7 +3794,15 @@ main(int argc, char *argv[]) {
 #endif /* __OpenBSD__ */
 
     scan_windows();
-    run();
+    {
+        XEvent event;
+        XSync(display, False);
+
+        while (running && !XNextEvent(display, &event)) {
+            if (handler[event.type])
+                handler[event.type](&event);
+        }
+    }
 
     if (restart) {
         debug_dwm("restarting...");
