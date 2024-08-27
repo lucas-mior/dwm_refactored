@@ -333,7 +333,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
     [UnmapNotify] = handler_unmap_notify
 };
 
-static Atom wmatom[WMLast], netatom[NetLast];
+static Atom wmatom[WMLast], net_atoms[NetLast];
 static Display *display;
 static Visual *visual;
 static Colormap cmap;
@@ -1794,7 +1794,7 @@ client_focus(Client *client) {
     } else {
         XSetInputFocus(display, current_monitor->top_bar_window,
                        RevertToPointerRoot, CurrentTime);
-        XDeleteProperty(display, root, netatom[NetActiveWindow]);
+        XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
     }
 
     current_monitor->selected_client = client;
@@ -2271,11 +2271,11 @@ handler_client_message(XEvent *event) {
     if (!client)
         return;
 
-    if (message_type == netatom[NetWMState]) {
+    if (message_type == net_atoms[NetWMState]) {
         ulong *data = (ulong *) client_message_event->data.l;
 
-        if (data[1] == netatom[NetWMFullscreen]
-            || data[2] == netatom[NetWMFullscreen]) {
+        if (data[1] == net_atoms[NetWMFullscreen]
+            || data[2] == net_atoms[NetWMFullscreen]) {
             bool NET_WM_STATE_ADD = data[0] == 1;
             bool NET_WM_STATE_TOGGLE = data[0] == 2;
             bool fullscreen = NET_WM_STATE_ADD
@@ -2284,7 +2284,7 @@ handler_client_message(XEvent *event) {
                                       || client->is_fake_fullscreen));
             client_set_fullscreen(client, fullscreen);
         }
-    } else if (message_type == netatom[NetActiveWindow]) {
+    } else if (message_type == net_atoms[NetActiveWindow]) {
         if (client != current_monitor->selected_client && !client->is_urgent)
             client_set_urgent(client, 1);
     }
@@ -2574,16 +2574,16 @@ handler_property_notify(XEvent *event) {
     }
 
     if (property_event->atom == XA_WM_NAME
-        || property_event->atom == netatom[NetWMName]) {
+        || property_event->atom == net_atoms[NetWMName]) {
         client_update_title(client);
         if (client == client->monitor->selected_client)
             monitor_draw_bar(client->monitor);
-    } else if (property_event->atom == netatom[NetWMIcon]) {
+    } else if (property_event->atom == net_atoms[NetWMIcon]) {
         client_update_icon(client);
         if (client == client->monitor->selected_client)
             monitor_draw_bar(client->monitor);
     }
-    if (property_event->atom == netatom[NetWMWindowType])
+    if (property_event->atom == net_atoms[NetWMWindowType])
         client_update_window_type(client);
     return;
 }
@@ -2710,7 +2710,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
         ulong bytes_after_return;
         Atom actual_type_return;
 
-        success = XGetWindowProperty(display, client->window, netatom[NetClientInfo],
+        success = XGetWindowProperty(display, client->window, net_atoms[NetClientInfo],
                                      0L, 2L, False, XA_CARDINAL,
                                      &actual_type_return, &actual_format_return,
                                      &nitems_return, &bytes_after_return,
@@ -2757,7 +2757,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     client_attach(client);
     client_attach_stack(client);
 
-    XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW,
+    XChangeProperty(display, root, net_atoms[NetClientList], XA_WINDOW,
                     32, PropModeAppend, (uchar *)&(client->window), 1);
 
     /* some windows require this */
@@ -2997,7 +2997,7 @@ void
 client_set_focus(Client *client) {
     if (!client->never_focus) {
         XSetInputFocus(display, client->window, RevertToPointerRoot, CurrentTime);
-        XChangeProperty(display, root, netatom[NetActiveWindow],
+        XChangeProperty(display, root, net_atoms[NetActiveWindow],
             XA_WINDOW, 32, PropModeReplace,
             (uchar *)&(client->window), 1);
     }
@@ -3008,8 +3008,8 @@ client_set_focus(Client *client) {
 void
 client_set_fullscreen(Client *client, bool fullscreen) {
     if (fullscreen && !client->is_fullscreen) {
-        XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
-            PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
+        XChangeProperty(display, client->window, net_atoms[NetWMState], XA_ATOM, 32,
+            PropModeReplace, (uchar*)&net_atoms[NetWMFullscreen], 1);
         client->is_fullscreen = true;
         if (client->is_fake_fullscreen) {
             client_resize_apply(client,
@@ -3026,7 +3026,7 @@ client_set_fullscreen(Client *client, bool fullscreen) {
                             client->monitor->mon_w, client->monitor->mon_h);
         XRaiseWindow(display, client->window);
     } else if (!fullscreen && client->is_fullscreen) {
-        XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
+        XChangeProperty(display, client->window, net_atoms[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)0, 0);
         client->is_fullscreen = 0;
         if (client->is_fake_fullscreen) {
@@ -3113,17 +3113,17 @@ setup_once(void) {
     wmatom[WMDelete] = X_INTERN_ATOM("WM_DELETE_WINDOW");
     wmatom[WMState] = X_INTERN_ATOM("WM_STATE");
     wmatom[WMTakeFocus] = X_INTERN_ATOM("WM_TAKE_FOCUS");
-    netatom[NetActiveWindow] = X_INTERN_ATOM("_NET_ACTIVE_WINDOW");
-    netatom[NetSupported] = X_INTERN_ATOM("_NET_SUPPORTED");
-    netatom[NetWMName] = X_INTERN_ATOM("_NET_WM_NAME");
-    netatom[NetWMIcon] = X_INTERN_ATOM("_NET_WM_ICON");
-    netatom[NetWMState] = X_INTERN_ATOM("_NET_WM_STATE");
-    netatom[NetWMCheck] = X_INTERN_ATOM("_NET_SUPPORTING_WM_CHECK");
-    netatom[NetWMFullscreen] = X_INTERN_ATOM("_NET_WM_STATE_FULLSCREEN");
-    netatom[NetWMWindowType] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE");
-    netatom[NetWMWindowTypeDialog] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE_DIALOG");
-    netatom[NetClientList] = X_INTERN_ATOM("_NET_CLIENT_LIST");
-    netatom[NetClientInfo] = X_INTERN_ATOM("_NET_CLIENT_INFO");
+    net_atoms[NetActiveWindow] = X_INTERN_ATOM("_NET_ACTIVE_WINDOW");
+    net_atoms[NetSupported] = X_INTERN_ATOM("_NET_SUPPORTED");
+    net_atoms[NetWMName] = X_INTERN_ATOM("_NET_WM_NAME");
+    net_atoms[NetWMIcon] = X_INTERN_ATOM("_NET_WM_ICON");
+    net_atoms[NetWMState] = X_INTERN_ATOM("_NET_WM_STATE");
+    net_atoms[NetWMCheck] = X_INTERN_ATOM("_NET_SUPPORTING_WM_CHECK");
+    net_atoms[NetWMFullscreen] = X_INTERN_ATOM("_NET_WM_STATE_FULLSCREEN");
+    net_atoms[NetWMWindowType] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE");
+    net_atoms[NetWMWindowTypeDialog] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE_DIALOG");
+    net_atoms[NetClientList] = X_INTERN_ATOM("_NET_CLIENT_LIST");
+    net_atoms[NetClientInfo] = X_INTERN_ATOM("_NET_CLIENT_INFO");
 
     /* init cursors */
     cursor[CursorNormal] = drw_cur_create(drw, XC_left_ptr);
@@ -3141,18 +3141,18 @@ setup_once(void) {
 
     /* supporting window for NetWMCheck */
     wmcheckwin = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
-    XChangeProperty(display, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32,
+    XChangeProperty(display, wmcheckwin, net_atoms[NetWMCheck], XA_WINDOW, 32,
         PropModeReplace, (uchar *)&wmcheckwin, 1);
-    XChangeProperty(display, wmcheckwin, netatom[NetWMName], UTF8STRING, 8,
+    XChangeProperty(display, wmcheckwin, net_atoms[NetWMName], UTF8STRING, 8,
         PropModeReplace, (uchar *)"dwm", 3);
-    XChangeProperty(display, root, netatom[NetWMCheck], XA_WINDOW, 32,
+    XChangeProperty(display, root, net_atoms[NetWMCheck], XA_WINDOW, 32,
         PropModeReplace, (uchar *)&wmcheckwin, 1);
 
     /* EWMH support per view */
-    XChangeProperty(display, root, netatom[NetSupported], XA_ATOM, 32,
-        PropModeReplace, (uchar *)netatom, NetLast);
-    XDeleteProperty(display, root, netatom[NetClientList]);
-    XDeleteProperty(display, root, netatom[NetClientInfo]);
+    XChangeProperty(display, root, net_atoms[NetSupported], XA_ATOM, 32,
+        PropModeReplace, (uchar *)net_atoms, NetLast);
+    XDeleteProperty(display, root, net_atoms[NetClientList]);
+    XDeleteProperty(display, root, net_atoms[NetClientInfo]);
 
     /* select events */
     window_attributes.cursor = cursor[CursorNormal]->cursor;
@@ -3222,7 +3222,7 @@ client_show_hide(Client *client) {
 void
 client_set_client_tag_prop(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
-    XChangeProperty(display, client->window, netatom[NetClientInfo],
+    XChangeProperty(display, client->window, net_atoms[NetClientInfo],
                     XA_CARDINAL, 32, PropModeReplace, (uchar *)data, 2);
     return;
 }
@@ -3247,7 +3247,7 @@ client_unfocus(Client *client, bool set_focus) {
 
     if (set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
-        XDeleteProperty(display, root, netatom[NetActiveWindow]);
+        XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
     }
     return;
 }
@@ -3356,11 +3356,11 @@ monitor_update_bar_position(Monitor *monitor) {
 
 void
 update_client_list(void) {
-    XDeleteProperty(display, root, netatom[NetClientList]);
+    XDeleteProperty(display, root, net_atoms[NetClientList]);
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         for (Client *client = monitor->clients; client; client = client->next) {
-            XChangeProperty(display, root, netatom[NetClientList],
+            XChangeProperty(display, root, net_atoms[NetClientList],
                             XA_WINDOW, 32, PropModeAppend,
                             (uchar *)&(client->window), 1);
         }
@@ -3599,7 +3599,7 @@ update_status(void) {
 
 void
 client_update_title(Client *client) {
-    if (!get_text_property(client->window, netatom[NetWMName],
+    if (!get_text_property(client->window, net_atoms[NetWMName],
                            client->name, sizeof(client->name))) {
         get_text_property(client->window, XA_WM_NAME,
                           client->name, sizeof(client->name));
@@ -3630,7 +3630,7 @@ client_update_icon(Client *client) {
     int success;
 
     client_free_icon(client);
-    success = XGetWindowProperty(display, window, netatom[NetWMIcon],
+    success = XGetWindowProperty(display, window, net_atoms[NetWMIcon],
                                 0L, LONG_MAX, False, AnyPropertyType,
                                 &actual_type_return, &actual_format_return,
                                 &nitems_return, &bytes_after_return,
@@ -3737,12 +3737,12 @@ client_update_window_type(Client *client) {
     Atom state;
     Atom window_type;
 
-    state = client_get_atom_property(client, netatom[NetWMState]);
-    window_type = client_get_atom_property(client, netatom[NetWMWindowType]);
+    state = client_get_atom_property(client, net_atoms[NetWMState]);
+    window_type = client_get_atom_property(client, net_atoms[NetWMWindowType]);
 
-    if (state == netatom[NetWMFullscreen])
+    if (state == net_atoms[NetWMFullscreen])
         client_set_fullscreen(client, true);
-    if (window_type == netatom[NetWMWindowTypeDialog])
+    if (window_type == net_atoms[NetWMWindowTypeDialog])
         client->is_floating = true;
     return;
 }
@@ -3879,7 +3879,7 @@ main(int argc, char *argv[]) {
 
     XSync(display, False);
     XSetInputFocus(display, PointerRoot, RevertToPointerRoot, CurrentTime);
-    XDeleteProperty(display, root, netatom[NetActiveWindow]);
+    XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
     XCloseDisplay(display);
 
     exit(EXIT_SUCCESS);
