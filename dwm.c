@@ -1754,10 +1754,12 @@ client_focus(Client *client) {
         client_detach_stack(client);
         client_attach_stack(client);
         client_grab_buttons(client, 1);
-        XSetWindowBorder(display, client->window, scheme[SchemeSelected][ColBorder].pixel);
+        XSetWindowBorder(display, client->window,
+                         scheme[SchemeSelected][ColBorder].pixel);
         client_set_focus(client);
     } else {
-        XSetInputFocus(display, current_monitor->top_bar_window, RevertToPointerRoot, CurrentTime);
+        XSetInputFocus(display, current_monitor->top_bar_window,
+                       RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, netatom[NetActiveWindow]);
     }
 
@@ -1841,8 +1843,10 @@ monitor_layout_gapless_grid(Monitor *monitor) {
         ncolumns += 1;
     }
 
-    if (nclients == 5) /* set layout against the general calculation: not 1:2:2, but 2:3 */
+    if (nclients == 5) {
+        /* set layout against the general calculation: not 1:2:2, but 2:3 */
         ncolumns = 2;
+    }
     nrows = nclients/ncolumns;
 
     if (ncolumns == 0)
