@@ -1609,7 +1609,8 @@ monitor_draw_bar(Monitor *monitor) {
         return;
 
     /* draw status first so it can be overdrawn by tags later */
-    if (monitor == current_monitor) { /* status is only drawn on selected monitor */
+    /* only drawn status on selected monitor */
+    if (monitor == current_monitor) {
         char *text;
         char *s;
         char temp;
@@ -1672,7 +1673,8 @@ monitor_draw_bar(Monitor *monitor) {
                          tag_label_format, tags[i], masterclientontag[i]);
             }
         } else {
-            snprintf(tags_display, sizeof(tags_display), tag_empty_format, tags[i]);
+            snprintf(tags_display, sizeof(tags_display),
+                     tag_empty_format, tags[i]);
         }
         tag_width[i] = w = (int)TEXT_PIXELS(tags_display);
 
@@ -1698,7 +1700,9 @@ monitor_draw_bar(Monitor *monitor) {
     }
     w = (int)TEXT_PIXELS(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
-    x = drw_text(drw, x, 0, (uint)w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
+    x = drw_text(drw,
+                 x, 0, (uint)w, bar_height, lrpad / 2,
+                 monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - text_pixels - x) > (int)bar_height) {
         int boxs = drw->fonts->h / 9;
@@ -1724,7 +1728,8 @@ monitor_draw_bar(Monitor *monitor) {
             drw_rect(drw, x, 0, (uint)w, bar_height, 1, 1);
         }
     }
-    drw_map(drw, monitor->top_bar_window, 0, 0, (uint)monitor->win_w, bar_height);
+    drw_map(drw, monitor->top_bar_window,
+            0, 0, (uint)monitor->win_w, bar_height);
 
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
@@ -1928,8 +1933,10 @@ monitor_layout_monocle(Monitor *monitor) {
             n += 1;
     }
 
-    if (n > 0) /* override layout symbol */
-        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
+    if (n > 0) { /* override layout symbol */
+        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol),
+                 "[%d]", n);
+    }
 
     for (Client *client = client_next_tiled(monitor->clients);
                  client;
@@ -2268,11 +2275,12 @@ void
 handler_client_message(XEvent *event) {
     XClientMessageEvent *client_message_event = &event->xclient;
     Client *client = window_to_client(client_message_event->window);
+    Atom message_type = client_message_event->message_type;
 
     if (!client)
         return;
 
-    if (client_message_event->message_type == netatom[NetWMState]) {
+    if (message_type == netatom[NetWMState]) {
         ulong *data = (ulong *) client_message_event->data.l;
 
         if (data[1] == netatom[NetWMFullscreen]
@@ -2285,7 +2293,7 @@ handler_client_message(XEvent *event) {
                                       || client->is_fake_fullscreen));
             client_set_fullscreen(client, fullscreen);
         }
-    } else if (client_message_event->message_type == netatom[NetActiveWindow]) {
+    } else if (message_type == netatom[NetActiveWindow]) {
         if (client != current_monitor->selected_client && !client->is_urgent)
             client_set_urgent(client, 1);
     }
