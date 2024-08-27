@@ -244,7 +244,7 @@ static void client_send_monitor(Client *, Monitor *);
 static void client_set_client_state(Client *, long);
 static void client_set_client_tag_prop(Client *);
 static void client_set_focus(Client *);
-static void client_set_fullscreen(Client *, int);
+static void client_set_fullscreen(Client *, bool);
 static void client_set_urgent(Client *, int);
 static void client_show_hide(Client *);
 static void client_free_icon(Client *);
@@ -3001,7 +3001,7 @@ client_set_focus(Client *client) {
 }
 
 void
-client_set_fullscreen(Client *client, int fullscreen) {
+client_set_fullscreen(Client *client, bool fullscreen) {
     if (fullscreen && !client->is_fullscreen) {
         XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
@@ -3725,7 +3725,7 @@ client_update_window_type(Client *client) {
     Atom window_type = client_get_atom_property(client, netatom[NetWMWindowType]);
 
     if (state == netatom[NetWMFullscreen])
-        client_set_fullscreen(client, 1);
+        client_set_fullscreen(client, true);
     if (window_type == netatom[NetWMWindowTypeDialog])
         client->is_floating = true;
     return;
