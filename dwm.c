@@ -1099,6 +1099,7 @@ user_toggle_tag(const Arg *arg) {
 
     if (!current_monitor->selected_client)
         return;
+
     newtags = current_monitor->selected_client->tags ^ (arg->ui & TAGMASK);
     if (newtags) {
         current_monitor->selected_client->tags = newtags;
@@ -1114,43 +1115,44 @@ user_toggle_view(const Arg *arg) {
     Monitor *monitor = current_monitor;
     uint new_tagset = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
 
-    if (new_tagset) {
-        uint tag;
-        monitor->tagset[monitor->selected_tags] = new_tagset;
+    if (!new_tagset)
+        return;
 
-        if (new_tagset == (uint)~0) {
-            monitor->pertag->old_tag = monitor->pertag->tag;
-            monitor->pertag->tag = 0;
-        }
+    uint tag;
+    monitor->tagset[monitor->selected_tags] = new_tagset;
 
-        /* test if the user did not select the same user_tag */
-        if (!(new_tagset & 1 << (monitor->pertag->tag - 1))) {
-            uint i = 0;
-            monitor->pertag->old_tag = monitor->pertag->tag;
-            while (!(new_tagset & 1 << i))
-                i += 1;
-            monitor->pertag->tag = i + 1;
-        }
-
-        tag = monitor->pertag->tag;
-
-        /* apply settings for this view */
-        monitor->number_masters = monitor->pertag->number_masters[tag];
-        monitor->master_fact = monitor->pertag->master_facts[tag];
-        monitor->lay_i = monitor->pertag->selected_layouts[tag];
-        monitor->layout[monitor->lay_i]
-            = monitor->pertag->layouts[tag][monitor->lay_i];
-        monitor->layout[monitor->lay_i^1]
-            = monitor->pertag->layouts[tag][monitor->lay_i^1];
-
-        if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-            user_toggle_top_bar(NULL);
-        if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-            user_toggle_bottom_bar(NULL);
-
-        client_focus(NULL);
-        monitor_arrange(monitor);
+    if (new_tagset == (uint)~0) {
+        monitor->pertag->old_tag = monitor->pertag->tag;
+        monitor->pertag->tag = 0;
     }
+
+    /* test if the user did not select the same user_tag */
+    if (!(new_tagset & 1 << (monitor->pertag->tag - 1))) {
+        uint i = 0;
+        monitor->pertag->old_tag = monitor->pertag->tag;
+        while (!(new_tagset & 1 << i))
+            i += 1;
+        monitor->pertag->tag = i + 1;
+    }
+
+    tag = monitor->pertag->tag;
+
+    /* apply settings for this view */
+    monitor->number_masters = monitor->pertag->number_masters[tag];
+    monitor->master_fact = monitor->pertag->master_facts[tag];
+    monitor->lay_i = monitor->pertag->selected_layouts[tag];
+    monitor->layout[monitor->lay_i]
+        = monitor->pertag->layouts[tag][monitor->lay_i];
+    monitor->layout[monitor->lay_i^1]
+        = monitor->pertag->layouts[tag][monitor->lay_i^1];
+
+    if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
+        user_toggle_top_bar(NULL);
+    if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
+        user_toggle_bottom_bar(NULL);
+
+    client_focus(NULL);
+    monitor_arrange(monitor);
     return;
 }
 
