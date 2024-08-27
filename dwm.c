@@ -3376,6 +3376,7 @@ update_geometry(void) {
             if (!(monitor = monitor->next))
                 break;
         }
+
         /* removed monitors if number_monitors > number_unique */
         for (int k = number_unique; k < number_monitors; k += 1) {
             for (monitor = monitors;
