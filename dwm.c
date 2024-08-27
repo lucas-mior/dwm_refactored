@@ -1041,7 +1041,6 @@ user_focus_direction(const Arg *arg) {
     if (!next)
         next = selected->monitor->clients;
     for (client_aux = next; client_aux != selected; client_aux = next) {
-        bool left_or_up = arg->i == 0 || arg->i == 2;
         int client_score;
         int dist;
 
@@ -1053,20 +1052,20 @@ user_focus_direction(const Arg *arg) {
             continue;
 
         switch (arg->i) {
-        case 0: // left
+        case 0: // left (has preference -1)
             dist = selected->x - client_aux->x - client_aux->w;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
-            client_score += abs(selected->y - client_aux->y);
+            client_score += abs(selected->y - client_aux->y) - 1;
             break;
         case 1: // right
             dist = client_aux->x - selected->x - selected->w;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
             client_score += abs(client_aux->y - selected->y);
             break;
-        case 2: // up
+        case 2: // up (has preference -1)
             dist = selected->y - client_aux->y - client_aux->h;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
-            client_score += abs(selected->x - client_aux->x);
+            client_score += abs(selected->x - client_aux->x) - 1;
             break;
         default:
         case 3: // down
@@ -1076,8 +1075,7 @@ user_focus_direction(const Arg *arg) {
             break;
         }
 
-        if ((uint)client_score < best_score
-            || (client_score <= (int)best_score && left_or_up)) {
+        if ((uint)client_score < best_score) {
             best_score = (uint)client_score;
             client = client_aux;
         }
