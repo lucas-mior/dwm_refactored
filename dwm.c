@@ -2164,13 +2164,16 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
     char **list_return = NULL;
     int count_return;
     XTextProperty text_property;
+    int sucess;
 
     if (!text || size == 0)
         return 0;
     text[0] = '\0';
 
-    if (!XGetTextProperty(display, window, &text_property, atom) || !text_property.nitems)
+    sucess = XGetTextProperty(display, window, &text_property, atom);
+    if (!sucess || !text_property.nitems)
         return 0;
+
     if (text_property.encoding == XA_STRING) {
         strncpy(text, (char *)text_property.value, size - 1);
         goto end;
