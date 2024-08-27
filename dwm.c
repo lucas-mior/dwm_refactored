@@ -2206,29 +2206,9 @@ handler_button_press(XEvent *event) {
         } else if ((uint)button_x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
             click = ClickBarLayoutSymbol;
         } else if (button_x > current_monitor->win_w - status_text_pixels) {
-            char *s = top_status;
-
-            x = (uint)(current_monitor->win_w - status_text_pixels);
+            uint x0 = (uint)(current_monitor->win_w - status_text_pixels);
             click = ClickBarStatus;
-            status_signal = 0;
-
-            for (char *text = top_status; *s && (int)x <= button_x; s += 1) {
-                if ((uchar)(*s) < ' ') {
-                    char byte = *s;
-                    *s = '\0';
-
-                    x += TEXT_PIXELS(text) - lrpad;
-
-                    *s = byte;
-                    text = s + 1;
-
-                    if ((int)x < button_x) {
-                        status_signal = byte;
-                    } else {
-                        break;
-                    }
-                }
-            }
+            get_signal_number(top_status, x0, button_x);
         } else {
             click = ClickBarTitle;
         }
