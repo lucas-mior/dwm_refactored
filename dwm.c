@@ -2143,7 +2143,8 @@ handler_button_press(XEvent *event) {
 
     click = ClickRootWin;
     /* focus monitor if necessary */
-    if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
+    monitor = window_to_monitor(button_event->window);
+    if (monitor && monitor != current_monitor) {
         client_unfocus(current_monitor->selected_client, 1);
         current_monitor = monitor;
         client_focus(NULL);
