@@ -334,7 +334,6 @@ static Window wmcheckwin;
 
 static int alt_tab_direction = 0;
 static Client *all_clients = NULL;
-static int useargb = 0;
 static Visual *visual;
 static int depth;
 static Colormap cmap;
@@ -3686,7 +3685,6 @@ xinitvisual(void) {
             visual = visual_infos[i].visual;
             depth = visual_infos[i].depth;
             cmap = XCreateColormap(display, root, visual, AllocNone);
-            useargb = 1;
             break;
         }
     }
