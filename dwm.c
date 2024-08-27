@@ -3326,10 +3326,10 @@ update_geometry(void) {
 
 #ifdef XINERAMA
     if (XineramaIsActive(display)) {
-        Client *client;
-        Monitor *monitor;
         XineramaScreenInfo *screen_info;
         XineramaScreenInfo *unique = NULL;
+        Client *client;
+        Monitor *monitor;
         int i = 0;
         int j = 0;
         int number_monitors = 0;
