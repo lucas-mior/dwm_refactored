@@ -214,7 +214,7 @@ static void attach_stack(Client *);
 static void cleanup_monitor(Monitor *);
 static void configure(Client *);
 static Monitor *create_monitor(void);
-static void debug_dwm(char *message, ...);
+static void dwm_debug(char *message, ...);
 static void detach(Client *);
 static void detach_stack(Client *);
 static Monitor *direction_to_monitor(int dir);
@@ -730,7 +730,7 @@ create_monitor(void) {
     return monitor;
 }
 
-void debug_dwm(char *message, ...) {
+void dwm_debug(char *message, ...) {
     char buffer[256];
     char *argv[6] = {
         [0] = "dunstify",
@@ -3767,7 +3767,7 @@ main(int argc, char *argv[]) {
     }
 
     if (restart) {
-        debug_dwm("restarting...");
+        dwm_debug("restarting...");
         execvp(argv[0], argv);
     }
 
