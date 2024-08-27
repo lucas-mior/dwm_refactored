@@ -3644,40 +3644,42 @@ client_update_icon(Client *client) {
         uint32 bstd = UINT32_MAX;
         uint32 d;
 
-        for (ulong *i = prop_return; i < (end - 1); i += area_find) {
+        for (ulong *pointer = prop_return; pointer < (end - 1); pointer += area_find) {
             uint32 max_dim;
-            uint32 w = (uint32)*i++;
-            uint32 h = (uint32)*i++;
+            uint32 w = (uint32)*pointer++;
+            uint32 h = (uint32)*pointer++;
+
             if (w >= 16384 || h >= 16384) {
                 XFree(prop_return);
                 return;
             }
-            if ((area_find = w*h) > (end - i))
+
+            if ((area_find = w*h) > (end - pointer))
                 break;
 
             max_dim = w > h ? w : h;
             if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
                 bstd = d;
-                pixel_find = i;
+                pixel_find = pointer;
             }
         }
         if (pixel_find)
             break;
-        for (ulong *i = prop_return; i < (end - 1); i += area_find) {
+        for (ulong *pointer = prop_return; pointer < (end - 1); pointer += area_find) {
             uint32 max_dim;
-            uint32 w = (uint32)*i++;
-            uint32 h = (uint32)*i++;
+            uint32 w = (uint32)*pointer++;
+            uint32 h = (uint32)*pointer++;
             if (w >= 16384 || h >= 16384) {
                 XFree(prop_return);
                 return;
             }
-            if ((area_find = w*h) > (end - i))
+            if ((area_find = w*h) > (end - pointer))
                 break;
 
             max_dim = w > h ? w : h;
             if ((d = ICONSIZE - max_dim) < bstd) {
                 bstd = d;
-                pixel_find = i;
+                pixel_find = pointer;
             }
         }
     } while (false);
