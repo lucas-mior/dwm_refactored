@@ -461,8 +461,8 @@ user_aspect_resize(const Arg *arg) {
     float ratio;
     int w;
     int h;
-    int nw;
-    int nh;
+    int new_width;
+    int new_height;
     Client *client = current_monitor->selected_client;
 
     if (!client || !arg)
@@ -477,11 +477,11 @@ user_aspect_resize(const Arg *arg) {
     h = arg->i;
     w = (int)(ratio*(float)h);
 
-    nw = client->w + w;
-    nh = client->h + h;
+    new_width = client->w + w;
+    new_height = client->h + h;
 
     XRaiseWindow(display, client->window);
-    client_resize(client, client->x, client->y, nw, nh, True);
+    client_resize(client, client->x, client->y, new_width, new_height, True);
     return;
 }
 
