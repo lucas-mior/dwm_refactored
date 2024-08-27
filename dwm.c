@@ -1606,7 +1606,7 @@ monitor_draw_bar(Monitor *monitor) {
     int urgent = 0;
     char tags_display[TAG_DISPLAY_SIZE];
     char *masters_names[LENGTH(tags)];
-    Client *icontagclient[LENGTH(tags)] = {0};
+    Client *clients_with_icon[LENGTH(tags)] = {0};
 
     if (!monitor->show_top_bar)
         return;
@@ -1643,7 +1643,7 @@ monitor_draw_bar(Monitor *monitor) {
 
     for (int i = 0; i < LENGTH(tags); i += 1) {
         masters_names[i] = NULL;
-        icontagclient[i] = NULL;
+        clients_with_icon[i] = NULL;
     }
 
     for (Client *client = monitor->clients; client; client = client->next) {
@@ -1652,7 +1652,7 @@ monitor_draw_bar(Monitor *monitor) {
 
         for (int i = 0; i < LENGTH(tags); i += 1) {
             if (client->icon && client->tags & (1 << i))
-                icontagclient[i] = client;
+                clients_with_icon[i] = client;
             if (!masters_names[i] && client->tags & (1<<i)) {
                 XClassHint class_hint = { NULL, NULL };
                 XGetClassHint(display, client->window, &class_hint);
@@ -1663,7 +1663,7 @@ monitor_draw_bar(Monitor *monitor) {
 
     x = 0;
     for (int i = 0; i < LENGTH(tags); i += 1) {
-        Client *client_with_icon = icontagclient[i];
+        Client *client_with_icon = clients_with_icon[i];
         uint which_scheme;
 
         if (masters_names[i]) {
