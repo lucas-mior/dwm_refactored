@@ -853,8 +853,7 @@ user_mouse_resize(const Arg *) {
                     user_toggle_floating(NULL);
                 }
             }
-            if (client->is_floating
-                || !current_monitor->layout[current_monitor->lay_i]->function)
+            if (client->is_floating || monitor_floating)
                 client_resize(client, client->x, client->y, nw, nh, 1);
             break;
         }
