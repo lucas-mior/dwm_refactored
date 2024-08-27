@@ -3480,8 +3480,8 @@ update_numlock_mask(void) {
     modmap = XGetModifierMapping(display);
     for (int i = 0; i < 8; i += 1) {
         for (int j = 0; j < modmap->max_keypermod; j += 1) {
-            if (modmap->modifiermap[i*modmap->max_keypermod + j]
-                == XKeysymToKeycode(display, XK_Num_Lock))
+            KeyCode key_code = modmap->modifiermap[i*modmap->max_keypermod + j];
+            if (key_code == XKeysymToKeycode(display, XK_Num_Lock))
                 numlock_mask = (1 << i);
         }
     }
