@@ -1846,16 +1846,16 @@ monitor_layout_columns(Monitor *monitor) {
         if (i < monitor->number_masters) {
             w = (mon_w - x) / (MIN(n, monitor->number_masters) - i);
             client_resize(client,
-                   x + monitor->win_x, monitor->win_y,
-                   w - (2*client->border_pixels),
-                   monitor->win_h - (2*client->border_pixels), 0);
+                          x + monitor->win_x, monitor->win_y,
+                          w - (2*client->border_pixels),
+                          monitor->win_h - (2*client->border_pixels), 0);
             x += WIDTH(client);
         } else {
             h = (monitor->win_h - y) / (n - i);
             client_resize(client,
-                   x + monitor->win_x, monitor->win_y + y,
-                   monitor->win_w - x - (2*client->border_pixels),
-                   h - (2*client->border_pixels), 0);
+                          x + monitor->win_x, monitor->win_y + y,
+                          monitor->win_w - x - (2*client->border_pixels),
+                          h - (2*client->border_pixels), 0);
             y += HEIGHT(client);
         }
         i += 1;
