@@ -2242,9 +2242,12 @@ handler_client_message(XEvent *event) {
         long *data = client_message_event->data.l;
         if ((ulong) data[1] == netatom[NetWMFullscreen]
             || (ulong) data[2] == netatom[NetWMFullscreen]) {
-            /* _NET_WM_STATE_ADD *//* _NET_WM_STATE_TOGGLE */
-            bool fullscreen = data[0] == 1 || (data[0] == 2 
-                              && (!client->is_fullscreen || client->is_fake_fullscreen));
+            bool NET_WM_STATE_ADD = data[0] == 1;
+            bool NET_WM_STATE_TOGGLE = data[0] == 2;
+            bool fullscreen = NET_WM_STATE_ADD
+                              || (NET_WM_STATE_TOGGLE
+                                  && (!client->is_fullscreen
+                                      || client->is_fake_fullscreen));
             client_set_fullscreen(client, fullscreen);
         }
     } else if (client_message_event->message_type == netatom[NetActiveWindow]) {
