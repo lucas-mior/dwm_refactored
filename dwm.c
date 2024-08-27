@@ -675,15 +675,16 @@ user_increment_number_master(const Arg *arg) {
 
 void
 user_kill_client(const Arg *) {
-    if (!current_monitor->selected_client)
+    Client selected = current_monitor->selected_client;
+    if (!selected)
         return;
 
-    if (!client_send_event(current_monitor->selected_client, wmatom[WMDelete])) {
+    if (!client_send_event(selected, wmatom[WMDelete])) {
         XGrabServer(display);
         XSetErrorHandler(handler_xerror_dummy);
         XSetCloseDownMode(display, DestroyAll);
 
-        XKillClient(display, current_monitor->selected_client->window);
+        XKillClient(display, selected->window);
         XSync(display, False);
 
         XSetErrorHandler(handler_xerror);
