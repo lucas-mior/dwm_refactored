@@ -2239,13 +2239,14 @@ manage(Window window, XWindowAttributes *window_attributes) {
 
 void
 user_mouse_move(const Arg *arg) {
-    int x;
-    int y;
     Client *client;
     Monitor *monitor_aux;
     XEvent event;
     Time last_time = 0;
     int sucess;
+    int x;
+    int y;
+
     (void) arg;
 
     if (!(client = current_monitor->selected_client))
