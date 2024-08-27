@@ -902,17 +902,16 @@ void
 user_set_layout(const Arg *arg) {
     const Layout *layout = arg->v;
     Monitor *monitor = current_monitor;
+    Pertag *pertag = monitor->pertag;
 
     if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i]) {
-        Pertag *pertag = monitor->pertag;
         pertag->selected_layouts[pertag->tag] ^= 1;
         monitor->lay_i = pertag->selected_layouts[monitor->pertag->tag];
     }
 
     if (arg && arg->v) {
         monitor->layout[monitor->lay_i]
-            = monitor->pertag->layouts[monitor->pertag->tag][monitor->lay_i]
-            = layout;
+            = pertag->layouts[pertag->tag][monitor->lay_i] = layout;
     }
 
     strncpy(monitor->layout_symbol,
@@ -930,7 +929,7 @@ user_set_layout(const Arg *arg) {
 void
 user_set_master_fact(const Arg *arg) {
     float factor;
-    uint tag = current_monitor->pertag->tag;
+    Pertag *pertag = current_monitor->pertag;
 
     if (!arg)
         return;
@@ -945,8 +944,7 @@ user_set_master_fact(const Arg *arg) {
     if (factor < 0.05f || factor > 0.95f)
         return;
 
-    current_monitor->master_fact
-        = current_monitor->pertag->master_facts[tag] = factor;
+    current_monitor->master_fact = pertag->master_facts[pertag->tag] = factor;
     monitor_arrange(current_monitor);
     return;
 }
