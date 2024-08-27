@@ -3389,15 +3389,16 @@ update_geometry(void) {
 
 #ifdef XINERAMA
     if (XineramaIsActive(display)) {
+        Client *client;
+        Monitor *monitor;
+        XineramaScreenInfo *info;
+        XineramaScreenInfo *unique = NULL;
         int i;
         int j;
         int n = 0;
         int nn;
-        Client *client;
-        Monitor *monitor;
-        XineramaScreenInfo *info = XineramaQueryScreens(display, &nn);
-        XineramaScreenInfo *unique = NULL;
 
+        info = XineramaQueryScreens(display, &nn);
         for (monitor = monitors; monitor; monitor = monitor->next) {
             n += 1;
         }
