@@ -1003,7 +1003,7 @@ user_signal_status_bar(const Arg *arg) {
 
     if (!status_signal)
         return;
-    signal_value.sival_int = arg->i | ((SIGRTMIN+status_signal) << 3);
+    signal_value.sival_int = arg->i | ((SIGRTMIN + status_signal) << 3);
 
     if ((status_program_pid = get_status_bar_pid()) <= 0)
         return;
@@ -2772,7 +2772,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
         if (success == Success && nitems_return == 2) {
             client->tags = (uint)*prop_return;
             for (Monitor *mon = monitors; mon; mon = mon->next) {
-                if (mon->num == (int)*(prop_return+1)) {
+                if (mon->num == (int)*(prop_return + 1)) {
                     client->monitor = mon;
                     break;
                 }
