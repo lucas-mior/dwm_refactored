@@ -266,7 +266,6 @@ static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int dir);
 static void dwm_debug(char *message, ...);
 static void draw_bars(void);
-static Picture get_icon_property(Window, uint *icon_width, uint *icon_height);
 static int get_root_pointer(int *x, int *y);
 static long get_window_state(Window);
 static pid_t get_status_bar_pid(void);
@@ -2009,123 +2008,6 @@ get_status_bar_pid(void) {
     return (pid_t) pid_long;
 }
 
-Picture
-get_icon_property(Window window, uint *picture_width, uint *picture_height) {
-    int actual_format_return;
-    ulong nitems_return;
-    ulong bytes_after_return;
-    ulong *prop_return = NULL;
-    ulong *pixel_find = NULL;
-    uint32 *pixel_find32;
-    uint32 width_find;
-    uint32 height_find;
-    uint32 icon_width;
-    uint32 icon_height;
-    uint32 area_find = 0;
-    Atom actual_type_return;
-    Picture drw_picture;
-    int sucess;
-
-    sucess = XGetWindowProperty(display, window, netatom[NetWMIcon],
-                                0L, LONG_MAX, False, AnyPropertyType,
-                                &actual_type_return, &actual_format_return,
-                                &nitems_return, &bytes_after_return,
-                                (uchar **)&prop_return);
-    if (sucess != Success)
-        return None;
-
-    if (nitems_return == 0 || actual_format_return != 32) {
-        XFree(prop_return);
-        return None;
-    }
-
-    do {
-        ulong *i;
-        const ulong *end = prop_return + nitems_return;
-        uint32 bstd = UINT32_MAX;
-        uint32 d;
-
-        for (i = prop_return; i < (end - 1); i += area_find) {
-            uint32 max_dim;
-            uint32 w = (uint32)*i++;
-            uint32 h = (uint32)*i++;
-            if (w >= 16384 || h >= 16384) {
-                XFree(prop_return);
-                return None;
-            }
-            if ((area_find = w*h) > (end - i))
-                break;
-
-            max_dim = w > h ? w : h;
-            if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
-                bstd = d;
-                pixel_find = i;
-            }
-        }
-        if (pixel_find)
-            break;
-        for (i = prop_return; i < (end - 1); i += area_find) {
-            uint32 max_dim;
-            uint32 w = (uint32)*i++;
-            uint32 h = (uint32)*i++;
-            if (w >= 16384 || h >= 16384) {
-                XFree(prop_return);
-                return None;
-            }
-            if ((area_find = w*h) > (end - i))
-                break;
-
-            max_dim = w > h ? w : h;
-            if ((d = ICONSIZE - max_dim) < bstd) {
-                bstd = d;
-                pixel_find = i;
-            }
-        }
-    } while (false);
-
-    if (!pixel_find) {
-        XFree(prop_return);
-        return None;
-    }
-
-    width_find = (uint32) pixel_find[-2];
-    height_find = (uint32) pixel_find[-1];
-    if ((width_find == 0) || (height_find == 0)) {
-        XFree(prop_return);
-        return None;
-    }
-
-    if (width_find <= height_find) {
-        icon_height = ICONSIZE;
-        icon_width = width_find*ICONSIZE / height_find;
-        if (icon_width == 0)
-            icon_width = 1;
-    } else {
-        icon_width = ICONSIZE;
-        icon_height = height_find*ICONSIZE / width_find;
-        if (icon_height == 0)
-            icon_height = 1;
-    }
-    *picture_width = icon_width;
-    *picture_height = icon_height;
-
-    pixel_find32 = (uint32 *)pixel_find;
-    for (uint32 i = 0; i < width_find*height_find; i += 1) {
-        uint32 pixel = (uint32) pixel_find[i];
-        uint8 a = pixel >> 24u;
-        uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
-        uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
-        pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | ((uint)a << 24u);
-    }
-
-    drw_picture = drw_picture_create_resized(drw, (char *)pixel_find,
-                                             width_find, height_find,
-                                             icon_width, icon_height);
-    XFree(prop_return);
-
-    return drw_picture;
-}
-
 int
 get_root_pointer(int *x, int *y) {
     int di;
@@ -3632,8 +3514,120 @@ client_update_title(Client *client) {
 
 void
 client_update_icon(Client *client) {
+    Window window = client->window;
+    uint *picture_width = &client->icon_width;
+    uint *picture_height = &client->icon_height;
+    int actual_format_return;
+    ulong nitems_return;
+    ulong bytes_after_return;
+    ulong *prop_return = NULL;
+    ulong *pixel_find = NULL;
+    uint32 *pixel_find32;
+    uint32 width_find;
+    uint32 height_find;
+    uint32 icon_width;
+    uint32 icon_height;
+    uint32 area_find = 0;
+    Atom actual_type_return;
+    int sucess;
+
     client_free_icon(client);
-    client->icon = get_icon_property(client->window, &client->icon_width, &client->icon_height);
+    sucess = XGetWindowProperty(display, window, netatom[NetWMIcon],
+                                0L, LONG_MAX, False, AnyPropertyType,
+                                &actual_type_return, &actual_format_return,
+                                &nitems_return, &bytes_after_return,
+                                (uchar **)&prop_return);
+    if (sucess != Success)
+        return;
+
+    if (nitems_return == 0 || actual_format_return != 32) {
+        XFree(prop_return);
+        return;
+    }
+
+    do {
+        ulong *i;
+        const ulong *end = prop_return + nitems_return;
+        uint32 bstd = UINT32_MAX;
+        uint32 d;
+
+        for (i = prop_return; i < (end - 1); i += area_find) {
+            uint32 max_dim;
+            uint32 w = (uint32)*i++;
+            uint32 h = (uint32)*i++;
+            if (w >= 16384 || h >= 16384) {
+                XFree(prop_return);
+                return;
+            }
+            if ((area_find = w*h) > (end - i))
+                break;
+
+            max_dim = w > h ? w : h;
+            if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
+                bstd = d;
+                pixel_find = i;
+            }
+        }
+        if (pixel_find)
+            break;
+        for (i = prop_return; i < (end - 1); i += area_find) {
+            uint32 max_dim;
+            uint32 w = (uint32)*i++;
+            uint32 h = (uint32)*i++;
+            if (w >= 16384 || h >= 16384) {
+                XFree(prop_return);
+                return;
+            }
+            if ((area_find = w*h) > (end - i))
+                break;
+
+            max_dim = w > h ? w : h;
+            if ((d = ICONSIZE - max_dim) < bstd) {
+                bstd = d;
+                pixel_find = i;
+            }
+        }
+    } while (false);
+
+    if (!pixel_find) {
+        XFree(prop_return);
+        return;
+    }
+
+    width_find = (uint32) pixel_find[-2];
+    height_find = (uint32) pixel_find[-1];
+    if ((width_find == 0) || (height_find == 0)) {
+        XFree(prop_return);
+        return;
+    }
+
+    if (width_find <= height_find) {
+        icon_height = ICONSIZE;
+        icon_width = width_find*ICONSIZE / height_find;
+        if (icon_width == 0)
+            icon_width = 1;
+    } else {
+        icon_width = ICONSIZE;
+        icon_height = height_find*ICONSIZE / width_find;
+        if (icon_height == 0)
+            icon_height = 1;
+    }
+    *picture_width = icon_width;
+    *picture_height = icon_height;
+
+    pixel_find32 = (uint32 *)pixel_find;
+    for (uint32 i = 0; i < width_find*height_find; i += 1) {
+        uint32 pixel = (uint32) pixel_find[i];
+        uint8 a = pixel >> 24u;
+        uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
+        uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
+        pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | ((uint)a << 24u);
+    }
+
+    client->icon = drw_picture_create_resized(drw, (char *)pixel_find,
+                                              width_find, height_find,
+                                              icon_width, icon_height);
+    XFree(prop_return);
     return;
 }
 
