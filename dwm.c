@@ -2062,16 +2062,33 @@ client_get_atom_property(Client *client, Atom property) {
 
 pid_t
 get_status_bar_pid(void) {
-    char buffer[32];
-    long pid_long;
-    FILE *fp;
+    int pipefd[2];
+    char buffer[32] = {0};
+    pid_t pid;
 
-    if (!(fp = popen("pidof -s "STATUSBAR, "r")))
+    switch (fork()) {
+    case -1:
+        error("Error forking: %s\n", strerror(errno));
+        close(pipefd[0]);
+        close(pipefd[1]);
         return -1;
-    fgets(buffer, sizeof(buffer), fp);
-    pclose(fp);
-    pid_long = strtol(buffer, NULL, 10);
-    return (pid_t) pid_long;
+    case 0:
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+        execlp("pidof", "pidof", "-s", STATUSBAR, NULL);
+        error("Error executing pidof: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    default:
+        close(pipefd[1]);
+        break;
+    }
+
+    if (read(pipefd[0], buffer, sizeof (buffer) - 1) <= 0)
+        return -1;
+
+    pid = atoi(buffer);
+    return pid;
 }
 
 int
