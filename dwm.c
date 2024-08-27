@@ -837,12 +837,9 @@ user_mouse_resize(const Arg *) {
             break;
         case MotionNotify: {
             bool monitor_floating;
-            bool over_x;
-            bool under_x;
-            bool over_y;
-            bool under_y;
-            int nw;
-            int nh;
+            bool over_x, under_x;
+            bool over_y, under_y;
+            int new_w, new_h;
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
                 continue;
@@ -851,24 +848,24 @@ user_mouse_resize(const Arg *) {
             event.xmotion.x += (-client->x - 2*client->border_pixels + 1);
             event.xmotion.y += (-client->y - 2*client->border_pixels + 1);
 
-            nw = MAX(event.xmotion.x, 1);
-            nh = MAX(event.xmotion.y, 1);
-            over_x = client->monitor->win_x + nw >= current_monitor->win_x;
-            under_x =  client->monitor->win_x + nw <= current_monitor->win_x + current_monitor->win_w;
-            over_y = client->monitor->win_y + nh >= current_monitor->win_y;
-            under_y =  client->monitor->win_y + nh <= current_monitor->win_y + current_monitor->win_h;
+            new_w = MAX(event.xmotion.x, 1);
+            new_h = MAX(event.xmotion.y, 1);
+            over_x = client->monitor->win_x + new_w >= current_monitor->win_x;
+            under_x =  client->monitor->win_x + new_w <= current_monitor->win_x + current_monitor->win_w;
+            over_y = client->monitor->win_y + new_h >= current_monitor->win_y;
+            under_y =  client->monitor->win_y + new_h <= current_monitor->win_y + current_monitor->win_h;
             monitor_floating = !(current_monitor->layout[current_monitor->lay_i]->function);
 
             if (over_x && under_x && over_y && under_y) {
-                bool over_snap_x = abs(nw - client->w) > SNAP_PIXELS;
-                bool over_snap_y = abs(nh - client->h) > SNAP_PIXELS;
+                bool over_snap_x = abs(new_w - client->w) > SNAP_PIXELS;
+                bool over_snap_y = abs(new_h - client->h) > SNAP_PIXELS;
                 if (!client->is_floating && !monitor_floating
                     && (over_snap_x || over_snap_y)) {
                     user_toggle_floating(NULL);
                 }
             }
             if (client->is_floating || monitor_floating)
-                client_resize(client, client->x, client->y, nw, nh, 1);
+                client_resize(client, client->x, client->y, new_w, new_h, 1);
             break;
         }
         default:
