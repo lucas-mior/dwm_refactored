@@ -2530,7 +2530,7 @@ resize_client(Client *client, int x, int y, int w, int h) {
 void
 restack(Monitor *m) {
     Client *client;
-    XEvent ev;
+    XEvent event;
     XWindowChanges window_changes;
 
     draw_bar(m);
@@ -2549,7 +2549,7 @@ restack(Monitor *m) {
         }
     }
     XSync(display, False);
-    while (XCheckMaskEvent(display, EnterWindowMask, &ev));
+    while (XCheckMaskEvent(display, EnterWindowMask, &event));
     return;
 }
 
