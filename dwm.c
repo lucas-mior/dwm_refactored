@@ -2683,10 +2683,13 @@ client_new(Window window, XWindowAttributes *window_attributes) {
         client_apply_rules(client);
     }
 
-    if (client->x + WIDTH(client) > client->monitor->win_x + client->monitor->win_w)
-        client->x = client->monitor->win_x + client->monitor->win_w - WIDTH(client);
-    if (client->y + HEIGHT(client) > client->monitor->win_y + client->monitor->win_h)
-        client->y = client->monitor->win_y + client->monitor->win_h - HEIGHT(client);
+    {
+        Monitor *monitor = client->monitor;
+        if (client->x + WIDTH(client) > monitor->win_x + monitor->win_w)
+            client->x = monitor->win_x + monitor->win_w - WIDTH(client);
+        if (client->y + HEIGHT(client) > monitor->win_y + monitor->win_h)
+            client->y = monitor->win_y + monitor->win_h - HEIGHT(client);
+    }
     client->x = MAX(client->x, client->monitor->win_x);
     client->y = MAX(client->y, client->monitor->win_y);
     client->border_pixels = border_pixels;
