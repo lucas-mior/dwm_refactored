@@ -2019,14 +2019,11 @@ handler_property_notify(XEvent *event) {
         update_status();
         return;
     }
-    if (property_event->state == PropertyDelete) {
+    if (property_event->state == PropertyDelete)
         return;
-    }
 
     if ((client = window_to_client(property_event->window))) {
         switch (property_event->atom) {
-        default:
-            break;
         case XA_WM_TRANSIENT_FOR:
             if (!client->is_floating && (XGetTransientForHint(display, client->window, &trans)) &&
                 (client->is_floating = (window_to_client(trans)) != NULL))
@@ -2039,13 +2036,16 @@ handler_property_notify(XEvent *event) {
             update_wm_hints(client);
             draw_bars();
             break;
+        default:
+            break;
         }
-        if (property_event->atom == XA_WM_NAME || property_event->atom == netatom[NetWMName]) {
+
+        if (property_event->atom == XA_WM_NAME
+            || property_event->atom == netatom[NetWMName]) {
             update_title(client);
             if (client == client->monitor->selected_client)
                 draw_bar(client->monitor);
-        }
-        else if (property_event->atom == netatom[NetWMIcon]) {
+        } else if (property_event->atom == netatom[NetWMIcon]) {
             update_icon(client);
             if (client == client->monitor->selected_client)
                 draw_bar(client->monitor);
