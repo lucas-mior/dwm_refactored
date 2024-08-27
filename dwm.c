@@ -677,7 +677,8 @@ user_increment_number_masters(const Arg *arg) {
 
     new_number_masters = MAX(new_number_masters, 0);
     tag = monitor->pertag->tag;
-    monitor->number_masters = monitor->pertag->number_masters[tag] = new_number_masters;
+    monitor->number_masters
+        = monitor->pertag->number_masters[tag] = new_number_masters;
 
     monitor_arrange(monitor);
     return;
@@ -732,7 +733,8 @@ user_mouse_move(const Arg *) {
         return;
 
     do {
-        XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
+        XMaskEvent(display,
+                   MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
         switch (event.type) {
         case ConfigureRequest:
         case Expose:
@@ -901,8 +903,10 @@ user_set_layout(const Arg *arg) {
     const Layout *layout = arg->v;
     Monitor *monitor = current_monitor;
 
-    if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i])
-        monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->tag] ^= 1;
+    if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i]) {
+        monitor->pertag->selected_layouts[monitor->pertag->tag] ^= 1;
+        monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->tag]; 
+    }
 
     if (arg && arg->v) {
         monitor->layout[monitor->lay_i]
