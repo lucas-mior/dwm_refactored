@@ -2542,6 +2542,7 @@ restack(Monitor *m) {
         XWindowChanges window_changes;
         window_changes.stack_mode = Below;
         window_changes.sibling = m->top_bar_window;
+
         for (Client *client = m->stack; client; client = client->stack_next) {
             if (!client->is_floating && ISVISIBLE(client)) {
                 XConfigureWindow(display, client->window,
