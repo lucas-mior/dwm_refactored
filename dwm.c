@@ -346,7 +346,8 @@ static int alt_tab_direction = 0;
 #include "config.def.h"
 
 struct Pertag {
-    uint current_tag, previous_tag;
+    uint tag;
+    uint previous_tag;
     int nmasters[LENGTH(tags) + 1];
     float master_facts[LENGTH(tags) + 1];
     uint selected_layouts[LENGTH(tags) + 1];
@@ -657,7 +658,7 @@ void
 user_inc_number_masters(const Arg *arg) {
     int nslave = -1;
     int new_number_masters;
-    uint current_tag;
+    uint tag;
 
     for (Client *client = current_monitor->clients;
                  client;
@@ -666,8 +667,8 @@ user_inc_number_masters(const Arg *arg) {
     }
 
     new_number_masters = MAX(MIN(current_monitor->nmaster + arg->i, nslave + 1), 0);
-    current_tag = current_monitor->pertag->current_tag;
-    current_monitor->nmaster = current_monitor->pertag->nmasters[current_tag] = new_number_masters;
+    tag = current_monitor->pertag->tag;
+    current_monitor->nmaster = current_monitor->pertag->nmasters[tag] = new_number_masters;
 
     monitor_arrange(current_monitor);
     return;
@@ -892,11 +893,11 @@ user_set_layout(const Arg *arg) {
     Monitor *monitor = current_monitor;
 
     if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i])
-        monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->current_tag] ^= 1;
+        monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->tag] ^= 1;
 
     if (arg && arg->v)
         monitor->layout[monitor->lay_i]
-            = monitor->pertag->layout_tags_indexes[monitor->pertag->current_tag][monitor->lay_i]
+            = monitor->pertag->layout_tags_indexes[monitor->pertag->tag][monitor->lay_i]
             = layout;
 
     strncpy(monitor->layout_symbol,
@@ -914,7 +915,7 @@ user_set_layout(const Arg *arg) {
 void
 user_set_master_fact(const Arg *arg) {
     float factor;
-    uint current_tag = current_monitor->pertag->current_tag;
+    uint tag = current_monitor->pertag->tag;
 
     if (!arg)
         return;
@@ -929,7 +930,7 @@ user_set_master_fact(const Arg *arg) {
     if (factor < 0.05f || factor > 0.95f)
         return;
 
-    current_monitor->master_fact = current_monitor->pertag->master_facts[current_tag] = factor;
+    current_monitor->master_fact = current_monitor->pertag->master_facts[tag] = factor;
     monitor_arrange(current_monitor);
     return;
 }
@@ -988,7 +989,7 @@ user_toggle_top_bar(const Arg *) {
     Monitor *monitor = current_monitor;
 
     monitor->show_top_bar
-        = monitor->pertag->top_bars[monitor->pertag->current_tag]
+        = monitor->pertag->top_bars[monitor->pertag->tag]
         = !monitor->show_top_bar;
 
     monitor_update_bar_position(monitor);
@@ -1095,35 +1096,35 @@ user_toggle_view(const Arg *arg) {
     uint new_tagset = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
 
     if (new_tagset) {
-        uint current_tag;
+        uint tag;
         monitor->tagset[monitor->selected_tags] = new_tagset;
 
         if (new_tagset == (uint)~0) {
-            monitor->pertag->previous_tag = monitor->pertag->current_tag;
-            monitor->pertag->current_tag = 0;
+            monitor->pertag->previous_tag = monitor->pertag->tag;
+            monitor->pertag->tag = 0;
         }
 
         /* test if the user did not select the same user_tag */
-        if (!(new_tagset & 1 << (monitor->pertag->current_tag - 1))) {
+        if (!(new_tagset & 1 << (monitor->pertag->tag - 1))) {
             uint i = 0;
-            monitor->pertag->previous_tag = monitor->pertag->current_tag;
+            monitor->pertag->previous_tag = monitor->pertag->tag;
             while (!(new_tagset & 1 << i))
                 i += 1;
-            monitor->pertag->current_tag = i + 1;
+            monitor->pertag->tag = i + 1;
         }
 
-        current_tag = monitor->pertag->current_tag;
+        tag = monitor->pertag->tag;
 
         /* apply settings for this view */
-        monitor->nmaster = monitor->pertag->nmasters[current_tag];
-        monitor->master_fact = monitor->pertag->master_facts[current_tag];
-        monitor->lay_i = monitor->pertag->selected_layouts[current_tag];
+        monitor->nmaster = monitor->pertag->nmasters[tag];
+        monitor->master_fact = monitor->pertag->master_facts[tag];
+        monitor->lay_i = monitor->pertag->selected_layouts[tag];
         monitor->layout[monitor->lay_i]
-            = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i];
+            = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i];
         monitor->layout[monitor->lay_i^1]
-            = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i^1];
+            = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i^1];
 
-        if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
+        if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
             user_toggle_top_bar(NULL);
 
         client_focus(NULL);
@@ -1136,7 +1137,7 @@ void
 user_view_tag(const Arg *arg) {
     uint arg_tags = arg->ui;
     uint tmptag;
-    uint current_tag;
+    uint tag;
     Monitor *monitor = current_monitor;
 
     if ((arg_tags & TAGMASK) == monitor->tagset[monitor->selected_tags])
@@ -1146,32 +1147,32 @@ user_view_tag(const Arg *arg) {
 
     if (arg_tags & TAGMASK) {
         monitor->tagset[monitor->selected_tags] = arg_tags & TAGMASK;
-        monitor->pertag->previous_tag = monitor->pertag->current_tag;
+        monitor->pertag->previous_tag = monitor->pertag->tag;
 
         if (arg_tags == (uint)~0) {
-            monitor->pertag->current_tag = 0;
+            monitor->pertag->tag = 0;
         } else {
             uint i = 0;
             while (!(arg_tags & 1 << i))
                 i += 1;
-            monitor->pertag->current_tag = i + 1;
+            monitor->pertag->tag = i + 1;
         }
     } else {
         tmptag = monitor->pertag->previous_tag;
-        monitor->pertag->previous_tag = monitor->pertag->current_tag;
-        monitor->pertag->current_tag = tmptag;
+        monitor->pertag->previous_tag = monitor->pertag->tag;
+        monitor->pertag->tag = tmptag;
     }
 
-    current_tag = monitor->pertag->current_tag;
-    monitor->nmaster = monitor->pertag->nmasters[current_tag];
-    monitor->master_fact = monitor->pertag->master_facts[current_tag];
-    monitor->lay_i = monitor->pertag->selected_layouts[current_tag];
+    tag = monitor->pertag->tag;
+    monitor->nmaster = monitor->pertag->nmasters[tag];
+    monitor->master_fact = monitor->pertag->master_facts[tag];
+    monitor->lay_i = monitor->pertag->selected_layouts[tag];
     monitor->layout[monitor->lay_i]
-        = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i];
+        = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i];
     monitor->layout[monitor->lay_i^1]
-        = monitor->pertag->layout_tags_indexes[current_tag][monitor->lay_i^1];
+        = monitor->pertag->layout_tags_indexes[tag][monitor->lay_i^1];
 
-    if (monitor->show_top_bar != monitor->pertag->top_bars[current_tag])
+    if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
         user_toggle_top_bar(NULL);
 
     client_focus(NULL);
@@ -1456,7 +1457,7 @@ create_monitor(void) {
             layouts[0].symbol,
             sizeof(monitor->layout_symbol));
     monitor->pertag = ecalloc(1, sizeof(*(monitor->pertag)));
-    monitor->pertag->current_tag = monitor->pertag->previous_tag = 1;
+    monitor->pertag->tag = monitor->pertag->previous_tag = 1;
 
     for (int i = 0; i <= LENGTH(tags); i += 1) {
         monitor->pertag->nmasters[i] = monitor->nmaster;
