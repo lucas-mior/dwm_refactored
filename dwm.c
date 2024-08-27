@@ -2175,7 +2175,7 @@ client_grab_buttons(Client *client, bool focused) {
 void
 grab_keys(void) {
     uint modifiers[] = { 0, LockMask, numlock_mask, numlock_mask|LockMask };
-    int start;
+    int first_keycode;
     int end;
     int skip;
     KeySym *key_sym;
@@ -2183,18 +2183,18 @@ grab_keys(void) {
     update_numlock_mask();
 
     XUngrabKey(display, AnyKey, AnyModifier, root);
-    XDisplayKeycodes(display, &start, &end);
+    XDisplayKeycodes(display, &first_keycode, &end);
 
     key_sym = XGetKeyboardMapping(display,
-                                  (uchar) start, (uchar) end - start + 1,
+                                  (uchar) first_keycode, (uchar) end - first_keycode + 1,
                                    &skip);
     if (!key_sym)
         return;
 
-    for (int k = start; k <= end; k += 1) {
+    for (int k = first_keycode; k <= end; k += 1) {
         for (int i = 0; i < LENGTH(keys); i += 1) {
             /* skip modifier codes, we do that ourselves */
-            if (keys[i].keysym == key_sym[(k - start)*skip]) {
+            if (keys[i].keysym == key_sym[(k - first_keycode)*skip]) {
                 for (int j = 0; j < LENGTH(modifiers); j += 1)
                     XGrabKey(display, k, (uint)keys[i].mod | modifiers[j],
                              root, True, GrabModeAsync, GrabModeAsync);
