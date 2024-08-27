@@ -1047,11 +1047,9 @@ user_toggle_floating(const Arg *) {
 
 void
 user_toggle_fullscreen(const Arg *) {
-    Monitor *monitor = current_monitor;
-    if (monitor->selected_client) {
-        client_set_fullscreen(monitor->selected_client,
-                              !monitor->selected_client->is_fullscreen);
-    }
+    Client *client = current_monitor->selected_client;
+    if (client)
+        client_set_fullscreen(client, !client->is_fullscreen);
     return;
 }
 
