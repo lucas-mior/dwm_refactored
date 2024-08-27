@@ -1974,10 +1974,17 @@ void
 handler_map_request(XEvent *event) {
     static XWindowAttributes window_attributes;
     XMapRequestEvent *map_request_event = &event->xmaprequest;
+    int sucess;
 
-    if (!XGetWindowAttributes(display, map_request_event->window, &window_attributes)
-        || window_attributes.override_redirect)
+    sucess = XGetWindowAttributes(display,
+                                  map_request_event->window,
+                                  &window_attributes);
+    if (!sucess)
         return;
+
+    if (window_attributes.override_redirect)
+        return;
+
     if (!window_to_client(map_request_event->window))
         manage(map_request_event->window, &window_attributes);
     return;
