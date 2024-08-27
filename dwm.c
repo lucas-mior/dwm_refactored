@@ -2903,12 +2903,12 @@ set_client_tag_prop(Client *client) {
 
 void
 user_tag(const Arg *arg) {
+    Client *selected_client = current_monitor->selected_client;
     uint which_tag = arg->ui & TAGMASK;
 
-    if (which_tag && current_monitor->selected_client) {
-        Client *client = current_monitor->selected_client;
-        client->tags = which_tag;
-        set_client_tag_prop(client);
+    if (which_tag && selected_client) {
+        selected_client->tags = which_tag;
+        set_client_tag_prop(selected_client);
         focus(NULL);
         arrange(current_monitor);
     }
