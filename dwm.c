@@ -294,10 +294,10 @@ static Monitor *window_to_monitor(Window);
 
 /* variables */
 static const char broken[] = "broken";
-#define STATUS_TEXT_SIZE 256
-static char top_status[STATUS_TEXT_SIZE];
-static char bottom_status[STATUS_TEXT_SIZE];
-static int status_text_pixels;
+#define top_status_SIZE 256
+static char top_status[top_status_SIZE];
+static char bottom_status[top_status_SIZE];
+static int top_status_pixels;
 static int bottom_status_pixels;
 static int status_signal;
 static pid_t status_program_pid = -1;
@@ -1649,8 +1649,8 @@ monitor_draw_bar(Monitor *monitor) {
     if (monitor == current_monitor) {
         drw_setscheme(drw, scheme[SchemeNormal]);
 
-        draw_status_text(top_status, status_text_pixels, monitor->win_w);
-        text_pixels = status_text_pixels;
+        draw_status_text(top_status, top_status_pixels, monitor->win_w);
+        text_pixels = top_status_pixels;
     }
 
     for (int i = 0; i < LENGTH(tags); i += 1) {
@@ -2198,8 +2198,8 @@ handler_button_press(XEvent *event) {
             arg.ui = 1 << i;
         } else if (button_x < x + (int)(TEXT_PIXELS(monitor->layout_symbol))) {
             click = ClickBarLayoutSymbol;
-        } else if (button_x > monitor->win_w - status_text_pixels) {
-            int x0 = monitor->win_w - status_text_pixels;
+        } else if (button_x > monitor->win_w - top_status_pixels) {
+            int x0 = monitor->win_w - top_status_pixels;
             click = ClickBarStatus;
             get_signal_number(top_status, x0, button_x);
         } else {
@@ -3564,7 +3564,7 @@ update_status(void) {
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(top_status, "dwm-"VERSION);
-        status_text_pixels = (int)(TEXT_PIXELS(top_status) - lrpad + 2);
+        top_status_pixels = (int)(TEXT_PIXELS(top_status) - lrpad + 2);
         bottom_status[0] = '\0';
         monitor_draw_bar(current_monitor);
         return;
@@ -3580,7 +3580,7 @@ update_status(void) {
     }
 
     strncpy(top_status, text, sizeof(top_status) - 1);
-    status_text_pixels = status_count_pixels(top_status);
+    top_status_pixels = status_count_pixels(top_status);
     bottom_status_pixels = status_count_pixels(bottom_status);
     monitor_draw_bar(current_monitor);
     return;
