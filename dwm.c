@@ -1256,7 +1256,8 @@ user_promote_to_master(const Arg *) {
 
 void
 client_apply_rules(Client *client) {
-    const char *class, *instance;
+    const char *class;
+    const char *instance;
     XClassHint class_hint = { NULL, NULL };
 
     /* rule matching */
