@@ -1081,17 +1081,17 @@ user_toggle_fullscreen(const Arg *) {
 
 void
 user_spawn(const Arg *arg) {
-   struct sigaction sig_action;
+   struct sigaction signal_action;
 
    if (fork() == 0) {
        if (display)
            close(ConnectionNumber(display));
        setsid();
 
-       sigemptyset(&sig_action.sa_mask);
-       sig_action.sa_flags = 0;
-       sig_action.sa_handler = SIG_DFL;
-       sigaction(SIGCHLD, &sig_action, NULL);
+       sigemptyset(&signal_action.sa_mask);
+       signal_action.sa_flags = 0;
+       signal_action.sa_handler = SIG_DFL;
+       sigaction(SIGCHLD, &signal_action, NULL);
 
        execvp(((char *const *)arg->v)[0], (char *const *)arg->v);
        die("dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
@@ -3064,13 +3064,13 @@ setup_once(void) {
     long vinfo_mask = VisualScreenMask | VisualDepthMask | VisualClassMask;
     XSetWindowAttributes window_attributes;
     Atom UTF8STRING;
-    struct sigaction sig_action;
+    struct sigaction signal_action;
 
     /* do not transform children into zombies when they terminate */
-    sigemptyset(&sig_action.sa_mask);
-    sig_action.sa_flags = SA_NOCLDSTOP | SA_NOCLDWAIT | SA_RESTART;
-    sig_action.sa_handler = SIG_IGN;
-    sigaction(SIGCHLD, &sig_action, NULL);
+    sigemptyset(&signal_action.sa_mask);
+    signal_action.sa_flags = SA_NOCLDSTOP | SA_NOCLDWAIT | SA_RESTART;
+    signal_action.sa_handler = SIG_IGN;
+    sigaction(SIGCHLD, &signal_action, NULL);
 
     /* clean up any zombies (inherited from .xinitrc etc) immediately */
     while (waitpid(-1, NULL, WNOHANG) > 0);
