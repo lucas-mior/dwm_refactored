@@ -3371,7 +3371,7 @@ update_geometry(void) {
             }
         }
         /* removed monitors if n > number */
-        for (i = number; i < n; i += 1) {
+        for (int k = number; k < n; k += 1) {
             for (monitor = monitors;
                  monitor && monitor->next;
                  monitor = monitor->next);
