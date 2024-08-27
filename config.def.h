@@ -64,8 +64,8 @@ static const Rule rules[] = {
 
 /* layout(s) */
 static const float master_fact  = 0.50;
-static const int resizehints    = 1; /* 1 means respect size hints in tiled resizals */
-static const int lockfullscreen = 0; /* 1 will force focus on the fullscreen window */
+static const bool resizehints    = true; /* 1 means respect size hints in tiled resizals */
+static const bool lockfullscreen = false; /* 1 will force focus on the fullscreen window */
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
