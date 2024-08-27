@@ -3653,7 +3653,6 @@ client_update_icon(Client *client) {
                 XFree(prop_return);
                 return;
             }
-
             if ((area_find = w*h) > (end - pointer))
                 break;
 
@@ -3663,12 +3662,15 @@ client_update_icon(Client *client) {
                 pixel_find = pointer;
             }
         }
+
         if (pixel_find)
             break;
+
         for (ulong *pointer = prop_return; pointer < (end - 1); pointer += area_find) {
             uint32 max_dim;
             uint32 w = (uint32)*pointer++;
             uint32 h = (uint32)*pointer++;
+
             if (w >= 16384 || h >= 16384) {
                 XFree(prop_return);
                 return;
