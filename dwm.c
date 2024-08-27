@@ -2220,9 +2220,12 @@ handler_button_press(XEvent *event) {
 
                     *s = byte;
                     text = s + 1;
-                    if ((int)x >= button_x)
+
+                    if ((int)x < button_x) {
+                        status_signal = byte;
+                    } else {
                         break;
-                    status_signal = byte;
+                    }
                 }
             }
         } else {
