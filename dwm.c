@@ -2024,11 +2024,17 @@ handler_property_notify(XEvent *event) {
 
     if ((client = window_to_client(property_event->window))) {
         switch (property_event->atom) {
-        case XA_WM_TRANSIENT_FOR:
-            if (!client->is_floating && (XGetTransientForHint(display, client->window, &trans)) &&
-                (client->is_floating = (window_to_client(trans)) != NULL))
-                arrange(client->monitor);
+        case XA_WM_TRANSIENT_FOR: {
+            if (!client->is_floating) {
+                if (XGetTransientForHint(display, client->window, &trans)) {
+                    if (window_to_client(trans)) {
+                        client->is_floating = true;
+                        arrange(client->monitor);
+                    }
+                }
+            }
             break;
+        }
         case XA_WM_NORMAL_HINTS:
             client->hintsvalid = 0;
             break;
