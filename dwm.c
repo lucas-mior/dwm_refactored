@@ -420,8 +420,15 @@ user_alt_tab(const Arg *) {
     if (all_clients == NULL)
         return;
 
-    for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
+    client_unfocus(current_monitor->selected_client, false);
+    Monitor *old = current_monitor;
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+        current_monitor = monitor;
+        client_focus(NULL);
         user_view_tag(&(Arg){ .ui = (uint)~0 });
+    }
+    current_monitor = old;
+    client_focus(current_monitor->selected_client);
     user_focus_next(&(Arg){ .i = alt_tab_direction });
 
     for (int i = 0; i < GRAB_TRIES; i += 1) {
