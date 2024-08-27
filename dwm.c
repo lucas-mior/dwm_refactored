@@ -3328,26 +3328,26 @@ update_geometry(void) {
     if (XineramaIsActive(display)) {
         Client *client;
         Monitor *monitor;
-        XineramaScreenInfo *info;
+        XineramaScreenInfo *screen_info;
         XineramaScreenInfo *unique = NULL;
         int i = 0;
         int j = 0;
         int number_monitors = 0;
         int number;
 
-        info = XineramaQueryScreens(display, &number);
+        screen_info = XineramaQueryScreens(display, &number);
         for (monitor = monitors; monitor; monitor = monitor->next)
             number_monitors += 1;
 
         /* only consider unique geometries as separate screens */
         unique = ecalloc((size_t) number, sizeof(*unique));
         while (i < number) {
-            if (is_unique_geometry(unique, (size_t) j, &info[i]))
-                memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
+            if (is_unique_geometry(unique, (size_t) j, &screen_info[i]))
+                memcpy(&unique[j++], &screen_info[i], sizeof(XineramaScreenInfo));
 
             i += 1;
         }
-        XFree(info);
+        XFree(screen_info);
         number = j;
 
         /* new monitors if number > number_monitors */
