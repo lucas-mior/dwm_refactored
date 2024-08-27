@@ -60,7 +60,7 @@ typedef unsigned char uchar;
     (mask & ~(numlock_mask|LockMask) \
     & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->selected_tags]))
-#define LENGTH(X) (int) (sizeof(X) / sizeof(*X))
+#define LENGTH(X) (int)(sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)  ((X)->w + 2*(X)->border_pixels)
 #define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
@@ -534,10 +534,10 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
             *y = monitor->win_y;
     }
 
-    if (*h < (int) bar_height)
-        *h = (int) bar_height;
-    if (*w < (int) bar_height)
-        *w = (int) bar_height;
+    if (*h < (int)bar_height)
+        *h = (int)bar_height;
+    if (*w < (int)bar_height)
+        *w = (int)bar_height;
 
     if (resizehints
         || client->is_floating
@@ -555,9 +555,9 @@ apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int interact) {
         /* adjust for aspect limits */
         if (client->min_a > 0 && client->max_a > 0) {
             if (client->max_a < (float)*w / (float)*h)
-                *w = *h*((int) (client->max_a + 0.5f));
+                *w = *h*((int)(client->max_a + 0.5f));
             else if (client->min_a < (float)*h / (float) *w)
-                *h = *w*((int) (client->min_a + 0.5f));
+                *h = *w*((int)(client->min_a + 0.5f));
         }
 
         if (baseismin) { /* increment calculation requires this */
@@ -844,7 +844,7 @@ draw_bar(Monitor *monitor) {
                 temp = *s;
                 *s = '\0';
 
-                text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
+                text_pixels = (int)(TEXT_PIXELS(text) - lrpad);
                 drw_text(drw, monitor->win_w - status_text_pixels + x, 0,
                          (uint)text_pixels, bar_height, 0, text, 0);
                 x += text_pixels;
@@ -853,7 +853,7 @@ draw_bar(Monitor *monitor) {
                 text = s + 1;
             }
         }
-        text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
+        text_pixels = (int)(TEXT_PIXELS(text) - lrpad + 2);
         drw_text(drw,
                  monitor->win_w - status_text_pixels + x, 0,
                  (uint)text_pixels, bar_height, 0, text, 0);
@@ -895,7 +895,7 @@ draw_bar(Monitor *monitor) {
         } else {
             snprintf(tagdisp, TAGWIDTH, tag_empty_format, tags[i]);
         }
-        tag_width[i] = w = (int) TEXT_PIXELS(tagdisp);
+        tag_width[i] = w = (int)TEXT_PIXELS(tagdisp);
 
         if (monitor->tagset[monitor->selected_tags] & 1 << i)
             which_scheme = SchemeSelected;
@@ -904,7 +904,7 @@ draw_bar(Monitor *monitor) {
         drw_setscheme(drw, scheme[which_scheme]);
 
         drw_text(drw, x, 0, (uint)w,
-                 bar_height, lrpad / 2, tagdisp, (int) urgent & 1 << i);
+                 bar_height, lrpad / 2, tagdisp, (int)urgent & 1 << i);
         x += w;
         if (client) {
             drw_text(drw, x, 0, client->icon_width + lrpad/2,
@@ -917,11 +917,11 @@ draw_bar(Monitor *monitor) {
             tag_width[i] += client->icon_width + lrpad/2;
         }
     }
-    w = (int) TEXT_PIXELS(monitor->layout_symbol);
+    w = (int)TEXT_PIXELS(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
     x = drw_text(drw, x, 0, (uint)w, bar_height, lrpad / 2, monitor->layout_symbol, 0);
 
-    if ((w = monitor->win_w - text_pixels - x) > (int) bar_height) {
+    if ((w = monitor->win_w - text_pixels - x) > (int)bar_height) {
         int boxs = drw->fonts->h / 9;
         int boxw = drw->fonts->h / 6 + 2;
 
@@ -961,7 +961,7 @@ draw_bar(Monitor *monitor) {
                 temp = *s;
                 *s = '\0';
 
-                text_pixels = (int) (TEXT_PIXELS(text) - lrpad);
+                text_pixels = (int)(TEXT_PIXELS(text) - lrpad);
                 drw_text(drw,
                          monitor->win_w - bottom_status_pixels + x, 0,
                          (uint)text_pixels, bar_height, 0, text, 0);
@@ -971,7 +971,7 @@ draw_bar(Monitor *monitor) {
                 text = s + 1;
             }
         }
-        text_pixels = (int) (TEXT_PIXELS(text) - lrpad + 2);
+        text_pixels = (int)(TEXT_PIXELS(text) - lrpad + 2);
         drw_text(drw,
                  monitor->win_w - bottom_status_pixels + x, 0,
                  (uint)text_pixels, bar_height, 0, text, 0);
@@ -1216,7 +1216,7 @@ layout_columns(Monitor *monitor) {
 
     if (n > monitor->nmaster) {
         if (monitor->nmaster != 0)
-            mon_w = (int) ((float)monitor->win_w*monitor->master_fact);
+            mon_w = (int)((float)monitor->win_w*monitor->master_fact);
         else
             mon_w = 0;
     } else {
@@ -1700,7 +1700,7 @@ handler_button_press(XEvent *event) {
             click = ClickBarStatus;
             statussig = 0;
 
-            for (char *text = s = top_status; *s && (int) x <= button_event->x; s += 1) {
+            for (char *text = s = top_status; *s && (int)x <= button_event->x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
@@ -1709,7 +1709,7 @@ handler_button_press(XEvent *event) {
 
                     *s = ch;
                     text = s + 1;
-                    if ((int) x >= button_event->x)
+                    if ((int)x >= button_event->x)
                         break;
                     statussig = ch;
                 }
@@ -2182,7 +2182,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
         if (sucess == Success && nitems_return == 2) {
             client->tags = (uint)*prop_return;
             for (Monitor *m = monitors; m; m = m->next) {
-                if (m->num == (int) *(prop_return+1)) {
+                if (m->num == (int)*(prop_return+1)) {
                     client->monitor = m;
                     break;
                 }
@@ -3231,7 +3231,7 @@ update_bar_position(Monitor *monitor) {
         monitor->top_bar_y = monitor->win_y;
         monitor->win_y = monitor->win_y + bar_height;
     } else {
-        monitor->top_bar_y = - (int) bar_height;
+        monitor->top_bar_y = - (int)bar_height;
     }
 
     if (monitor->show_bottom_bar) {
@@ -3239,7 +3239,7 @@ update_bar_position(Monitor *monitor) {
         monitor->bottom_bar_y = monitor->win_y + monitor->win_h;
         monitor->win_y = monitor->win_y;
     } else {
-        monitor->bottom_bar_y = - (int) bar_height;
+        monitor->bottom_bar_y = - (int)bar_height;
     }
     return;
 }
@@ -3447,7 +3447,7 @@ update_status(void) {
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(top_status, "dwm-"VERSION);
-        status_text_pixels = (int) (TEXT_PIXELS(top_status) - lrpad + 2);
+        status_text_pixels = (int)(TEXT_PIXELS(top_status) - lrpad + 2);
         bottom_status[0] = '\0';
         draw_bar(current_monitor);
         return;
