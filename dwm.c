@@ -2799,16 +2799,16 @@ rectangle_to_monitor(int x, int y, int w, int h) {
     int a;
     int max_area = 0;
 
-    for (Monitor *m = monitors; m; m = m->next) {
-        int min_x = MIN(x + w, m->win_x + m->win_w);
-        int min_y = MIN(y + h, m->win_y + m->win_h);
+    for (Monitor *mon = monitors; mon; mon = mon->next) {
+        int min_x = MIN(x + w, mon->win_x + mon->win_w);
+        int min_y = MIN(y + h, mon->win_y + mon->win_h);
 
-        int ax = MAX(0, min_x - MAX(x, m->win_x));
-        int ay = MAX(0, min_y - MAX(y, m->win_y));
+        int ax = MAX(0, min_x - MAX(x, mon->win_x));
+        int ay = MAX(0, min_y - MAX(y, mon->win_y));
 
         if ((a = ax*ay) > max_area) {
             max_area = a;
-            monitor = m;
+            monitor = mon;
         }
     }
     return monitor;
