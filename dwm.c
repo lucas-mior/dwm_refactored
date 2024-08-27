@@ -3358,18 +3358,23 @@ update_geometry(void) {
             else
                 monitors = create_monitor();
         }
-        for (i = 0, monitor = monitors; i < number && monitor; monitor = monitor->next, i += 1) {
-            if (i >= number_monitors
-                || unique[i].x_org != monitor->mon_x || unique[i].y_org != monitor->mon_y
-                || unique[i].width != monitor->mon_w || unique[i].height != monitor->mon_h) {
+
+        monitor = monitors;
+        for (int k = 0; k < number; k += 1) {
+            if (k >= number_monitors
+                || unique[k].x_org != monitor->mon_x || unique[k].y_org != monitor->mon_y
+                || unique[k].width != monitor->mon_w || unique[k].height != monitor->mon_h) {
                 dirty = true;
-                monitor->num = i;
-                monitor->mon_x = monitor->win_x = unique[i].x_org;
-                monitor->mon_y = monitor->win_y = unique[i].y_org;
-                monitor->mon_w = monitor->win_w = unique[i].width;
-                monitor->mon_h = monitor->win_h = unique[i].height;
+                monitor->num = k;
+                monitor->mon_x = monitor->win_x = unique[k].x_org;
+                monitor->mon_y = monitor->win_y = unique[k].y_org;
+                monitor->mon_w = monitor->win_w = unique[k].width;
+                monitor->mon_h = monitor->win_h = unique[k].height;
                 monitor_update_bar_position(monitor);
             }
+
+            if (!(monitor = monitor->next))
+                break;
         }
         /* removed monitors if number_monitors > number */
         for (int k = number; k < number_monitors; k += 1) {
