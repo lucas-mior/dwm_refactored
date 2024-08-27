@@ -3043,10 +3043,12 @@ client_set_fullscreen(Client *client, bool fullscreen) {
         }
         client->is_floating = client->old_state;
         client->border_pixels = client->old_border_pixels;
+
         client->x = client->old_x;
         client->y = client->old_y;
         client->w = client->old_w;
         client->h = client->old_h;
+
         client_resize_apply(client, client->x, client->y, client->w, client->h);
         monitor_arrange(client->monitor);
     }
