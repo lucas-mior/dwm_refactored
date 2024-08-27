@@ -184,6 +184,7 @@ typedef struct {
 } Rule;
 
 /* function declarations */
+static void error(char *, ...);
 static void user_alt_tab(const Arg *);
 static void user_aspect_resize(const Arg *);
 static void user_focus_direction(const Arg *);
@@ -375,6 +376,42 @@ static int tag_width[LENGTH(tags)];
 
 /* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
+
+void error(char *format, ...) {
+    int n;
+    va_list args;
+    char buffer[BUFSIZ];
+
+    va_start(args, format);
+    n = vsnprintf(buffer, sizeof (buffer) - 1, format, args);
+    va_end(args);
+
+    if (n < 0) {
+        fprintf(stderr, "Error in vsnprintf()\n");
+        exit(EXIT_FAILURE);
+    }
+
+    buffer[n] = '\0';
+    (void) write(STDERR_FILENO, buffer, (size_t) n);
+
+    switch (fork()) {
+        char *notifiers[2] = { "dunstify", "notify-send" };
+        case -1:
+            fprintf(stderr, "Error forking: %s\n", strerror(errno));
+            break;
+        case 0:
+            for (uint i = 0; i < LENGTH(notifiers); i += 1) {
+                execlp(notifiers[i], notifiers[i], "-u", "critical", 
+                                     "dwm", buffer, NULL);
+            }
+            fprintf(stderr, "Error trying to exec dunstify.\n");
+            exit(EXIT_FAILURE);
+            break;
+        default:
+            break;
+    }
+    return;
+}
 
 void
 user_alt_tab(const Arg *) {
@@ -1094,7 +1131,7 @@ user_spawn(const Arg *arg) {
        sigaction(SIGCHLD, &signal_action, NULL);
 
        execvp(((char *const *)arg->v)[0], (char *const *)arg->v);
-       die("dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
+       error("dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
    }
    return;
 }
@@ -2635,8 +2672,8 @@ int
 handler_xerror_start(Display *error_display, XErrorEvent *error_event) {
     (void) error_display;
     (void) error_event;
-    die("dwm: another window manager is already running");
-    return -1;
+    error("Error starting dwm: another window manager is running.\n");
+    exit(EXIT_FAILURE);
 }
 
 #ifdef XINERAMA
@@ -3112,8 +3149,10 @@ setup_once(void) {
     drw = drw_create(display, screen, root,
                      (uint)screen_width, (uint)screen_height,
                      visual, (uint)depth, cmap);
-    if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
-        die("no fonts could be loaded.");
+    if (!drw_fontset_create(drw, fonts, LENGTH(fonts))) {
+        error("Error loading fonts for dwm.\n");
+        exit(EXIT_FAILURE);
+    }
     lrpad = drw->fonts->h / 2;
     bar_height = drw->fonts->h + 2;
     update_geometry();
@@ -3826,16 +3865,21 @@ window_to_monitor(Window window) {
 
 int
 main(int argc, char *argv[]) {
-    if (argc == 2 && !strcmp("-v", argv[1]))
-        die("dwm-"VERSION);
-    else if (argc != 1)
-        die("usage: dwm [-v]");
+    if (argc == 2 && !strcmp("-v", argv[1])) {
+        printf("dwm-"VERSION"\n");
+        exit(EXIT_SUCCESS);
+    } else if (argc != 1) {
+        error("usage: dwm [-v]");
+        exit(EXIT_FAILURE);
+    }
 
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
-        fputs("warning: no locale support\n", stderr);
+        error("Warning: no locale support.\n");
 
-    if (!(display = XOpenDisplay(NULL)))
-        die("dwm: cannot open display");
+    if (!(display = XOpenDisplay(NULL))) {
+        error("Error opening display.\n");
+        exit(EXIT_FAILURE);
+    }
     {
         xerrorxlib = XSetErrorHandler(handler_xerror_start);
 
@@ -3852,8 +3896,11 @@ main(int argc, char *argv[]) {
     setup_once();
 
 #ifdef __OpenBSD__
-    if (pledge("stdio rpath proc exec", NULL) == -1)
-        die("pledge");
+    char *pledge_args = "stdio rpath proc exec";
+    if (pledge(pledge_args, NULL) == -1) {
+        error("Error in pledge(%s)\n", pledge_args);
+        exit(EXIT_FAILURE);
+    }
 #endif /* __OpenBSD__ */
 
     scan_windows();
