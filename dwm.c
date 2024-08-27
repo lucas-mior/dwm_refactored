@@ -2838,27 +2838,7 @@ setup_once(void) {
     XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &window_attributes);
     XSelectInput(display, root, window_attributes.event_mask);
     grab_keys();
-
     focus(NULL);
-    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        Arg layout_monocle = {.v = &layouts[2]};
-        Arg lay_grid = {.v = &layouts[3]};
-        Arg tag8 = {.ui = 1 << 5};
-        Arg tag1 = {.ui = 1 << 0};
-        Arg tag0 = {.ui = (uint)~0};
-
-        unfocus(current_monitor->selected_client, 0);
-        current_monitor = monitor;
-        focus(NULL);
-
-        user_view_tag(&tag8);
-        user_set_layout(&layout_monocle);
-        user_toggle_top_bar(0);
-
-        user_view_tag(&tag0);
-        user_set_layout(&lay_grid);
-        user_view_tag(&tag1);
-    }
     return;
 }
 
