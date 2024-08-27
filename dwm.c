@@ -2239,9 +2239,10 @@ handler_client_message(XEvent *event) {
         return;
 
     if (client_message_event->message_type == netatom[NetWMState]) {
-        long *data = client_message_event->data.l;
-        if ((ulong) data[1] == netatom[NetWMFullscreen]
-            || (ulong) data[2] == netatom[NetWMFullscreen]) {
+        ulong *data = (ulong *) client_message_event->data.l;
+
+        if (data[1] == netatom[NetWMFullscreen]
+            || data[2] == netatom[NetWMFullscreen]) {
             bool NET_WM_STATE_ADD = data[0] == 1;
             bool NET_WM_STATE_TOGGLE = data[0] == 2;
             bool fullscreen = NET_WM_STATE_ADD
