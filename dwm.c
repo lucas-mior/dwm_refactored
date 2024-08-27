@@ -2066,6 +2066,11 @@ get_status_bar_pid(void) {
     char buffer[32] = {0};
     pid_t pid;
 
+    if (pipe(pipefd) < 0) {
+        error("Error creating pipe: %s\n", strerror(errno));
+        return -1;
+    }
+
     switch (fork()) {
     case -1:
         error("Error forking: %s\n", strerror(errno));
@@ -2077,15 +2082,19 @@ get_status_bar_pid(void) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execlp("pidof", "pidof", "-s", STATUSBAR, NULL);
-        error("Error executing pidof: %s\n", strerror(errno));
+        error("Error executing pidof.\n");
         exit(EXIT_FAILURE);
     default:
         close(pipefd[1]);
         break;
     }
 
-    if (read(pipefd[0], buffer, sizeof (buffer) - 1) <= 0)
+    if (read(pipefd[0], buffer, sizeof (buffer) - 1) <= 0) {
+        dwm_debug("read failed: %s\n", strerror(errno));
+        close(pipefd[0]);
         return -1;
+    }
+    close(pipefd[0]);
 
     pid = atoi(buffer);
     return pid;
