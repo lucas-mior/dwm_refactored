@@ -3252,26 +3252,23 @@ client_set_urgent(Client *client, bool urgent) {
 
 void
 client_show_hide(Client *client) {
-    Monitor *monitor;
+    Monitor *mon;
     if (!client)
         return;
 
-    monitor = client->monitor;
+    mon = client->monitor;
 
     if (ISVISIBLE(client)) {
         bool monitor_floating;
 
         if ((client->tags) && client->is_floating) {
-            client->x = monitor->win_x;
-            client->x += (monitor->win_w / 2 - WIDTH(client) / 2);
-
-            client->y = monitor->win_y;
-            client->y += (monitor->win_h / 2 - HEIGHT(client) / 2);
+            client->x = mon->win_x + (mon->win_w / 2 - WIDTH(client) / 2);
+            client->y = mon->win_y + (mon->win_h / 2 - HEIGHT(client) / 2);
         }
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
 
-        monitor_floating = !monitor->layout[monitor->lay_i]->function;
+        monitor_floating = !mon->layout[mon->lay_i]->function;
         if ((monitor_floating || client->is_floating)
             && (!client->is_fullscreen || client->is_fake_fullscreen)) {
             client_resize(client, client->x, client->y, client->w, client->h, 0);
