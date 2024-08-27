@@ -2208,14 +2208,13 @@ grab_keys(void) {
 
 void
 handler_button_press(XEvent *event) {
-    uint click;
     Arg arg = {0};
     Client *client;
     Monitor *monitor;
     XButtonPressedEvent *button_event = &event->xbutton;
     int button_x = button_event->x;
+    uint click = ClickRootWin;
 
-    click = ClickRootWin;
     /* focus monitor if necessary */
     monitor = window_to_monitor(button_event->window);
     if (monitor && monitor != current_monitor) {
