@@ -2701,7 +2701,9 @@ manage(Window window, XWindowAttributes *window_attributes) {
     window_changes.border_width = client->border_pixels;
     XConfigureWindow(display, window, CWBorderWidth, &window_changes);
     XSetWindowBorder(display, window, scheme[SchemeNormal][ColBorder].pixel);
-    client_configure(client); /* propagates border_pixels, if size doesn't change */
+
+    /* propagates border_pixels, if size doesn't change */
+    client_configure(client);
     client_update_window_type(client);
     client_update_size_hints(client);
     client_update_wm_hints(client);
