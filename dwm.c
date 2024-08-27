@@ -1663,11 +1663,11 @@ monitor_draw_bar(Monitor *monitor) {
 
     x = 0;
     for (int i = 0; i < LENGTH(tags); i += 1) {
-        Client *client = icontagclient[i];
+        Client *client_with_icon = icontagclient[i];
         uint which_scheme;
 
         if (masters_names[i]) {
-            if (client) {
+            if (client_with_icon) {
                 snprintf(tags_display, sizeof(tags_display), "%s", tags[i]);
             } else {
                 ulong n = strcspn(masters_names[i], tag_label_delim);
@@ -1690,15 +1690,15 @@ monitor_draw_bar(Monitor *monitor) {
         drw_text(drw, x, 0, (uint)w,
                  bar_height, lrpad / 2, tags_display, (int)urgent & 1 << i);
         x += w;
-        if (client) {
-            drw_text(drw, x, 0, client->icon_width + lrpad/2,
+        if (client_with_icon) {
+            drw_text(drw, x, 0, client_with_icon->icon_width + lrpad/2,
                      bar_height, 0, " ", urgent & 1 << i);
             drw_pic(drw,
-                    x, (bar_height - client->icon_height) / 2,
-                    client->icon_width, client->icon_height,
-                    client->icon);
-            x += client->icon_width + lrpad/2;
-            tag_width[i] += client->icon_width + lrpad/2;
+                    x, (bar_height - client_with_icon->icon_height) / 2,
+                    client_with_icon->icon_width, client_with_icon->icon_height,
+                    client_with_icon->icon);
+            x += client_with_icon->icon_width + lrpad/2;
+            tag_width[i] += client_with_icon->icon_width + lrpad/2;
         }
     }
     w = (int)TEXT_PIXELS(monitor->layout_symbol);
