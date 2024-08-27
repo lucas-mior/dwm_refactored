@@ -2638,21 +2638,6 @@ handler_xerror_start(Display *error_display, XErrorEvent *error_event) {
     return -1;
 }
 
-#ifdef XINERAMA
-static int
-is_unique_geometry(XineramaScreenInfo *unique,
-                   size_t n, XineramaScreenInfo *screen_info) {
-    while (n--) {
-        bool unique_x = unique[n].x_org == screen_info->x_org;
-        bool unique_y = unique[n].y_org == screen_info->y_org;
-        bool unique_w = unique[n].width == screen_info->width;
-        bool unique_h = unique[n].height == screen_info->height;
-        if (unique_x && unique_y && unique_w && unique_h)
-            return 0;
-    }
-    return 1;
-}
-#endif /* XINERAMA */
 
 void
 client_new(Window window, XWindowAttributes *window_attributes) {
@@ -3390,11 +3375,20 @@ update_geometry(void) {
 
         /* only consider unique geometries as separate screens */
         unique = ecalloc((size_t) number_unique, sizeof(*unique));
-        while (i < number_unique) {
-            if (is_unique_geometry(unique, (size_t) j, &screen_info[i]))
-                memcpy(&unique[j++], &screen_info[i], sizeof(XineramaScreenInfo));
-
-            i += 1;
+        while (i++ < number_unique) {
+            int n = j;
+            XineramaScreenInfo *info = &screen_info[i];
+            while (n -= 1) {
+                bool equal_x = unique[n].x_org == info->x_org;
+                bool equal_y = unique[n].y_org == info->y_org;
+                bool equal_w = unique[n].width == info->width;
+                bool equal_h = unique[n].height == info->height;
+                if (equal_x && equal_y && equal_w && equal_h)
+                    continue;
+                memcpy(&unique[j++],
+                       &screen_info[i],
+                       sizeof(XineramaScreenInfo));
+            }
         }
         XFree(screen_info);
         number_unique = j;
