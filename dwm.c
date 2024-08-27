@@ -1605,7 +1605,7 @@ monitor_draw_bar(Monitor *monitor) {
     int text_pixels = 0;
     int urgent = 0;
     char tags_display[TAG_DISPLAY_SIZE];
-    char *masterclientontag[LENGTH(tags)];
+    char *masters_names[LENGTH(tags)];
     Client *icontagclient[LENGTH(tags)] = {0};
 
     if (!monitor->show_top_bar)
@@ -1642,7 +1642,7 @@ monitor_draw_bar(Monitor *monitor) {
     }
 
     for (int i = 0; i < LENGTH(tags); i += 1) {
-        masterclientontag[i] = NULL;
+        masters_names[i] = NULL;
         icontagclient[i] = NULL;
     }
 
@@ -1653,10 +1653,10 @@ monitor_draw_bar(Monitor *monitor) {
         for (int i = 0; i < LENGTH(tags); i += 1) {
             if (client->icon && client->tags & (1 << i))
                 icontagclient[i] = client;
-            if (!masterclientontag[i] && client->tags & (1<<i)) {
+            if (!masters_names[i] && client->tags & (1<<i)) {
                 XClassHint class_hint = { NULL, NULL };
                 XGetClassHint(display, client->window, &class_hint);
-                masterclientontag[i] = class_hint.res_class;
+                masters_names[i] = class_hint.res_class;
             }
         }
     }
@@ -1666,14 +1666,14 @@ monitor_draw_bar(Monitor *monitor) {
         Client *client = icontagclient[i];
         uint which_scheme;
 
-        if (masterclientontag[i]) {
+        if (masters_names[i]) {
             if (client) {
                 snprintf(tags_display, sizeof(tags_display), "%s", tags[i]);
             } else {
-                ulong n = strcspn(masterclientontag[i], tag_label_delim);
-                masterclientontag[i][n] = '\0';
+                ulong n = strcspn(masters_names[i], tag_label_delim);
+                masters_names[i][n] = '\0';
                 snprintf(tags_display, sizeof(tags_display),
-                         tag_label_format, tags[i], masterclientontag[i]);
+                         tag_label_format, tags[i], masters_names[i]);
             }
         } else {
             snprintf(tags_display, sizeof(tags_display),
