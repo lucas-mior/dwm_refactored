@@ -2157,6 +2157,7 @@ handler_button_press(XEvent *event) {
     Client *client;
     Monitor *monitor;
     XButtonPressedEvent *button_event = &event->xbutton;
+    int button_x = button_event->x;
 
     click = ClickRootWin;
     /* focus monitor if necessary */
@@ -2172,20 +2173,20 @@ handler_button_press(XEvent *event) {
 
         do {
             x += (uint)tag_width[i];
-        } while ((uint)button_event->x >= x && ++i < LENGTH(tags));
+        } while ((uint)button_x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
             click = ClickBarTags;
             arg.ui = 1 << i;
-        } else if ((uint)button_event->x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
+        } else if ((uint)button_x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
             click = ClickBarLayoutSymbol;
-        } else if (button_event->x > current_monitor->win_w - status_text_pixels) {
+        } else if (button_x > current_monitor->win_w - status_text_pixels) {
             char *s;
 
             x = (uint)(current_monitor->win_w - status_text_pixels);
             click = ClickBarStatus;
             status_signal = 0;
 
-            for (char *text = s = top_status; *s && (int)x <= button_event->x; s += 1) {
+            for (char *text = s = top_status; *s && (int)x <= button_x; s += 1) {
                 if ((uchar)(*s) < ' ') {
                     char ch = *s;
                     *s = '\0';
@@ -2194,7 +2195,7 @@ handler_button_press(XEvent *event) {
 
                     *s = ch;
                     text = s + 1;
-                    if ((int)x >= button_event->x)
+                    if ((int)x >= button_x)
                         break;
                     status_signal = ch;
                 }
@@ -2209,7 +2210,7 @@ handler_button_press(XEvent *event) {
         click = ClickBottomBar;
         status_signal = 0;
 
-        for (char *text = s; *s && x <= button_event->x; s += 1) {
+        for (char *text = s; *s && x <= button_x; s += 1) {
             if ((uchar)(*s) < ' ') {
                 char ch = *s;
                 *s = '\0';
@@ -2218,7 +2219,7 @@ handler_button_press(XEvent *event) {
 
                 *s = ch;
                 text = s + 1;
-                if (x >= button_event->x)
+                if (x >= button_x)
                     break;
                 status_signal = ch;
             }
