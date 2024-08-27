@@ -347,7 +347,7 @@ static int alt_tab_direction = 0;
 
 struct Pertag {
     uint tag;
-    uint previous_tag;
+    uint old_tag;
     int nmasters[LENGTH(tags) + 1];
     float master_facts[LENGTH(tags) + 1];
     uint selected_layouts[LENGTH(tags) + 1];
@@ -1100,14 +1100,14 @@ user_toggle_view(const Arg *arg) {
         monitor->tagset[monitor->selected_tags] = new_tagset;
 
         if (new_tagset == (uint)~0) {
-            monitor->pertag->previous_tag = monitor->pertag->tag;
+            monitor->pertag->old_tag = monitor->pertag->tag;
             monitor->pertag->tag = 0;
         }
 
         /* test if the user did not select the same user_tag */
         if (!(new_tagset & 1 << (monitor->pertag->tag - 1))) {
             uint i = 0;
-            monitor->pertag->previous_tag = monitor->pertag->tag;
+            monitor->pertag->old_tag = monitor->pertag->tag;
             while (!(new_tagset & 1 << i))
                 i += 1;
             monitor->pertag->tag = i + 1;
@@ -1147,7 +1147,7 @@ user_view_tag(const Arg *arg) {
 
     if (arg_tags & TAGMASK) {
         monitor->tagset[monitor->selected_tags] = arg_tags & TAGMASK;
-        monitor->pertag->previous_tag = monitor->pertag->tag;
+        monitor->pertag->old_tag = monitor->pertag->tag;
 
         if (arg_tags == (uint)~0) {
             monitor->pertag->tag = 0;
@@ -1158,8 +1158,8 @@ user_view_tag(const Arg *arg) {
             monitor->pertag->tag = i + 1;
         }
     } else {
-        tmptag = monitor->pertag->previous_tag;
-        monitor->pertag->previous_tag = monitor->pertag->tag;
+        tmptag = monitor->pertag->old_tag;
+        monitor->pertag->old_tag = monitor->pertag->tag;
         monitor->pertag->tag = tmptag;
     }
 
@@ -1457,7 +1457,7 @@ create_monitor(void) {
             layouts[0].symbol,
             sizeof(monitor->layout_symbol));
     monitor->pertag = ecalloc(1, sizeof(*(monitor->pertag)));
-    monitor->pertag->tag = monitor->pertag->previous_tag = 1;
+    monitor->pertag->tag = monitor->pertag->old_tag = 1;
 
     for (int i = 0; i <= LENGTH(tags); i += 1) {
         monitor->pertag->nmasters[i] = monitor->nmaster;
