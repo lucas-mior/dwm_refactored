@@ -2339,9 +2339,11 @@ handler_configure_notify(XEvent *event) {
         return;
 
     /* TODO: update_geometry handling sucks, needs to be simplified */
-    dirty = (screen_width != configure_event->width || screen_height != configure_event->height);
+    dirty = screen_width != configure_event->width
+            || screen_height != configure_event->height;
     screen_width = configure_event->width;
     screen_height = configure_event->height;
+
     if (update_geometry() || dirty) {
         drw_resize(drw, (uint)screen_width, bar_height);
         update_bars();
@@ -3340,10 +3342,10 @@ update_geometry(void) {
             else
                 monitors = create_monitor();
         }
-        for (i = 0, monitor = monitors; i < number && monitor; monitor = monitor->next, i += 1)
+        for (i = 0, monitor = monitors; i < number && monitor; monitor = monitor->next, i += 1) {
             if (i >= n
-            || unique[i].x_org != monitor->mon_x || unique[i].y_org != monitor->mon_y
-            || unique[i].width != monitor->mon_w || unique[i].height != monitor->mon_h) {
+                || unique[i].x_org != monitor->mon_x || unique[i].y_org != monitor->mon_y
+                || unique[i].width != monitor->mon_w || unique[i].height != monitor->mon_h) {
                 dirty = 1;
                 monitor->num = i;
                 monitor->mon_x = monitor->win_x = unique[i].x_org;
@@ -3352,6 +3354,7 @@ update_geometry(void) {
                 monitor->mon_h = monitor->win_h = unique[i].height;
                 monitor_update_bar_position(monitor);
             }
+        }
         /* removed monitors if n > number */
         for (i = number; i < n; i += 1) {
             for (monitor = monitors;
