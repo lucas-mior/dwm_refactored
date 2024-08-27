@@ -2298,7 +2298,6 @@ handler_client_message(XEvent *event) {
 void
 handler_configure_request(XEvent *event) {
     Client *client;
-    Monitor *monitor;
     XConfigureRequestEvent *conf_request_event = &event->xconfigurerequest;
     XWindowChanges window_changes;
 
@@ -2312,6 +2311,7 @@ handler_configure_request(XEvent *event) {
 
         monitor_floating = !current_monitor->layout[current_monitor->lay_i]->function;
         if (client->is_floating || monitor_floating) {
+            Monitor *monitor;
             bool mask_xy;
             bool mask_hw;
 
