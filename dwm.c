@@ -1309,6 +1309,7 @@ int
 client_apply_size_hints(Client *client,
                         int *x, int *y, int *w, int *h, int interact) {
     Monitor *monitor = client->monitor;
+    int success;
 
     *w = MAX(1, *w);
     *h = MAX(1, *h);
@@ -1381,7 +1382,9 @@ client_apply_size_hints(Client *client,
         if (client->max_h)
             *h = MIN(*h, client->max_h);
     }
-    return *x != client->x || *y != client->y || *w != client->w || *h != client->h;
+    success = *x != client->x || *y != client->y
+             || *w != client->w || *h != client->h;
+    return success;
 }
 
 void
