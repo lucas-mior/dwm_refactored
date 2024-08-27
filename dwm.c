@@ -299,7 +299,7 @@ static char bottom_status[STATUS_TEXT_SIZE];
 static int status_text_pixels;
 static int bottom_status_pixels;
 static int status_signal;
-static pid_t statuspid = -1;
+static pid_t status_program_pid = -1;
 
 static int screen;
 static int screen_width;
@@ -958,10 +958,10 @@ user_signal_status_bar(const Arg *arg) {
         return;
     signal_value.sival_int = arg->i | ((SIGRTMIN+status_signal) << 3);
 
-    if ((statuspid = get_status_bar_pid()) <= 0)
+    if ((status_program_pid = get_status_bar_pid()) <= 0)
         return;
 
-    sigqueue(statuspid, SIGUSR1, signal_value);
+    sigqueue(status_program_pid, SIGUSR1, signal_value);
     return;
 }
 
@@ -2037,15 +2037,15 @@ get_status_bar_pid(void) {
     long pid_long;
     FILE *fp;
 
-    if (statuspid > 0) {
-        snprintf(buffer, sizeof(buffer), "/proc/%u/cmdline", statuspid);
+    if (status_program_pid > 0) {
+        snprintf(buffer, sizeof(buffer), "/proc/%u/cmdline", status_program_pid);
         if ((fp = fopen(buffer, "r"))) {
             fgets(buffer, sizeof(buffer), fp);
             while ((client = strchr(string, '/')))
                 string = client + 1;
             fclose(fp);
             if (!strcmp(string, STATUSBAR))
-                return statuspid;
+                return status_program_pid;
         }
     }
     if (!(fp = popen("pidof -s "STATUSBAR, "r")))
