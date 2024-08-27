@@ -1485,11 +1485,13 @@ create_monitor(void) {
     monitor->number_masters = 1;
     monitor->show_top_bar = show_top_bar;
     monitor->show_bottom_bar = show_bottom_bar;
+
     monitor->layout[0] = &layouts[0];
     monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
     strncpy(monitor->layout_symbol,
             layouts[0].symbol,
             sizeof(monitor->layout_symbol));
+
     monitor->pertag = ecalloc(1, sizeof(*(monitor->pertag)));
     monitor->pertag->tag = monitor->pertag->old_tag = 1;
 
