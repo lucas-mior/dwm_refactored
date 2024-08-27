@@ -70,6 +70,7 @@ typedef unsigned char uchar;
 
 #define OPAQUE 0xffU
 #define TAG_DISPLAY_SIZE 32
+#define GRAB_TRIES 10
 
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
@@ -365,8 +366,8 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 void
 user_alt_tab(const Arg *) {
-    int grabbed = 1;
-    int grabbed_keyboard = 1000;
+    bool grabbed = false;
+    int grab_status = 1000;
     if (all_clients == NULL)
         return;
 
@@ -374,29 +375,24 @@ user_alt_tab(const Arg *) {
         user_view_tag(&(Arg){ .ui = (uint)~0 });
     user_focus_next(&(Arg){ .i = alt_tab_direction });
 
-    /* for (int i = 0; i < 100; i += 1) { */
-    /*     struct timespec pause; */
-    /*     pause.tv_sec = 0; */
-    /*     pause.tv_nsec = 1000000; */
+    for (int i = 0; i < GRAB_TRIES; i += 1) {
+        struct timespec pause;
+        pause.tv_sec = 0;
+        pause.tv_nsec = 1000000;
 
-        if (grabbed_keyboard != GrabSuccess) {
-            grabbed_keyboard = XGrabKeyboard(display, DefaultRootWindow(display), True,
-                                             GrabModeAsync, GrabModeAsync, CurrentTime);
+        if (grab_status != GrabSuccess) {
+            grab_status = XGrabKeyboard(display, root, True,
+                                        GrabModeAsync, GrabModeAsync,
+                                        CurrentTime);
         }
-        if (grabbed_keyboard == GrabSuccess) {
-            XGrabButton(display, AnyButton, AnyModifier, None, False,
-                        BUTTONMASK, GrabModeAsync, GrabModeAsync,
-                        None, None);
-            /* break; */
-        } else {
-            dwm_debug("GrabKeyboard failed..., exiting");
-            sleep(2);
-            exit(1);
+        if (grab_status == GrabSuccess) {
+            grabbed = XGrabButton(display, AnyButton, AnyModifier, None, False,
+                                  BUTTONMASK, GrabModeAsync, GrabModeAsync,
+                                  None, None);
+            break;
         }
-        /* nanosleep(&pause, NULL); */
-        /* if (i == 100 - 1) */
-        /*     grabbed = 0; */
-    /* } */
+        nanosleep(&pause, NULL);
+    }
 
     while (grabbed) {
         XEvent event;
@@ -422,7 +418,7 @@ user_alt_tab(const Arg *) {
             if (event.xkey.keycode == tabModKey) {
                 XUngrabKeyboard(display, CurrentTime);
                 XUngrabButton(display, AnyButton, AnyModifier, None);
-                grabbed = 0;
+                grabbed = false;
                 alt_tab_direction = !alt_tab_direction;
                 user_window_view(0);
             }
@@ -442,7 +438,7 @@ user_alt_tab(const Arg *) {
         case ButtonRelease:
             XUngrabKeyboard(display, CurrentTime);
             XUngrabButton(display, AnyButton, AnyModifier, None);
-            grabbed = 0;
+            grabbed = false;
             alt_tab_direction = !alt_tab_direction;
             user_window_view(0);
             break;
