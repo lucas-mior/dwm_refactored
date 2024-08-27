@@ -108,7 +108,7 @@ struct Client {
     int old_x, old_y, old_w, old_h;
     int base_w, base_h;
     int increment_w, increment_h;
-    int maxw, maxh, minw, minh, hintsvalid;
+    int max_w, max_h, min_w, min_h, hintsvalid;
     int border_pixels;
     int old_border_pixels;
     uint tags;
@@ -1319,7 +1319,7 @@ client_apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int inte
             client_update_size_hints(client);
 
         /* see last two sentences in ICCCM 4.1.2.3 */
-        baseismin = client->base_w == client->minw && client->base_h == client->minh;
+        baseismin = client->base_w == client->min_w && client->base_h == client->min_h;
         if (!baseismin) { /* temporarily remove base dimensions */
             *w -= client->base_w;
             *h -= client->base_h;
@@ -1345,12 +1345,12 @@ client_apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int inte
             *h -= *h % client->increment_h;
 
         /* restore base dimensions */
-        *w = MAX(*w + client->base_w, client->minw);
-        *h = MAX(*h + client->base_h, client->minh);
-        if (client->maxw)
-            *w = MIN(*w, client->maxw);
-        if (client->maxh)
-            *h = MIN(*h, client->maxh);
+        *w = MAX(*w + client->base_w, client->min_w);
+        *h = MAX(*h + client->base_h, client->min_h);
+        if (client->max_w)
+            *w = MIN(*w, client->max_w);
+        if (client->max_h)
+            *h = MIN(*h, client->max_h);
     }
     return *x != client->x || *y != client->y || *w != client->w || *h != client->h;
 }
@@ -3442,19 +3442,19 @@ client_update_size_hints(Client *client) {
         client->increment_w = client->increment_h = 0;
     }
     if (size_hints.flags & PMaxSize) {
-        client->maxw = size_hints.max_width;
-        client->maxh = size_hints.max_height;
+        client->max_w = size_hints.max_width;
+        client->max_h = size_hints.max_height;
     } else {
-        client->maxw = client->maxh = 0;
+        client->max_w = client->max_h = 0;
     }
     if (size_hints.flags & PMinSize) {
-        client->minw = size_hints.min_width;
-        client->minh = size_hints.min_height;
+        client->min_w = size_hints.min_width;
+        client->min_h = size_hints.min_height;
     } else if (size_hints.flags & PBaseSize) {
-        client->minw = size_hints.base_width;
-        client->minh = size_hints.base_height;
+        client->min_w = size_hints.base_width;
+        client->min_h = size_hints.base_height;
     } else {
-        client->minw = client->minh = 0;
+        client->min_w = client->min_h = 0;
     }
     if (size_hints.flags & PAspect) {
         client->min_a = (float)size_hints.min_aspect.y
@@ -3465,9 +3465,9 @@ client_update_size_hints(Client *client) {
         client->max_a = client->min_a = 0.0;
     }
 
-    has_maxes = client->maxw && client->maxh;
-    mins_match_maxes = client->maxw == client->minw
-                       && client->maxh == client->minh;
+    has_maxes = client->max_w && client->max_h;
+    mins_match_maxes = client->max_w == client->min_w
+                       && client->max_h == client->min_h;
     client->is_fixed = has_maxes && mins_match_maxes;
 
     client->hintsvalid = 1;
