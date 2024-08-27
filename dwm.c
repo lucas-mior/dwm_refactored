@@ -374,10 +374,10 @@ user_alt_tab(const Arg *) {
         user_view_tag(&(Arg){ .ui = (uint)~0 });
     user_focus_next(&(Arg){ .i = alt_tab_direction });
 
-    for (int i = 0; i < 100; i += 1) {
-        struct timespec pause;
-        pause.tv_sec = 0;
-        pause.tv_nsec = 1000000;
+    /* for (int i = 0; i < 100; i += 1) { */
+    /*     struct timespec pause; */
+    /*     pause.tv_sec = 0; */
+    /*     pause.tv_nsec = 1000000; */
 
         if (grabbed_keyboard != GrabSuccess) {
             grabbed_keyboard = XGrabKeyboard(display, DefaultRootWindow(display), True,
@@ -387,12 +387,16 @@ user_alt_tab(const Arg *) {
             XGrabButton(display, AnyButton, AnyModifier, None, False,
                         BUTTONMASK, GrabModeAsync, GrabModeAsync,
                         None, None);
-            break;
+            /* break; */
+        } else {
+            dwm_debug("GrabKeyboard failed..., exiting");
+            sleep(2);
+            exit(1);
         }
-        nanosleep(&pause, NULL);
-        if (i == 100 - 1)
-            grabbed = 0;
-    }
+        /* nanosleep(&pause, NULL); */
+        /* if (i == 100 - 1) */
+        /*     grabbed = 0; */
+    /* } */
 
     while (grabbed) {
         XEvent event;
