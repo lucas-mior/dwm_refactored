@@ -715,7 +715,7 @@ user_mouse_move(const Arg *) {
     Monitor *monitor_aux;
     XEvent event;
     Time last_time = 0;
-    int sucess;
+    int success;
     int x, y;
     int ocx, ocy;
 
@@ -730,10 +730,10 @@ user_mouse_move(const Arg *) {
     ocx = client->x;
     ocy = client->y;
 
-    sucess = XGrabPointer(display, root, False,
+    success = XGrabPointer(display, root, False,
                           MOUSEMASK, GrabModeAsync, GrabModeAsync,
                           None, cursor[CursorMove]->cursor, CurrentTime);
-    if (sucess != GrabSuccess)
+    if (success != GrabSuccess)
         return;
 
     if (!get_root_pointer(&x, &y))
@@ -810,7 +810,7 @@ user_mouse_resize(const Arg *) {
     Monitor *monitor;
     XEvent event;
     Time last_time = 0;
-    int sucess;
+    int success;
 
     if (!(client = current_monitor->selected_client))
         return;
@@ -821,10 +821,10 @@ user_mouse_resize(const Arg *) {
 
     monitor_restack(current_monitor);
 
-    sucess = XGrabPointer(display, root, False,
+    success = XGrabPointer(display, root, False,
                           MOUSEMASK, GrabModeAsync, GrabModeAsync,
                           None, cursor[CursorResize]->cursor, CurrentTime);
-    if (sucess != GrabSuccess)
+    if (success != GrabSuccess)
         return;
 
     XWarpPointer(display, None, client->window,
@@ -2004,14 +2004,14 @@ client_get_atom_property(Client *client, Atom property) {
     Atom actual_type_return;
     Atom atom = None;
     Atom *prop_return = NULL;
-    int sucess;
+    int success;
 
-    sucess = XGetWindowProperty(display, client->window, property,
+    success = XGetWindowProperty(display, client->window, property,
                                 0L, sizeof(atom), False, XA_ATOM,
                                 &actual_type_return, &actual_format_return,
                                 &nitems_return, &nitems_return,
                                 (uchar **)&prop_return);
-    if (sucess == Success && prop_return) {
+    if (success == Success && prop_return) {
         atom = *prop_return;
         XFree(prop_return);
     }
@@ -2063,14 +2063,14 @@ get_window_state(Window window) {
     ulong nitems_return;
     ulong bytes_after_return;
     Atom actual_type_return;
-    int sucess;
+    int success;
 
-    sucess = XGetWindowProperty(display, window, wmatom[WMState],
+    success = XGetWindowProperty(display, window, wmatom[WMState],
                                 0L, 2L, False, wmatom[WMState],
                                 &actual_type_return, &actual_format_return,
                                 &nitems_return, &bytes_after_return,
                                 (uchar **)&prop_return);
-    if (sucess != Success)
+    if (success != Success)
         return -1;
 
     if (nitems_return != 0)
@@ -2084,14 +2084,14 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
     char **list_return = NULL;
     int count_return;
     XTextProperty text_property;
-    int sucess;
+    int success;
 
     if (!text || size == 0)
         return 0;
     text[0] = '\0';
 
-    sucess = XGetTextProperty(display, window, &text_property, atom);
-    if (!sucess || !text_property.nitems)
+    success = XGetTextProperty(display, window, &text_property, atom);
+    if (!success || !text_property.nitems)
         return 0;
 
     if (text_property.encoding == XA_STRING) {
@@ -2101,9 +2101,9 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
         return 1;
     }
 
-    sucess = XmbTextPropertyToTextList(display, &text_property,
+    success = XmbTextPropertyToTextList(display, &text_property,
                                        &list_return, &count_return);
-    if (sucess >= Success && count_return > 0 && *list_return) {
+    if (success >= Success && count_return > 0 && *list_return) {
         strncpy(text, *list_return, size - 1);
         XFreeStringList(list_return);
     }
@@ -2499,12 +2499,12 @@ void
 handler_map_request(XEvent *event) {
     static XWindowAttributes window_attributes;
     XMapRequestEvent *map_request_event = &event->xmaprequest;
-    int sucess;
+    int success;
 
-    sucess = XGetWindowAttributes(display,
+    success = XGetWindowAttributes(display,
                                   map_request_event->window,
                                   &window_attributes);
-    if (!sucess)
+    if (!success)
         return;
 
     if (window_attributes.override_redirect)
@@ -2709,14 +2709,14 @@ client_new(Window window, XWindowAttributes *window_attributes) {
         ulong nitems_return;
         ulong bytes_after_return;
         Atom actual_type_return;
-        int sucess;
+        int success;
 
-        sucess = XGetWindowProperty(display, client->window, netatom[NetClientInfo],
+        success = XGetWindowProperty(display, client->window, netatom[NetClientInfo],
                                     0L, 2L, False, XA_CARDINAL,
                                     &actual_type_return, &actual_format_return,
                                     &nitems_return, &bytes_after_return,
                                     (uchar **)&prop_return);
-        if (sucess == Success && nitems_return == 2) {
+        if (success == Success && nitems_return == 2) {
             client->tags = (uint)*prop_return;
             for (Monitor *mon = monitors; mon; mon = mon->next) {
                 if (mon->num == (int)*(prop_return+1)) {
@@ -2902,12 +2902,12 @@ scan_windows(void) {
     Window *children_return = NULL;
     uint nchildren_return;
     XWindowAttributes window_attributes;
-    int sucess;
+    int success;
 
-    sucess = XQueryTree(display, root,
+    success = XQueryTree(display, root,
                         &root_return, &parent_return,
                         &children_return, &nchildren_return);
-    if (!sucess)
+    if (!success)
         return;
 
     for (uint i = 0; i < nchildren_return; i += 1) {
@@ -3492,11 +3492,11 @@ client_update_size_hints(Client *client) {
     bool has_maxes;
     bool mins_match_maxes;
     XSizeHints size_hints;
-    int sucess;
+    int success;
 
-    sucess = XGetWMNormalHints(display, client->window,
+    success = XGetWMNormalHints(display, client->window,
                                &size_hints, &supplied_return);
-    if (!sucess) {
+    if (!success) {
         /* size_hints is uninitialized,
          * ensure that size_hints.flags aren't used */
         size_hints.flags = PSize;
@@ -3628,15 +3628,15 @@ client_update_icon(Client *client) {
     uint32 area_find = 0;
     uint *picture_width = &client->icon_width;
     uint *picture_height = &client->icon_height;
-    int sucess;
+    int success;
 
     client_free_icon(client);
-    sucess = XGetWindowProperty(display, window, netatom[NetWMIcon],
+    success = XGetWindowProperty(display, window, netatom[NetWMIcon],
                                 0L, LONG_MAX, False, AnyPropertyType,
                                 &actual_type_return, &actual_format_return,
                                 &nitems_return, &bytes_after_return,
                                 (uchar **)&prop_return);
-    if (sucess != Success)
+    if (success != Success)
         return;
 
     if (nitems_return == 0 || actual_format_return != 32) {
