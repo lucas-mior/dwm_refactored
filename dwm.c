@@ -3332,12 +3332,12 @@ update_geometry(void) {
         XineramaScreenInfo *unique = NULL;
         int i = 0;
         int j = 0;
-        int n = 0;
+        int number_monitors = 0;
         int number;
 
         info = XineramaQueryScreens(display, &number);
         for (monitor = monitors; monitor; monitor = monitor->next)
-            n += 1;
+            number_monitors += 1;
 
         /* only consider unique geometries as separate screens */
         unique = ecalloc((size_t) number, sizeof(*unique));
@@ -3350,8 +3350,8 @@ update_geometry(void) {
         XFree(info);
         number = j;
 
-        /* new monitors if number > n */
-        for (int k = n; k < number; k += 1) {
+        /* new monitors if number > number_monitors */
+        for (int k = number_monitors; k < number; k += 1) {
             for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
             if (monitor)
                 monitor->next = create_monitor();
@@ -3359,7 +3359,7 @@ update_geometry(void) {
                 monitors = create_monitor();
         }
         for (i = 0, monitor = monitors; i < number && monitor; monitor = monitor->next, i += 1) {
-            if (i >= n
+            if (i >= number_monitors
                 || unique[i].x_org != monitor->mon_x || unique[i].y_org != monitor->mon_y
                 || unique[i].width != monitor->mon_w || unique[i].height != monitor->mon_h) {
                 dirty = true;
@@ -3371,8 +3371,8 @@ update_geometry(void) {
                 monitor_update_bar_position(monitor);
             }
         }
-        /* removed monitors if n > number */
-        for (int k = number; k < n; k += 1) {
+        /* removed monitors if number_monitors > number */
+        for (int k = number; k < number_monitors; k += 1) {
             for (monitor = monitors;
                  monitor && monitor->next;
                  monitor = monitor->next);
