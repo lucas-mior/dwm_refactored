@@ -675,7 +675,7 @@ user_increment_number_master(const Arg *arg) {
 
 void
 user_kill_client(const Arg *) {
-    Client selected = current_monitor->selected_client;
+    Client *selected = current_monitor->selected_client;
     if (!selected)
         return;
 
