@@ -414,8 +414,8 @@ void error(char *format, ...) {
 
 void
 user_alt_tab(const Arg *) {
-    Monitor *old = current_monitor;
     static bool alt_tab_direction = false;
+    Monitor *old = current_monitor;
     bool grabbed = false;
     int grab_status = 1000;
     if (all_clients == NULL)
