@@ -2642,7 +2642,7 @@ handler_xerror_start(Display *error_display, XErrorEvent *error_event) {
 #ifdef XINERAMA
 static int
 is_unique_geometry(XineramaScreenInfo *unique,
-                   size_t n, XineramaScreenInfo *screen_info) {
+                   int n, XineramaScreenInfo *screen_info) {
     while (n--) {
         bool unique_x = unique[n].x_org == screen_info->x_org;
         bool unique_y = unique[n].y_org == screen_info->y_org;
@@ -3401,7 +3401,7 @@ update_geometry(void) {
         /* only consider unique geometries as separate screens */
         unique = ecalloc((size_t) number_unique, sizeof(*unique));
         while (i < number_unique) {
-            if (is_unique_geometry(unique, (size_t) j, &screen_info[i])) {
+            if (is_unique_geometry(unique, j, &screen_info[i])) {
                 memcpy(&unique[j], &screen_info[i], sizeof(*unique));
                 j += 1;
             }
