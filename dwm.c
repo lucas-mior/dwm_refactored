@@ -2024,7 +2024,8 @@ get_status_bar_pid(void) {
     FILE *fp;
 
     if (status_program_pid > 0) {
-        snprintf(buffer, sizeof(buffer), "/proc/%u/cmdline", status_program_pid);
+        snprintf(buffer, sizeof(buffer),
+                 "/proc/%u/cmdline", status_program_pid);
         if ((fp = fopen(buffer, "r"))) {
             fgets(buffer, sizeof(buffer), fp);
             while ((client = strchr(string, '/')))
@@ -2653,9 +2654,10 @@ is_unique_geometry(XineramaScreenInfo *unique,
 void
 client_new(Window window, XWindowAttributes *window_attributes) {
     Client *client;
-    Client *t = NULL;
-    Window trans = None;
+    Client *trans_client = NULL;
+    Window trans_window = None;
     XWindowChanges window_changes;
+    int success;
 
     client = ecalloc(1, sizeof(*client));
     client->window = window;
@@ -2668,9 +2670,11 @@ client_new(Window window, XWindowAttributes *window_attributes) {
 
     client_update_icon(client);
     client_update_title(client);
-    if (XGetTransientForHint(display, window, &trans) && (t = window_to_client(trans))) {
-        client->monitor = t->monitor;
-        client->tags = t->tags;
+
+    success = XGetTransientForHint(display, window, &trans_window);
+    if (success && (trans_client = window_to_client(trans_window))) {
+        client->monitor = trans_client->monitor;
+        client->tags = trans_client->tags;
     } else {
         client->monitor = current_monitor;
         client_apply_rules(client);
@@ -2688,7 +2692,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     XConfigureWindow(display, window, CWBorderWidth, &window_changes);
     XSetWindowBorder(display, window, scheme[SchemeNormal][ColBorder].pixel);
 
-    /* propagates border_pixels, if size doesn't change */
+    /* propagates border_pixels, if size doesn'trans_client change */
     client_configure(client);
     client_update_window_type(client);
     client_update_size_hints(client);
@@ -2739,7 +2743,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     client_grab_buttons(client, 0);
 
     if (!client->is_floating) {
-        client->is_floating = trans != None || client->is_fixed;
+        client->is_floating = trans_window != None || client->is_fixed;
         client->old_state = client->is_floating;
     }
     if (client->is_floating)
