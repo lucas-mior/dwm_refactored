@@ -278,7 +278,7 @@ static int get_text_property(Window, Atom, char *, uint);
 static void grab_keys(void);
 static void get_signal_number(char *, int, int);
 
-static void manage(Window, XWindowAttributes *);
+static void client_new(Window, XWindowAttributes *);
 static Monitor *rectangle_to_monitor(int, int, int, int);
 static void scan_windows(void);
 static void setup_once(void);
@@ -2515,7 +2515,7 @@ handler_map_request(XEvent *event) {
         return;
 
     if (!window_to_client(map_request_event->window))
-        manage(map_request_event->window, &window_attributes);
+        client_new(map_request_event->window, &window_attributes);
     return;
 }
 
@@ -2659,7 +2659,7 @@ is_unique_geometry(XineramaScreenInfo *unique,
 #endif /* XINERAMA */
 
 void
-manage(Window window, XWindowAttributes *window_attributes) {
+client_new(Window window, XWindowAttributes *window_attributes) {
     Client *client;
     Client *t = NULL;
     Window trans = None;
@@ -2913,7 +2913,7 @@ scan_windows(void) {
 
         if (window_attributes.map_state == IsViewable
             || get_window_state(child) == IconicState) {
-            manage(child, &window_attributes);
+            client_new(child, &window_attributes);
         }
     }
     for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
@@ -2926,7 +2926,7 @@ scan_windows(void) {
 
         if (window_attributes.map_state == IsViewable
             || get_window_state(child) == IconicState) {
-            manage(child, &window_attributes);
+            client_new(child, &window_attributes);
         }
     }
 
