@@ -146,22 +146,22 @@ static const Key keys[] = {
 };
 
 /* button definitions */
-/* click can be ClickTagBar, ClickLayoutSymbol, ClickStatusText, ClickWinTitle, ClickClientWin, or ClickRootWin */
+/* click can be ClickBarTags, ClickBarLayoutSymbol, ClickBarStatus, ClickBarTitle, ClickClientWin, or ClickRootWin */
 static const Button buttons[] = {
 	/* click                event mask     button   function                argument */
-	{ ClickLayoutSymbol,      0,           Button1, user_set_layout,        {0} },
-	{ ClickLayoutSymbol,      0,           Button3, user_set_layout,        {.v = &layouts[2]} },
-	{ ClickWinTitle,          0,           Button2, user_promote_to_master, {0} },
+	{ ClickBarLayoutSymbol,      0,           Button1, user_set_layout,        {0} },
+	{ ClickBarLayoutSymbol,      0,           Button3, user_set_layout,        {.v = &layouts[2]} },
+	{ ClickBarTitle,          0,           Button2, user_promote_to_master, {0} },
 	{ ClickClientWin,         MODKEY,      Button1, user_mouse_move,        {0} },
 	{ ClickClientWin,         MODKEY,      Button2, user_toggle_floating,   {0} },
 	{ ClickClientWin,         MODKEY,      Button3, user_mouse_resize,      {0} },
-	{ ClickStatusText,        0,           Button1, user_signal_status_bar, {.i = 1} },
-	{ ClickStatusText,        0,           Button2, user_signal_status_bar, {.i = 2} },
-	{ ClickStatusText,        0,           Button3, user_signal_status_bar, {.i = 3} },
-	{ ClickStatusText,        0,           Button4, user_signal_status_bar, {.i = 4} },
-	{ ClickStatusText,        0,           Button5, user_signal_status_bar, {.i = 5} },
-	{ ClickStatusText,        ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
-	{ ClickStatusText,        ControlMask, Button1, user_signal_status_bar, {.i = 7} },
+	{ ClickBarStatus,        0,           Button1, user_signal_status_bar, {.i = 1} },
+	{ ClickBarStatus,        0,           Button2, user_signal_status_bar, {.i = 2} },
+	{ ClickBarStatus,        0,           Button3, user_signal_status_bar, {.i = 3} },
+	{ ClickBarStatus,        0,           Button4, user_signal_status_bar, {.i = 4} },
+	{ ClickBarStatus,        0,           Button5, user_signal_status_bar, {.i = 5} },
+	{ ClickBarStatus,        ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
+	{ ClickBarStatus,        ControlMask, Button1, user_signal_status_bar, {.i = 7} },
 	{ ClickBottomBar,         0,           Button1, user_signal_status_bar, {.i = 1} },
 	{ ClickBottomBar,         0,           Button2, user_signal_status_bar, {.i = 2} },
 	{ ClickBottomBar,         0,           Button3, user_signal_status_bar, {.i = 3} },
@@ -169,9 +169,9 @@ static const Button buttons[] = {
 	{ ClickBottomBar,         0,           Button5, user_signal_status_bar, {.i = 5} },
 	{ ClickBottomBar,         ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
 	{ ClickBottomBar,         ControlMask, Button1, user_signal_status_bar, {.i = 7} },
-	{ ClickTagBar,            0,           Button1, user_view_tag,          {0} },
-	{ ClickTagBar,            0,           Button3, user_toggle_view,       {0} },
-	{ ClickTagBar,            MODKEY,      Button1, user_tag,               {0} },
-	{ ClickTagBar,            MODKEY,      Button3, user_toggle_tag,        {0} },
+	{ ClickBarTags,            0,           Button1, user_view_tag,          {0} },
+	{ ClickBarTags,            0,           Button3, user_toggle_view,       {0} },
+	{ ClickBarTags,            MODKEY,      Button1, user_tag,               {0} },
+	{ ClickBarTags,            MODKEY,      Button3, user_toggle_tag,        {0} },
 };
 

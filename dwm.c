@@ -80,7 +80,7 @@ enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType, /* EWMH atoms */
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast };
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* atoms */
-enum { ClickTagBar, ClickLayoutSymbol, ClickStatusText, ClickWinTitle,
+enum { ClickBarTags, ClickBarLayoutSymbol, ClickBarStatus, ClickBarTitle,
        ClickBottomBar, ClickClientWin, ClickRootWin, ClickLast };
 
 typedef union {
@@ -1712,15 +1712,15 @@ handler_button_press(XEvent *event) {
             x += (uint)tag_width[i];
         } while ((uint)button_event->x >= x && ++i < LENGTH(tags));
         if (i < LENGTH(tags)) {
-            click = ClickTagBar;
+            click = ClickBarTags;
             arg.ui = 1 << i;
         } else if ((uint)button_event->x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
-            click = ClickLayoutSymbol;
+            click = ClickBarLayoutSymbol;
         } else if (button_event->x > current_monitor->win_w - status_text_pixels) {
             char *s;
 
             x = (uint)(current_monitor->win_w - status_text_pixels);
-            click = ClickStatusText;
+            click = ClickBarStatus;
             statussig = 0;
 
             for (char *text = s = top_status; *s && (int) x <= button_event->x; s += 1) {
@@ -1738,7 +1738,7 @@ handler_button_press(XEvent *event) {
                 }
             }
         } else {
-            click = ClickWinTitle;
+            click = ClickBarTitle;
         }
     } else if (button_event->window == current_monitor->bottom_bar_window) {
         int x = current_monitor->win_w - bottom_status_pixels;
@@ -1775,7 +1775,7 @@ handler_button_press(XEvent *event) {
             && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state)) {
             const Arg *argument;
 
-            if (click == ClickTagBar && buttons[i].arg.i == 0)
+            if (click == ClickBarTags && buttons[i].arg.i == 0)
                 argument = &arg;
             else
                 argument = &buttons[i].arg;
