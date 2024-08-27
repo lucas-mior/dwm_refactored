@@ -1664,16 +1664,17 @@ monitor_draw_bar(Monitor *monitor) {
     x = 0;
     for (int i = 0; i < LENGTH(tags); i += 1) {
         Client *client_with_icon = clients_with_icon[i];
+        char *master_name = masters_names[i];
         uint which_scheme;
 
-        if (masters_names[i]) {
+        if (master_name) {
             if (client_with_icon) {
                 snprintf(tags_display, sizeof(tags_display), "%s", tags[i]);
             } else {
-                ulong n = strcspn(masters_names[i], tag_label_delim);
-                masters_names[i][n] = '\0';
+                ulong n = strcspn(master_name, tag_label_delim);
+                master_name[n] = '\0';
                 snprintf(tags_display, sizeof(tags_display),
-                         tag_label_format, tags[i], masters_names[i]);
+                         tag_label_format, tags[i], master_name);
             }
         } else {
             snprintf(tags_display, sizeof(tags_display),
