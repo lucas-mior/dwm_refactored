@@ -3488,7 +3488,8 @@ client_update_size_hints(Client *client) {
     sucess = XGetWMNormalHints(display, client->window,
                                &size_hints, &supplied_return);
     if (!sucess) {
-        /* size_hints is uninitialized, ensure that size_hints.flags aren't used */
+        /* size_hints is uninitialized,
+         * ensure that size_hints.flags aren't used */
         size_hints.flags = PSize;
     }
 
