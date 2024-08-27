@@ -2204,13 +2204,14 @@ client_grab_buttons(Client *client, int focused) {
                     BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
     }
     for (int i = 0; i < LENGTH(buttons); i += 1) {
-        if (buttons[i].click == ClickClientWin) {
-            for (int j = 0; j < LENGTH(modifiers); j += 1) {
-                XGrabButton(display, (uint)buttons[i].button,
-                            buttons[i].mask | modifiers[j],
-                            client->window, False, BUTTONMASK,
-                            GrabModeAsync, GrabModeSync, None, None);
-            }
+        if (buttons[i].click != ClickClientWin)
+            continue;
+
+        for (int j = 0; j < LENGTH(modifiers); j += 1) {
+            XGrabButton(display, (uint)buttons[i].button,
+                        buttons[i].mask | modifiers[j],
+                        client->window, False, BUTTONMASK,
+                        GrabModeAsync, GrabModeSync, None, None);
         }
     }
     return;
