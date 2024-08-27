@@ -3335,7 +3335,8 @@ client_unmanage(Client *client, int destroyed) {
         XSelectInput(display, client->window, NoEventMask);
 
         /* restore border */
-        XConfigureWindow(display, client->window, CWBorderWidth, &window_changes);
+        XConfigureWindow(display, client->window,
+                         CWBorderWidth, &window_changes);
         XUngrabButton(display, AnyButton, AnyModifier, client->window);
         client_set_client_state(client, WithdrawnState);
 
