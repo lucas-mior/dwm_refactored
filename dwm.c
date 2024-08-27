@@ -944,7 +944,8 @@ user_set_master_fact(const Arg *arg) {
     if (factor < 0.05f || factor > 0.95f)
         return;
 
-    current_monitor->master_fact = current_monitor->pertag->master_facts[tag] = factor;
+    current_monitor->master_fact
+        = current_monitor->pertag->master_facts[tag] = factor;
     monitor_arrange(current_monitor);
     return;
 }
@@ -979,16 +980,17 @@ user_tag(const Arg *arg) {
 void
 user_tag_monitor(const Arg *arg) {
     Monitor *monitor = direction_to_monitor(arg->i);
+    Client *selected = current_monitor->selected_client;
 
-    if (!current_monitor->selected_client || !monitors->next)
+    if (!selected || !monitors->next)
         return;
 
-    if (current_monitor->selected_client->is_floating) {
-        current_monitor->selected_client->x += monitor->mon_x - current_monitor->mon_x;
-        current_monitor->selected_client->y += monitor->mon_y - current_monitor->mon_y;
+    if (selected->is_floating) {
+        selected->x += monitor->mon_x - current_monitor->mon_x;
+        selected->y += monitor->mon_y - current_monitor->mon_y;
     }
 
-    client_send_monitor(current_monitor->selected_client, monitor);
+    client_send_monitor(selected, monitor);
     usleep(50);
     client_focus(NULL);
     usleep(50);
