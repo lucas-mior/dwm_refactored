@@ -904,10 +904,10 @@ user_mouse_resize(const Arg *) {
             under_y =  client->monitor->win_y + new_h <= current_monitor->win_y + current_monitor->win_h;
             monitor_floating = !(current_monitor->layout[current_monitor->lay_i]->function);
 
-            if (over_x && under_x && over_y && under_y) {
+            if (!client->is_floating && !monitor_floating) {
                 bool over_snap_x = abs(new_w - client->w) > SNAP_PIXELS;
                 bool over_snap_y = abs(new_h - client->h) > SNAP_PIXELS;
-                if (!client->is_floating && !monitor_floating
+                if (over_x && under_x && over_y && under_y
                     && (over_snap_x || over_snap_y)) {
                     user_toggle_floating(NULL);
                 }
