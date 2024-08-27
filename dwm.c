@@ -2180,9 +2180,10 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
         XFree(text_property.value);
         return 1;
     }
-    if (XmbTextPropertyToTextList(display, &text_property,
-                                  &list_return, &count_return) >= Success
-                                  && count_return > 0 && *list_return) {
+
+    sucess = XmbTextPropertyToTextList(display, &text_property,
+                                       &list_return, &count_return);
+    if (sucess >= Success && count_return > 0 && *list_return) {
         strncpy(text, *list_return, size - 1);
         XFreeStringList(list_return);
     }
