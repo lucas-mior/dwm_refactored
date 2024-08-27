@@ -368,6 +368,7 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 void
 user_alt_tab(const Arg *) {
+    dwm_debug("user_alt_tab");
     int grabbed = 1;
     int grabbed_keyboard = 1000;
     if (all_clients == NULL)
@@ -376,6 +377,8 @@ user_alt_tab(const Arg *) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
         user_view_tag(&(Arg){ .ui = (uint)~0 });
     user_focus_next(&(Arg){ .i = alt_tab_direction });
+
+    dwm_debug("initializing grab loop\n");
 
     for (int i = 0; i < 100; i += 1) {
         struct timespec pause;
@@ -396,6 +399,8 @@ user_alt_tab(const Arg *) {
         if (i == 100 - 1)
             grabbed = 0;
     }
+
+    dwm_debug("grabbed keyboard\n");
 
     while (grabbed) {
         XEvent event;
@@ -449,6 +454,7 @@ user_alt_tab(const Arg *) {
             break;
         }
     }
+    dwm_debug("after while grabbed\n");
     return;
 }
 
