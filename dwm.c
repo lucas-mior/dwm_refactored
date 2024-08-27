@@ -1910,7 +1910,9 @@ handler_enter_notify(XEvent *event) {
     if (monitor != current_monitor) {
         unfocus(current_monitor->selected_client, 1);
         current_monitor = monitor;
-    } else if (!client || client == current_monitor->selected_client) {
+    } else if (client == current_monitor->selected_client) {
+        return;
+    } else if (!client) {
         return;
     }
     focus(client);
