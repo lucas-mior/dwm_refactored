@@ -2266,12 +2266,15 @@ handler_configure_request(XEvent *event) {
     XWindowChanges window_changes;
 
     if ((client = window_to_client(conf_request_event->window))) {
+        bool monitor_floating;
         if (conf_request_event->value_mask & CWBorderWidth) {
             client->border_pixels = conf_request_event->border_width;
             XSync(display, False);
             return;
         }
-        if (client->is_floating || !current_monitor->layout[current_monitor->lay_i]->function) {
+
+        monitor_floating = !current_monitor->layout[current_monitor->lay_i]->function;
+        if (client->is_floating || monitor_floating) {
             bool mask_xy;
             bool mask_hw;
 
