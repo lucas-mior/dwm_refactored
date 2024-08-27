@@ -2953,7 +2953,7 @@ client_set_fullscreen(Client *client, int fullscreen) {
     if (fullscreen && !client->is_fullscreen) {
         XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
-        client->is_fullscreen = 1;
+        client->is_fullscreen = true;
         if (client->is_fake_fullscreen) {
             client_resize_apply(client,
                                 client->x, client->y, client->w, client->h);
@@ -2962,7 +2962,7 @@ client_set_fullscreen(Client *client, int fullscreen) {
         client->old_state = client->is_floating;
         client->old_border_pixels = client->border_pixels;
         client->border_pixels = 0;
-        client->is_floating = 1;
+        client->is_floating = true;
 
         client_resize_apply(client,
                             client->monitor->mon_x, client->monitor->mon_y,
@@ -3308,7 +3308,7 @@ update_client_list(void) {
 
 int
 update_geometry(void) {
-    int dirty = 0;
+    bool dirty = false;
 
 #ifdef XINERAMA
     if (XineramaIsActive(display)) {
@@ -3347,7 +3347,7 @@ update_geometry(void) {
             if (i >= n
                 || unique[i].x_org != monitor->mon_x || unique[i].y_org != monitor->mon_y
                 || unique[i].width != monitor->mon_w || unique[i].height != monitor->mon_h) {
-                dirty = 1;
+                dirty = true;
                 monitor->num = i;
                 monitor->mon_x = monitor->win_x = unique[i].x_org;
                 monitor->mon_y = monitor->win_y = unique[i].y_org;
@@ -3363,7 +3363,7 @@ update_geometry(void) {
                  monitor = monitor->next);
 
             while ((client = monitor->clients)) {
-                dirty = 1;
+                dirty = true;
                 monitor->clients = client->next;
                 all_clients = client->all_next;
                 client_detach_stack(client);
@@ -3383,7 +3383,7 @@ update_geometry(void) {
         if (!monitors)
             monitors = create_monitor();
         if (monitors->mon_w != screen_width || monitors->mon_h != screen_height) {
-            dirty = 1;
+            dirty = true;
             monitors->mon_w = monitors->win_w = screen_width;
             monitors->mon_h = monitors->win_h = screen_height;
             monitor_update_bar_position(monitors);
@@ -3662,7 +3662,7 @@ client_update_window_type(Client *client) {
     if (state == netatom[NetWMFullscreen])
         client_set_fullscreen(client, 1);
     if (window_type == netatom[NetWMWindowTypeDialog])
-        client->is_floating = 1;
+        client->is_floating = true;
     return;
 }
 
