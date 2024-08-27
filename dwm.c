@@ -228,7 +228,7 @@ static void client_configure(Client *);
 static void client_detach(Client *);
 static void client_detach_stack(Client *);
 static void client_focus(Client *);
-static Atom client_get_atom_property(Client *, Atom );
+static Atom client_get_atom_property(Client *, Atom);
 static void client_grab_buttons(Client *, int focused);
 static Client *client_next_tiled(Client *);
 static void client_pop(Client *);
