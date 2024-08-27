@@ -68,8 +68,8 @@ typedef unsigned char uchar;
 #define TAGMASK   ((1 << NUMTAGS) - 1)
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
 
-#define OPAQUE    0xffU
-#define TAGWIDTH  32
+#define OPAQUE 0xffU
+#define TAG_DISPLAY_SIZE 32
 
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
@@ -1568,7 +1568,7 @@ monitor_draw_bar(Monitor *monitor) {
     int w;
     int text_pixels = 0;
     int urgent = 0;
-    char tagdisp[TAGWIDTH];
+    char tags_display[TAG_DISPLAY_SIZE];
     char *masterclientontag[LENGTH(tags)];
     Client *icontagclient[LENGTH(tags)] = {0};
 
@@ -1631,16 +1631,17 @@ monitor_draw_bar(Monitor *monitor) {
 
         if (masterclientontag[i]) {
             if (client) {
-                snprintf(tagdisp, TAGWIDTH, "%s", tags[i]);
+                snprintf(tags_display, sizeof(tags_display), "%s", tags[i]);
             } else {
                 ulong n = strcspn(masterclientontag[i], tag_label_delim);
                 masterclientontag[i][n] = '\0';
-                snprintf(tagdisp, TAGWIDTH, tag_label_format, tags[i], masterclientontag[i]);
+                snprintf(tags_display, sizeof(tags_display),
+                         tag_label_format, tags[i], masterclientontag[i]);
             }
         } else {
-            snprintf(tagdisp, TAGWIDTH, tag_empty_format, tags[i]);
+            snprintf(tags_display, sizeof(tags_display), tag_empty_format, tags[i]);
         }
-        tag_width[i] = w = (int)TEXT_PIXELS(tagdisp);
+        tag_width[i] = w = (int)TEXT_PIXELS(tags_display);
 
         if (monitor->tagset[monitor->selected_tags] & 1 << i)
             which_scheme = SchemeSelected;
@@ -1649,7 +1650,7 @@ monitor_draw_bar(Monitor *monitor) {
         drw_setscheme(drw, scheme[which_scheme]);
 
         drw_text(drw, x, 0, (uint)w,
-                 bar_height, lrpad / 2, tagdisp, (int)urgent & 1 << i);
+                 bar_height, lrpad / 2, tags_display, (int)urgent & 1 << i);
         x += w;
         if (client) {
             drw_text(drw, x, 0, client->icon_width + lrpad/2,
