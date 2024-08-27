@@ -181,7 +181,7 @@ static void user_focus_monitor(const Arg *);
 static void user_focus_next(const Arg *);
 static void user_focus_stack(const Arg *);
 static void user_focus_urgent(const Arg *);
-static void user_inc_number_masters(const Arg *);
+static void user_increment_number_master(const Arg *);
 static void user_kill_client(const Arg *);
 static void user_mouse_move(const Arg *);
 static void user_mouse_resize(const Arg *);
@@ -655,7 +655,7 @@ user_focus_urgent(const Arg *) {
 }
 
 void
-user_inc_number_masters(const Arg *arg) {
+user_increment_number_master(const Arg *arg) {
     int nslave = -1;
     int new_number_masters;
     uint tag;
