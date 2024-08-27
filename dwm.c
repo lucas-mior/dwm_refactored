@@ -497,10 +497,13 @@ apply_rules(Client *client) {
         XFree(class_hint.res_class);
     if (class_hint.res_name)
         XFree(class_hint.res_name);
-    client->tags = client->tags & TAGMASK
-                   ? client->tags & TAGMASK
-                   : (client->monitor->tagset[client->monitor->selected_tags]
-                      & (uint)~SPTAGMASK);
+
+    if (client->tags & TAGMASK) {
+        client->tags = client->tags & TAGMASK;
+    } else {
+        uint which_tags = client->monitor->selected_tags;
+        client->tags = client->monitor->tagset[which_tags] & (uint)~SPTAGMASK;
+    }
     return;
 }
 
