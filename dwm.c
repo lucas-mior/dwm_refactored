@@ -1076,9 +1076,8 @@ user_focus_direction(const Arg *arg) {
             break;
         }
 
-
         if ((uint)client_score < best_score
-            || (left_or_up && client_score <= (int)best_score)) {
+            || (client_score <= (int)best_score && left_or_up)) {
             best_score = (uint)client_score;
             client = client_aux;
         }
