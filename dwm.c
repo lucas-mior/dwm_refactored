@@ -232,7 +232,7 @@ static int handler_xerror_dummy(Display *, XErrorEvent *);
 static int handler_xerror_start(Display *, XErrorEvent *);
 
 static void client_apply_rules(Client *);
-static int client_apply_size_hints(Client *, int *, int *, int *, int *, int);
+static int client_apply_size_hints(Client *, int *, int *, int *, int *, bool);
 static void client_attach(Client *);
 static void client_attach_stack(Client *);
 static void client_configure(Client *);
@@ -243,7 +243,7 @@ static Atom client_get_atom_property(Client *, Atom);
 static void client_grab_buttons(Client *, bool);
 static Client *client_next_tiled(Client *);
 static void client_pop(Client *);
-static void client_resize(Client *, int, int, int, int, int);
+static void client_resize(Client *, int, int, int, int, bool);
 static void client_resize_apply(Client *, int, int, int, int);
 static bool client_send_event(Client *, Atom);
 static void client_send_monitor(Client *, Monitor *);
@@ -527,7 +527,7 @@ user_aspect_resize(const Arg *arg) {
     new_height = client->h + h;
 
     XRaiseWindow(display, client->window);
-    client_resize(client, client->x, client->y, new_width, new_height, True);
+    client_resize(client, client->x, client->y, new_width, new_height, true);
     return;
 }
 
@@ -827,7 +827,7 @@ user_mouse_move(const Arg *) {
             }
 
             if (!monitor->layout[monitor->lay_i]->function || is_floating)
-                client_resize(client, new_x, new_y, client->w, client->h, 1);
+                client_resize(client, new_x, new_y, client->w, client->h, true);
             break;
         }
         default:
@@ -913,7 +913,7 @@ user_mouse_resize(const Arg *) {
                 }
             }
             if (client->is_floating || monitor_floating)
-                client_resize(client, client->x, client->y, new_w, new_h, 1);
+                client_resize(client, client->x, client->y, new_w, new_h, true);
             break;
         }
         default:
@@ -1098,7 +1098,7 @@ user_toggle_floating(const Arg *) {
         client_resize(client,
                       client->stored_fx, client->stored_fy,
                       client->stored_fw, client->stored_fh,
-                      False);
+                      false);
     } else {
         client->stored_fx = client->x;
         client->stored_fy = client->y;
@@ -1358,7 +1358,7 @@ client_apply_rules(Client *client) {
 
 int
 client_apply_size_hints(Client *client,
-                        int *x, int *y, int *w, int *h, int interact) {
+                        int *x, int *y, int *w, int *h, bool interact) {
     Monitor *monitor = client->monitor;
     int success;
 
@@ -1879,14 +1879,14 @@ monitor_layout_columns(Monitor *monitor) {
             client_resize(client,
                           x + monitor->win_x, monitor->win_y,
                           w - (2*client->border_pixels),
-                          monitor->win_h - (2*client->border_pixels), 0);
+                          monitor->win_h - (2*client->border_pixels), false);
             x += WIDTH(client);
         } else {
             h = (monitor->win_h - y) / (n - i);
             client_resize(client,
                           x + monitor->win_x, monitor->win_y + y,
                           monitor->win_w - x - (2*client->border_pixels),
-                          h - (2*client->border_pixels), 0);
+                          h - (2*client->border_pixels), false);
             y += HEIGHT(client);
         }
         i += 1;
@@ -1950,7 +1950,7 @@ monitor_layout_gapless_grid(Monitor *monitor) {
         new_y = monitor->win_y + row_i*client_height;
         new_w = column_width - 2*client->border_pixels;
         new_h = client_height - 2*client->border_pixels;
-        client_resize(client, new_x, new_y, new_w, new_h, False);
+        client_resize(client, new_x, new_y, new_w, new_h, false);
 
         row_i += 1;
         if (row_i >= nrows) {
@@ -1983,7 +1983,7 @@ monitor_layout_monocle(Monitor *monitor) {
         int new_y = monitor->win_y;
         int new_w = monitor->win_w - 2*client->border_pixels;
         int new_h = monitor->win_h - 2*client->border_pixels;
-        client_resize(client, new_x, new_y, new_w, new_h, 0);
+        client_resize(client, new_x, new_y, new_w, new_h, false);
     }
     return;
 }
@@ -2020,17 +2020,17 @@ monitor_layout_tile(Monitor *m) {
         if (i < m->number_masters) {
             h = (m->win_h - mon_y) / (MIN(n, m->number_masters) - i);
             client_resize(client,
-                   m->win_x, m->win_y + mon_y,
-                   mon_w - (2*client->border_pixels),
-                   h - (2*client->border_pixels), 0);
+                          m->win_x, m->win_y + mon_y,
+                          mon_w - (2*client->border_pixels),
+                          h - (2*client->border_pixels), false);
             if (mon_y + HEIGHT(client) < m->win_h)
                 mon_y += HEIGHT(client);
         } else {
             h = (m->win_h - tile_y) / (n - i);
             client_resize(client,
-                   m->win_x + mon_w, m->win_y + tile_y,
-                   m->win_w - mon_w - (2*client->border_pixels),
-                   h - (2*client->border_pixels), 0);
+                          m->win_x + mon_w, m->win_y + tile_y,
+                          m->win_w - mon_w - (2*client->border_pixels),
+                          h - (2*client->border_pixels), false);
             if (tile_y + HEIGHT(client) < m->win_h)
                 tile_y += HEIGHT(client);
         }
@@ -2874,7 +2874,7 @@ rectangle_to_monitor(int x, int y, int w, int h) {
 }
 
 void
-client_resize(Client *client, int x, int y, int w, int h, int interact) {
+client_resize(Client *client, int x, int y, int w, int h, bool interact) {
     if (client_apply_size_hints(client, &x, &y, &w, &h, interact))
         client_resize_apply(client, x, y, w, h);
     return;
@@ -3271,7 +3271,9 @@ client_show_hide(Client *client) {
         monitor_floating = !mon->layout[mon->lay_i]->function;
         if ((monitor_floating || client->is_floating)
             && (!client->is_fullscreen || client->is_fake_fullscreen)) {
-            client_resize(client, client->x, client->y, client->w, client->h, 0);
+            client_resize(client,
+                          client->x, client->y, client->w, client->h,
+                          false);
         }
         client_show_hide(client->stack_next);
     } else {
