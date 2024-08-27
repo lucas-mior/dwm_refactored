@@ -3708,7 +3708,7 @@ client_update_wm_hints(Client *client) {
     if (wm_hints->flags & InputHint)
         client->never_focus = !wm_hints->input;
     else
-        client->never_focus = 0;
+        client->never_focus = false;
     XFree(wm_hints);
     return;
 }
