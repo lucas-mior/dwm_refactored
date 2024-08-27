@@ -3401,8 +3401,10 @@ update_geometry(void) {
         /* only consider unique geometries as separate screens */
         unique = ecalloc((size_t) number_unique, sizeof(*unique));
         while (i < number_unique) {
-            if (is_unique_geometry(unique, (size_t) j, &screen_info[i]))
-                memcpy(&unique[j++], &screen_info[i], sizeof(XineramaScreenInfo));
+            if (is_unique_geometry(unique, (size_t) j, &screen_info[i])) {
+                memcpy(&unique[j], &screen_info[i], sizeof(*unique));
+                j += 1;
+            }
 
             i += 1;
         }
