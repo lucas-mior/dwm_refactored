@@ -414,6 +414,7 @@ void error(char *format, ...) {
 
 void
 user_alt_tab(const Arg *) {
+    Monitor *old = current_monitor;
     static bool alt_tab_direction = false;
     bool grabbed = false;
     int grab_status = 1000;
@@ -421,7 +422,6 @@ user_alt_tab(const Arg *) {
         return;
 
     client_unfocus(current_monitor->selected_client, false);
-    Monitor *old = current_monitor;
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         current_monitor = monitor;
         client_focus(NULL);
