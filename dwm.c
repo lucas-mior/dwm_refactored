@@ -1893,7 +1893,7 @@ handler_destroy_notify(XEvent *e) {
 void
 handler_enter_notify(XEvent *event) {
     Client *client;
-    Monitor *m;
+    Monitor *monitor;
     XCrossingEvent *crossing_event = &event->xcrossing;
     bool is_root = crossing_event->window == root;
     bool notify_normal = crossing_event->mode == NotifyNormal;
@@ -1903,10 +1903,14 @@ handler_enter_notify(XEvent *event) {
         return;
 
     client = window_to_client(crossing_event->window);
-    m = client ? client->monitor : window_to_monitor(crossing_event->window);
-    if (m != current_monitor) {
+    if (client)
+        monitor = client->monitor;
+    else
+        monitor = window_to_monitor(crossing_event->window);
+
+    if (monitor != current_monitor) {
         unfocus(current_monitor->selected_client, 1);
-        current_monitor = m;
+        current_monitor = monitor;
     } else if (!client || client == current_monitor->selected_client) {
         return;
     }
