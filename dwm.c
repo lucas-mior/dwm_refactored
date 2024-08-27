@@ -3631,10 +3631,10 @@ client_update_icon(Client *client) {
 
     client_free_icon(client);
     success = XGetWindowProperty(display, window, net_atoms[NetWMIcon],
-                                0L, LONG_MAX, False, AnyPropertyType,
-                                &actual_type_return, &actual_format_return,
-                                &nitems_return, &bytes_after_return,
-                                (uchar **)&prop_return);
+                                 0L, LONG_MAX, False, AnyPropertyType,
+                                 &actual_type_return, &actual_format_return,
+                                 &nitems_return, &bytes_after_return,
+                                 (uchar **)&prop_return);
     if (success != Success)
         return;
 
