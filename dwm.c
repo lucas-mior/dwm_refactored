@@ -3396,31 +3396,30 @@ update_geometry(void) {
         int i;
         int j;
         int n = 0;
-        int nn;
+        int number;
 
-        info = XineramaQueryScreens(display, &nn);
-        for (monitor = monitors; monitor; monitor = monitor->next) {
+        info = XineramaQueryScreens(display, &number);
+        for (monitor = monitors; monitor; monitor = monitor->next)
             n += 1;
-        }
 
         /* only consider unique geometries as separate screens */
-        unique = ecalloc((size_t) nn, sizeof(*unique));
-        for (i = 0, j = 0; i < nn; i += 1) {
+        unique = ecalloc((size_t) number, sizeof(*unique));
+        for (i = 0, j = 0; i < number; i += 1) {
             if (is_unique_geometry(unique, (size_t) j, &info[i]))
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
         }
         XFree(info);
-        nn = j;
+        number = j;
 
-        /* new monitors if nn > n */
-        for (i = n; i < nn; i += 1) {
+        /* new monitors if number > n */
+        for (i = n; i < number; i += 1) {
             for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
             if (monitor)
                 monitor->next = create_monitor();
             else
                 monitors = create_monitor();
         }
-        for (i = 0, monitor = monitors; i < nn && monitor; monitor = monitor->next, i += 1)
+        for (i = 0, monitor = monitors; i < number && monitor; monitor = monitor->next, i += 1)
             if (i >= n
             || unique[i].x_org != monitor->mon_x || unique[i].y_org != monitor->mon_y
             || unique[i].width != monitor->mon_w || unique[i].height != monitor->mon_h) {
@@ -3432,8 +3431,8 @@ update_geometry(void) {
                 monitor->mon_h = monitor->win_h = unique[i].height;
                 monitor_update_bar_position(monitor);
             }
-        /* removed monitors if n > nn */
-        for (i = nn; i < n; i += 1) {
+        /* removed monitors if n > number */
+        for (i = number; i < n; i += 1) {
             for (monitor = monitors;
                  monitor && monitor->next;
                  monitor = monitor->next);
