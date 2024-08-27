@@ -2549,7 +2549,8 @@ handler_property_notify(XEvent *event) {
     Window trans;
     XPropertyEvent *property_event = &event->xproperty;
 
-    if ((property_event->window == root) && (property_event->atom == XA_WM_NAME)) {
+    if ((property_event->window == root)
+        && (property_event->atom == XA_WM_NAME)) {
         update_status();
         return;
     }
