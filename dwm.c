@@ -233,7 +233,7 @@ static void client_grab_buttons(Client *, int focused);
 static Client *client_next_tiled(Client *);
 static void client_pop(Client *);
 static void client_resize(Client *, int x, int y, int w, int h, int interact);
-static void client_resize_client(Client *, int x, int y, int w, int h);
+static void client_resize_apply(Client *, int x, int y, int w, int h);
 static bool client_send_event(Client *, Atom proto);
 static void client_send_monitor(Client *, Monitor *);
 static void client_set_client_state(Client *, long state);
@@ -2430,9 +2430,11 @@ handler_configure_notify(XEvent *event) {
         update_bars();
         for (Monitor *m = monitors; m; m = m->next) {
             for (Client *client = m->clients; client; client = client->next) {
-                if (client->is_fullscreen && !client->is_fake_fullscreen)
-                    client_resize_client(client,
-                                  m->mon_x, m->mon_y, m->mon_w, m->mon_h);
+                if (client->is_fullscreen && !client->is_fake_fullscreen) {
+                    client_resize_apply(client,
+                                        m->mon_x, m->mon_y,
+                                        m->mon_w, m->mon_h);
+                }
             }
             XMoveResizeWindow(display, m->top_bar_window,
                               m->win_x, m->top_bar_y, (uint)m->win_w, bar_height);
@@ -2843,12 +2845,12 @@ rectangle_to_monitor(int x, int y, int w, int h) {
 void
 client_resize(Client *client, int x, int y, int w, int h, int interact) {
     if (client_apply_size_hints(client, &x, &y, &w, &h, interact))
-        client_resize_client(client, x, y, w, h);
+        client_resize_apply(client, x, y, w, h);
     return;
 }
 
 void
-client_resize_client(Client *client, int x, int y, int w, int h) {
+client_resize_apply(Client *client, int x, int y, int w, int h) {
     XWindowChanges window_changes;
     uint n = 0;
 
@@ -3033,7 +3035,8 @@ client_set_fullscreen(Client *client, int fullscreen) {
             PropModeReplace, (uchar*)&netatom[NetWMFullscreen], 1);
         client->is_fullscreen = 1;
         if (client->is_fake_fullscreen) {
-            client_resize_client(client, client->x, client->y, client->w, client->h);
+            client_resize_apply(client,
+                                client->x, client->y, client->w, client->h);
             return;
         }
         client->old_state = client->is_floating;
@@ -3041,16 +3044,17 @@ client_set_fullscreen(Client *client, int fullscreen) {
         client->border_pixels = 0;
         client->is_floating = 1;
 
-        client_resize_client(client,
-                      client->monitor->mon_x, client->monitor->mon_y,
-                      client->monitor->mon_w, client->monitor->mon_h);
+        client_resize_apply(client,
+                            client->monitor->mon_x, client->monitor->mon_y,
+                            client->monitor->mon_w, client->monitor->mon_h);
         XRaiseWindow(display, client->window);
     } else if (!fullscreen && client->is_fullscreen) {
         XChangeProperty(display, client->window, netatom[NetWMState], XA_ATOM, 32,
             PropModeReplace, (uchar*)0, 0);
         client->is_fullscreen = 0;
         if (client->is_fake_fullscreen) {
-            client_resize_client(client, client->x, client->y, client->w, client->h);
+            client_resize_apply(client,
+                                client->x, client->y, client->w, client->h);
             return;
         }
         client->is_floating = client->old_state;
@@ -3059,7 +3063,7 @@ client_set_fullscreen(Client *client, int fullscreen) {
         client->y = client->old_y;
         client->w = client->old_w;
         client->h = client->old_h;
-        client_resize_client(client, client->x, client->y, client->w, client->h);
+        client_resize_apply(client, client->x, client->y, client->w, client->h);
         monitor_arrange(client->monitor);
     }
     return;
