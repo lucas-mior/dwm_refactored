@@ -1902,8 +1902,7 @@ handler_enter_notify(XEvent *event) {
     if (!is_root && (!notify_normal || notify_inferior))
         return;
 
-    client = window_to_client(crossing_event->window);
-    if (client)
+    if ((client = window_to_client(crossing_event->window)))
         monitor = client->monitor;
     else
         monitor = window_to_monitor(crossing_event->window);
