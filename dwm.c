@@ -219,6 +219,9 @@ static void handler_map_request(XEvent *);
 static void handler_motion_notify(XEvent *);
 static void handler_property_notify(XEvent *);
 static void handler_unmap_notify(XEvent *);
+static int handler_xerror(Display *, XErrorEvent *ee);
+static int handler_xerror_dummy(Display *, XErrorEvent *ee);
+static int handler_xerror_start(Display *, XErrorEvent *ee);
 
 static void client_apply_rules(Client *);
 static int client_apply_size_hints(Client *, int *, int *, int *, int *, int);
@@ -285,9 +288,6 @@ static void update_numlock_mask(void);
 static void update_status(void);
 static Client *window_to_client(Window);
 static Monitor *window_to_monitor(Window);
-static int handler_xerror(Display *, XErrorEvent *ee);
-static int handler_xerror_dummy(Display *, XErrorEvent *ee);
-static int handler_xerror_start(Display *, XErrorEvent *ee);
 
 /* variables */
 static const char broken[] = "broken";
@@ -2682,6 +2682,42 @@ handler_unmap_notify(XEvent *event) {
     return;
 }
 
+/* There's no way to check accesses to destroyed windows, thus those cases are
+ * ignored (especially on UnmapNotify's). Other types of errors call Xlibs
+ * default error handler, which may call exit. */
+int
+handler_xerror(Display *d, XErrorEvent *ee) {
+    (void) d;
+    if (ee->error_code == BadWindow
+    || (ee->request_code == X_SetInputFocus && ee->error_code == BadMatch)
+    || (ee->request_code == X_PolyText8 && ee->error_code == BadDrawable)
+    || (ee->request_code == X_PolyFillRectangle && ee->error_code == BadDrawable)
+    || (ee->request_code == X_PolySegment && ee->error_code == BadDrawable)
+    || (ee->request_code == X_ConfigureWindow && ee->error_code == BadMatch)
+    || (ee->request_code == X_GrabButton && ee->error_code == BadAccess)
+    || (ee->request_code == X_GrabKey && ee->error_code == BadAccess)
+    || (ee->request_code == X_CopyArea && ee->error_code == BadDrawable))
+        return 0;
+    fprintf(stderr, "dwm: fatal error: request code=%d, error code=%d\n",
+            ee->request_code, ee->error_code);
+    return xerrorxlib(display, ee); /* may call exit */
+}
+
+int
+handler_xerror_dummy(Display *error_display, XErrorEvent *error_event) {
+    (void) error_display;
+    (void) error_event;
+    return 0;
+}
+
+int
+handler_xerror_start(Display *error_display, XErrorEvent *error_event) {
+    (void) error_display;
+    (void) error_event;
+    die("dwm: another window manager is already running");
+    return -1;
+}
+
 #ifdef XINERAMA
 static int
 is_unique_geometry(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
@@ -3681,44 +3717,6 @@ window_to_monitor(Window window) {
         return client->monitor;
 
     return current_monitor;
-}
-
-/* There's no way to check accesses to destroyed windows, thus those cases are
- * ignored (especially on UnmapNotify's). Other types of errors call Xlibs
- * default error handler, which may call exit. */
-int
-handler_xerror(Display *d, XErrorEvent *ee) {
-    (void) d;
-    if (ee->error_code == BadWindow
-    || (ee->request_code == X_SetInputFocus && ee->error_code == BadMatch)
-    || (ee->request_code == X_PolyText8 && ee->error_code == BadDrawable)
-    || (ee->request_code == X_PolyFillRectangle && ee->error_code == BadDrawable)
-    || (ee->request_code == X_PolySegment && ee->error_code == BadDrawable)
-    || (ee->request_code == X_ConfigureWindow && ee->error_code == BadMatch)
-    || (ee->request_code == X_GrabButton && ee->error_code == BadAccess)
-    || (ee->request_code == X_GrabKey && ee->error_code == BadAccess)
-    || (ee->request_code == X_CopyArea && ee->error_code == BadDrawable))
-        return 0;
-    fprintf(stderr, "dwm: fatal error: request code=%d, error code=%d\n",
-            ee->request_code, ee->error_code);
-    return xerrorxlib(display, ee); /* may call exit */
-}
-
-int
-handler_xerror_dummy(Display *d, XErrorEvent *ee) {
-    (void) d;
-    (void) ee;
-    return 0;
-}
-
-/* Startup Error handler to check if another window manager
- * is already running. */
-int
-handler_xerror_start(Display *d, XErrorEvent *ee) {
-    (void) d;
-    (void) ee;
-    die("dwm: another window manager is already running");
-    return -1;
 }
 
 int
