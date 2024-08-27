@@ -3013,7 +3013,7 @@ setup_once(void) {
     int nitems_return;
     long vinfo_mask = VisualScreenMask | VisualDepthMask | VisualClassMask;
     XSetWindowAttributes window_attributes;
-    Atom utf8string;
+    Atom UTF8STRING;
     struct sigaction sig_action;
 
     /* do not transform children into zombies when they terminate */
@@ -3067,7 +3067,7 @@ setup_once(void) {
     update_geometry();
 
     /* init atoms */
-    utf8string = X_INTERN_ATOM("UTF8_STRING");
+    UTF8STRING = X_INTERN_ATOM("UTF8_STRING");
     wmatom[WMProtocols] = X_INTERN_ATOM("WM_PROTOCOLS");
     wmatom[WMDelete] = X_INTERN_ATOM("WM_DELETE_WINDOW");
     wmatom[WMState] = X_INTERN_ATOM("WM_STATE");
@@ -3102,7 +3102,7 @@ setup_once(void) {
     wmcheckwin = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
     XChangeProperty(display, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32,
         PropModeReplace, (uchar *)&wmcheckwin, 1);
-    XChangeProperty(display, wmcheckwin, netatom[NetWMName], utf8string, 8,
+    XChangeProperty(display, wmcheckwin, netatom[NetWMName], UTF8STRING, 8,
         PropModeReplace, (uchar *)"dwm", 3);
     XChangeProperty(display, root, netatom[NetWMCheck], XA_WINDOW, 32,
         PropModeReplace, (uchar *)&wmcheckwin, 1);
