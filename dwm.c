@@ -2362,9 +2362,9 @@ handler_configure_notify(XEvent *event) {
 }
 
 void
-handler_destroy_notify(XEvent *e) {
+handler_destroy_notify(XEvent *event) {
     Client *client;
-    XDestroyWindowEvent *destroy_window_event = &e->xdestroywindow;
+    XDestroyWindowEvent *destroy_window_event = &event->xdestroywindow;
 
     if ((client = window_to_client(destroy_window_event->window)))
         client_unmanage(client, 1);
