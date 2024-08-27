@@ -2022,43 +2022,43 @@ handler_property_notify(XEvent *event) {
     if (property_event->state == PropertyDelete)
         return;
 
-    if ((client = window_to_client(property_event->window))) {
-        switch (property_event->atom) {
-        case XA_WM_TRANSIENT_FOR: {
-            if (!client->is_floating) {
-                if (XGetTransientForHint(display, client->window, &trans)) {
-                    if (window_to_client(trans)) {
-                        client->is_floating = true;
-                        arrange(client->monitor);
-                    }
+    if (!(client = window_to_client(property_event->window)))
+        return;
+
+    switch (property_event->atom) {
+    case XA_WM_TRANSIENT_FOR:
+        if (!client->is_floating) {
+            if (XGetTransientForHint(display, client->window, &trans)) {
+                if (window_to_client(trans)) {
+                    client->is_floating = true;
+                    arrange(client->monitor);
                 }
             }
-            break;
         }
-        case XA_WM_NORMAL_HINTS:
-            client->hintsvalid = 0;
-            break;
-        case XA_WM_HINTS:
-            update_wm_hints(client);
-            draw_bars();
-            break;
-        default:
-            break;
-        }
-
-        if (property_event->atom == XA_WM_NAME
-            || property_event->atom == netatom[NetWMName]) {
-            update_title(client);
-            if (client == client->monitor->selected_client)
-                draw_bar(client->monitor);
-        } else if (property_event->atom == netatom[NetWMIcon]) {
-            update_icon(client);
-            if (client == client->monitor->selected_client)
-                draw_bar(client->monitor);
-        }
-        if (property_event->atom == netatom[NetWMWindowType])
-            update_window_type(client);
+        break;
+    case XA_WM_NORMAL_HINTS:
+        client->hintsvalid = 0;
+        break;
+    case XA_WM_HINTS:
+        update_wm_hints(client);
+        draw_bars();
+        break;
+    default:
+        break;
     }
+
+    if (property_event->atom == XA_WM_NAME
+        || property_event->atom == netatom[NetWMName]) {
+        update_title(client);
+        if (client == client->monitor->selected_client)
+            draw_bar(client->monitor);
+    } else if (property_event->atom == netatom[NetWMIcon]) {
+        update_icon(client);
+        if (client == client->monitor->selected_client)
+            draw_bar(client->monitor);
+    }
+    if (property_event->atom == netatom[NetWMWindowType])
+        update_window_type(client);
     return;
 }
 
