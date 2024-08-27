@@ -1718,7 +1718,6 @@ monitor_draw_bar(Monitor *monitor) {
     for (int i = 0; i < LENGTH(tags); i += 1) {
         Client *client_with_icon = clients_with_icon[i];
         char *master_name = masters_names[i];
-        uint which_scheme;
 
         if (master_name) {
             if (client_with_icon) {
@@ -1736,10 +1735,9 @@ monitor_draw_bar(Monitor *monitor) {
         tag_width[i] = w = (int)TEXT_PIXELS(tags_display);
 
         if (monitor->tagset[monitor->selected_tags] & 1 << i)
-            which_scheme = SchemeSelected;
+            drw_setscheme(drw, scheme[SchemeSelected]);
         else
-            which_scheme = SchemeNormal;
-        drw_setscheme(drw, scheme[which_scheme]);
+            drw_setscheme(drw, scheme[SchemeNormal]);
 
         drw_text(drw, x, 0, (uint)w,
                  bar_height, lrpad / 2, tags_display, (int)urgent & 1 << i);
