@@ -359,6 +359,7 @@ struct Pertag {
 
     /* display bar for the current user_tag */
     bool top_bars[LENGTH(tags) + 1];
+    bool bottom_bars[LENGTH(tags) + 1];
 };
 
 static int tag_width[LENGTH(tags)];
@@ -1011,7 +1012,9 @@ void
 user_toggle_bottom_bar(const Arg *) {
     Monitor *monitor = current_monitor;
 
-    monitor->show_bottom_bar = !monitor->show_bottom_bar;
+    monitor->show_bottom_bar
+        = monitor->pertag->bottom_bars[monitor->pertag->tag]
+        = !monitor->show_bottom_bar;
     monitor_update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->bottom_bar_window,
                       monitor->win_x, monitor->bottom_bar_y,
@@ -1132,6 +1135,8 @@ user_toggle_view(const Arg *arg) {
 
         if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
             user_toggle_top_bar(NULL);
+        if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
+            user_toggle_bottom_bar(NULL);
 
         client_focus(NULL);
         monitor_arrange(monitor);
@@ -1180,6 +1185,8 @@ user_view_tag(const Arg *arg) {
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
         user_toggle_top_bar(NULL);
+    if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
+        user_toggle_bottom_bar(NULL);
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -1476,6 +1483,7 @@ create_monitor(void) {
         monitor->pertag->selected_layouts[i] = monitor->lay_i;
 
         monitor->pertag->top_bars[i] = monitor->show_top_bar;
+        monitor->pertag->bottom_bars[i] = monitor->show_bottom_bar;
     }
 
     return monitor;
