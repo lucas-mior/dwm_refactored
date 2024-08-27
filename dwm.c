@@ -3333,25 +3333,25 @@ update_geometry(void) {
         int i = 0;
         int j = 0;
         int number_monitors = 0;
-        int number;
+        int number_unique;
 
-        screen_info = XineramaQueryScreens(display, &number);
+        screen_info = XineramaQueryScreens(display, &number_unique);
         for (monitor = monitors; monitor; monitor = monitor->next)
             number_monitors += 1;
 
         /* only consider unique geometries as separate screens */
-        unique = ecalloc((size_t) number, sizeof(*unique));
-        while (i < number) {
+        unique = ecalloc((size_t) number_unique, sizeof(*unique));
+        while (i < number_unique) {
             if (is_unique_geometry(unique, (size_t) j, &screen_info[i]))
                 memcpy(&unique[j++], &screen_info[i], sizeof(XineramaScreenInfo));
 
             i += 1;
         }
         XFree(screen_info);
-        number = j;
+        number_unique = j;
 
-        /* new monitors if number > number_monitors */
-        for (int k = number_monitors; k < number; k += 1) {
+        /* new monitors if number_unique > number_monitors */
+        for (int k = number_monitors; k < number_unique; k += 1) {
             for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
             if (monitor)
                 monitor->next = create_monitor();
@@ -3360,7 +3360,7 @@ update_geometry(void) {
         }
 
         monitor = monitors;
-        for (int k = 0; k < number; k += 1) {
+        for (int k = 0; k < number_unique; k += 1) {
             if (k >= number_monitors
                 || unique[k].x_org != monitor->mon_x || unique[k].y_org != monitor->mon_y
                 || unique[k].width != monitor->mon_w || unique[k].height != monitor->mon_h) {
@@ -3376,8 +3376,8 @@ update_geometry(void) {
             if (!(monitor = monitor->next))
                 break;
         }
-        /* removed monitors if number_monitors > number */
-        for (int k = number; k < number_monitors; k += 1) {
+        /* removed monitors if number_monitors > number_unique */
+        for (int k = number_unique; k < number_monitors; k += 1) {
             for (monitor = monitors;
                  monitor && monitor->next;
                  monitor = monitor->next);
