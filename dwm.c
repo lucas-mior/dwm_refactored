@@ -12,7 +12,7 @@
  *
  * Each child of the root window is called a client, except windows which have
  * set the override_redirect flag. Clients are organized in a linked client
- * list on each monitor, the client_focus history is remembered through a stack list
+ * list on each monitor, the focus history is remembered through a stack list
  * on each monitor. Each client contains a bit array to indicate the tags of a
  * client.
  *
@@ -1676,7 +1676,7 @@ handler_button_press(XEvent *event) {
     XButtonPressedEvent *button_event = &event->xbutton;
 
     click = ClickRootWin;
-    /* client_focus monitor if necessary */
+    /* focus monitor if necessary */
     if ((monitor = window_to_monitor(button_event->window)) && monitor != current_monitor) {
         client_unfocus(current_monitor->selected_client, 1);
         current_monitor = monitor;
@@ -1918,7 +1918,7 @@ handler_enter_notify(XEvent *event) {
     return;
 }
 
-/* there are some broken client_focus acquiring clients needing extra handling */
+/* there are some broken focus acquiring clients needing extra handling */
 void
 handler_focus_in(XEvent *event) {
     XFocusChangeEvent *focus_change_event = &event->xfocus;
