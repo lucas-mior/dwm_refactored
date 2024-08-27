@@ -2194,16 +2194,16 @@ handler_button_press(XEvent *event) {
 
     if (button_event->window == current_monitor->top_bar_window) {
         uint i = 0;
-        uint x = 0;
+        int x = 0;
 
         do {
-            x += (uint)tag_width[i];
-        } while ((uint)button_x >= x && ++i < LENGTH(tags));
+            x += tag_width[i];
+        } while (button_x >= x && ++i < LENGTH(tags));
 
         if (i < LENGTH(tags)) {
             click = ClickBarTags;
             arg.ui = 1 << i;
-        } else if ((uint)button_x < x + TEXT_PIXELS(current_monitor->layout_symbol)) {
+        } else if (button_x < x + (int)(TEXT_PIXELS(current_monitor->layout_symbol))) {
             click = ClickBarLayoutSymbol;
         } else if (button_x > current_monitor->win_w - status_text_pixels) {
             int x0 = current_monitor->win_w - status_text_pixels;
