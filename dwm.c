@@ -76,7 +76,7 @@ typedef unsigned char uchar;
 
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
-enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent }; /* color schemes */
+enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent };
 enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType, /* EWMH atoms */
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast };
@@ -664,7 +664,7 @@ void
 user_increment_number_masters(const Arg *arg) {
     Monitor *monitor = current_monitor;
     int number_slaves = -1;
-    int new_number_masters;
+    int number_masters;
     uint tag;
 
     for (Client *client = monitor->clients;
@@ -673,12 +673,12 @@ user_increment_number_masters(const Arg *arg) {
         number_slaves += 1;
     }
 
-    new_number_masters = MIN(monitor->number_masters + arg->i, number_slaves + 1);
+    number_masters = MIN(monitor->number_masters + arg->i, number_slaves + 1);
 
-    new_number_masters = MAX(new_number_masters, 0);
+    number_masters = MAX(number_masters, 0);
     tag = monitor->pertag->tag;
     monitor->number_masters
-        = monitor->pertag->number_masters[tag] = new_number_masters;
+        = monitor->pertag->number_masters[tag] = number_masters;
 
     monitor_arrange(monitor);
     return;
@@ -1481,7 +1481,7 @@ create_monitor(void) {
 
     monitor->tagset[0] = monitor->tagset[1] = 1;
     monitor->master_fact = master_fact;
-    monitor->number_masters = number_masters;
+    monitor->number_masters = 1;
     monitor->show_top_bar = show_top_bar;
     monitor->show_bottom_bar = show_bottom_bar;
     monitor->layout[0] = &layouts[0];
