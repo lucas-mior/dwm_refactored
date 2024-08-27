@@ -3494,10 +3494,14 @@ client_update_size_hints(Client *client) {
     bool has_maxes;
     bool mins_match_maxes;
     XSizeHints size_hints;
+    int sucess;
 
-    if (!XGetWMNormalHints(display, client->window, &size_hints, &supplied_return))
+    sucess = XGetWMNormalHints(display, client->window,
+                               &size_hints, &supplied_return);
+    if (!sucess) {
         /* size_hints is uninitialized, ensure that size_hints.flags aren't used */
         size_hints.flags = PSize;
+    }
 
     if (size_hints.flags & PBaseSize) {
         client->base_w = size_hints.base_width;
