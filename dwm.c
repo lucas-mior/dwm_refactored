@@ -2709,7 +2709,6 @@ client_new(Window window, XWindowAttributes *window_attributes) {
         ulong nitems_return;
         ulong bytes_after_return;
         Atom actual_type_return;
-        int success;
 
         success = XGetWindowProperty(display, client->window, netatom[NetClientInfo],
                                     0L, 2L, False, XA_CARDINAL,
