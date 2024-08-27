@@ -666,7 +666,9 @@ cleanup(void) {
         while (monitor->stack)
             unmanage(monitor->stack, 0);
     }
+
     XUngrabKey(display, AnyKey, AnyModifier, root);
+
     while (monitors)
         cleanup_monitor(monitors);
     for (int i = 0; i < CursorLast; i += 1)
@@ -674,8 +676,10 @@ cleanup(void) {
     for (int i = 0; i < LENGTH(colors); i += 1)
         free(scheme[i]);
     free(scheme);
+
     XDestroyWindow(display, wmcheckwin);
     drw_free(drw);
+
     XSync(display, False);
     XSetInputFocus(display, PointerRoot, RevertToPointerRoot, CurrentTime);
     XDeleteProperty(display, root, netatom[NetActiveWindow]);
