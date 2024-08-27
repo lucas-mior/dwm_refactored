@@ -107,7 +107,7 @@ struct Client {
     int stored_fx, stored_fy, stored_fw, stored_fh;
     int old_x, old_y, old_w, old_h;
     int base_w, base_h;
-    int incw, inch;
+    int increment_w, increment_h;
     int maxw, maxh, minw, minh, hintsvalid;
     int border_pixels;
     int old_border_pixels;
@@ -1339,10 +1339,10 @@ client_apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int inte
         }
 
         /* adjust for increment value */
-        if (client->incw)
-            *w -= *w % client->incw;
-        if (client->inch)
-            *h -= *h % client->inch;
+        if (client->increment_w)
+            *w -= *w % client->increment_w;
+        if (client->increment_h)
+            *h -= *h % client->increment_h;
 
         /* restore base dimensions */
         *w = MAX(*w + client->base_w, client->minw);
@@ -3436,10 +3436,10 @@ client_update_size_hints(Client *client) {
         client->base_w = client->base_h = 0;
     }
     if (size_hints.flags & PResizeInc) {
-        client->incw = size_hints.width_inc;
-        client->inch = size_hints.height_inc;
+        client->increment_w = size_hints.width_inc;
+        client->increment_h = size_hints.height_inc;
     } else {
-        client->incw = client->inch = 0;
+        client->increment_w = client->increment_h = 0;
     }
     if (size_hints.flags & PMaxSize) {
         client->maxw = size_hints.max_width;
