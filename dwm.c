@@ -3144,7 +3144,7 @@ client_show_hide(Client *client) {
 
         monitor_floating = !monitor->layout[monitor->lay_i]->function;
         if ((monitor_floating || client->is_floating)
-                && (!client->is_fullscreen || client->is_fake_fullscreen)) {
+            && (!client->is_fullscreen || client->is_fake_fullscreen)) {
             client_resize(client, client->x, client->y, client->w, client->h, 0);
         }
         client_show_hide(client->stack_next);
