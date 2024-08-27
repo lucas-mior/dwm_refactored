@@ -2711,10 +2711,10 @@ client_new(Window window, XWindowAttributes *window_attributes) {
         Atom actual_type_return;
 
         success = XGetWindowProperty(display, client->window, netatom[NetClientInfo],
-                                    0L, 2L, False, XA_CARDINAL,
-                                    &actual_type_return, &actual_format_return,
-                                    &nitems_return, &bytes_after_return,
-                                    (uchar **)&prop_return);
+                                     0L, 2L, False, XA_CARDINAL,
+                                     &actual_type_return, &actual_format_return,
+                                     &nitems_return, &bytes_after_return,
+                                     (uchar **)&prop_return);
         if (success == Success && nitems_return == 2) {
             client->tags = (uint)*prop_return;
             for (Monitor *mon = monitors; mon; mon = mon->next) {
