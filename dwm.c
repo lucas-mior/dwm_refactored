@@ -2269,8 +2269,8 @@ get_signal_number(char *status, int x, int max_x) {
 void
 handler_client_message(XEvent *event) {
     XClientMessageEvent *client_message_event = &event->xclient;
-    Client *client = window_to_client(client_message_event->window);
     Atom message_type = client_message_event->message_type;
+    Client *client = window_to_client(client_message_event->window);
 
     if (!client)
         return;
