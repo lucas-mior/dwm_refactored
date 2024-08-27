@@ -333,7 +333,8 @@ static void (*handler[LASTEvent]) (XEvent *) = {
     [UnmapNotify] = handler_unmap_notify
 };
 
-static Atom wmatom[WMLast], net_atoms[NetLast];
+static Atom wm_atoms[WMLast];
+static Atom net_atoms[NetLast];
 static Display *display;
 static Visual *visual;
 static Colormap cmap;
@@ -695,7 +696,7 @@ user_kill_client(const Arg *) {
     if (!selected)
         return;
 
-    if (!client_send_event(selected, wmatom[WMDelete])) {
+    if (!client_send_event(selected, wm_atoms[WMDelete])) {
         XGrabServer(display);
         XSetErrorHandler(handler_xerror_dummy);
         XSetCloseDownMode(display, DestroyAll);
@@ -2065,8 +2066,8 @@ get_window_state(Window window) {
     Atom actual_type_return;
     int success;
 
-    success = XGetWindowProperty(display, window, wmatom[WMState],
-                                0L, 2L, False, wmatom[WMState],
+    success = XGetWindowProperty(display, window, wm_atoms[WMState],
+                                0L, 2L, False, wm_atoms[WMState],
                                 &actual_type_return, &actual_format_return,
                                 &nitems_return, &bytes_after_return,
                                 (uchar **)&prop_return);
@@ -2964,7 +2965,7 @@ void
 client_set_client_state(Client *client, long state) {
     long data[] = { state, None };
 
-    XChangeProperty(display, client->window, wmatom[WMState], wmatom[WMState], 32,
+    XChangeProperty(display, client->window, wm_atoms[WMState], wm_atoms[WMState], 32,
                     PropModeReplace, (uchar *)data, 2);
     return;
 }
@@ -2984,7 +2985,7 @@ client_send_event(Client *client, Atom proto) {
     if (exists) {
         event.type = ClientMessage;
         event.xclient.window = client->window;
-        event.xclient.message_type = wmatom[WMProtocols];
+        event.xclient.message_type = wm_atoms[WMProtocols];
         event.xclient.format = 32;
         event.xclient.data.l[0] = (long) proto;
         event.xclient.data.l[1] = CurrentTime;
@@ -3001,7 +3002,7 @@ client_set_focus(Client *client) {
             XA_WINDOW, 32, PropModeReplace,
             (uchar *)&(client->window), 1);
     }
-    client_send_event(client, wmatom[WMTakeFocus]);
+    client_send_event(client, wm_atoms[WMTakeFocus]);
     return;
 }
 
@@ -3109,10 +3110,10 @@ setup_once(void) {
 
     /* init atoms */
     UTF8STRING = X_INTERN_ATOM("UTF8_STRING");
-    wmatom[WMProtocols] = X_INTERN_ATOM("WM_PROTOCOLS");
-    wmatom[WMDelete] = X_INTERN_ATOM("WM_DELETE_WINDOW");
-    wmatom[WMState] = X_INTERN_ATOM("WM_STATE");
-    wmatom[WMTakeFocus] = X_INTERN_ATOM("WM_TAKE_FOCUS");
+    wm_atoms[WMProtocols] = X_INTERN_ATOM("WM_PROTOCOLS");
+    wm_atoms[WMDelete] = X_INTERN_ATOM("WM_DELETE_WINDOW");
+    wm_atoms[WMState] = X_INTERN_ATOM("WM_STATE");
+    wm_atoms[WMTakeFocus] = X_INTERN_ATOM("WM_TAKE_FOCUS");
     net_atoms[NetActiveWindow] = X_INTERN_ATOM("_NET_ACTIVE_WINDOW");
     net_atoms[NetSupported] = X_INTERN_ATOM("_NET_SUPPORTED");
     net_atoms[NetWMName] = X_INTERN_ATOM("_NET_WM_NAME");
