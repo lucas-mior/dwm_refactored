@@ -1634,9 +1634,9 @@ monitor_draw_bar(Monitor *monitor) {
             if (client->icon && client->tags & (1 << i))
                 icontagclient[i] = client;
             if (!masterclientontag[i] && client->tags & (1<<i)) {
-                XClassHint ch = { NULL, NULL };
-                XGetClassHint(display, client->window, &ch);
-                masterclientontag[i] = ch.res_class;
+                XClassHint class_hint = { NULL, NULL };
+                XGetClassHint(display, client->window, &class_hint);
+                masterclientontag[i] = class_hint.res_class;
             }
         }
     }
@@ -3251,7 +3251,7 @@ update_bars(void) {
         .colormap = cmap,
         .event_mask = ButtonPressMask|ExposureMask
     };
-    XClassHint ch = {"dwm", "dwm"};
+    XClassHint class_hint = {"dwm", "dwm"};
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Window window;
         ulong value_mask = CWOverrideRedirect
@@ -3268,7 +3268,7 @@ update_bars(void) {
 
             XDefineCursor(display, monitor->top_bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->top_bar_window);
-            XSetClassHint(display, monitor->top_bar_window, &ch);
+            XSetClassHint(display, monitor->top_bar_window, &class_hint);
         }
         if (!monitor->bottom_bar_window) {
             window = XCreateWindow(display, root,
@@ -3280,7 +3280,7 @@ update_bars(void) {
 
             XDefineCursor(display, monitor->bottom_bar_window, cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->bottom_bar_window);
-            XSetClassHint(display, monitor->bottom_bar_window, &ch);
+            XSetClassHint(display, monitor->bottom_bar_window, &class_hint);
         }
     }
     return;
