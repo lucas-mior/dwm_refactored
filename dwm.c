@@ -3730,8 +3730,11 @@ client_update_icon(Client *client) {
 
 void
 client_update_window_type(Client *client) {
-    Atom state = client_get_atom_property(client, netatom[NetWMState]);
-    Atom window_type = client_get_atom_property(client, netatom[NetWMWindowType]);
+    Atom state;
+    Atom window_type;
+
+    state = client_get_atom_property(client, netatom[NetWMState]);
+    window_type = client_get_atom_property(client, netatom[NetWMWindowType]);
 
     if (state == netatom[NetWMFullscreen])
         client_set_fullscreen(client, true);
