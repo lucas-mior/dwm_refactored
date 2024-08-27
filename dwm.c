@@ -3344,6 +3344,7 @@ update_geometry(void) {
         while (i < number) {
             if (is_unique_geometry(unique, (size_t) j, &info[i]))
                 memcpy(&unique[j++], &info[i], sizeof(XineramaScreenInfo));
+
             i += 1;
         }
         XFree(info);
