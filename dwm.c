@@ -366,10 +366,9 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 /* function implementations */
 
 void
-user_alt_tab(const Arg *arg) {
+user_alt_tab(const Arg *) {
     int grabbed = 1;
     int grabbed_keyboard = 1000;
-    (void) arg;
     if (all_clients == NULL)
         return;
 
@@ -1174,8 +1173,7 @@ user_focus_stack(const Arg *arg) {
 }
 
 void
-user_focus_urgent(const Arg *arg) {
-    (void) arg;
+user_focus_urgent(const Arg *) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Client *client;
 
@@ -2109,9 +2107,7 @@ is_unique_geometry(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *inf
 #endif /* XINERAMA */
 
 void
-user_kill_client(const Arg *arg) {
-    (void) arg;
-
+user_kill_client(const Arg *) {
     if (!current_monitor->selected_client)
         return;
 
@@ -2238,7 +2234,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
 }
 
 void
-user_mouse_move(const Arg *arg) {
+user_mouse_move(const Arg *) {
     Client *client;
     Monitor *monitor_aux;
     XEvent event;
@@ -2246,8 +2242,6 @@ user_mouse_move(const Arg *arg) {
     int sucess;
     int x;
     int y;
-
-    (void) arg;
 
     if (!(client = current_monitor->selected_client))
         return;
@@ -2332,14 +2326,12 @@ user_mouse_move(const Arg *arg) {
 }
 
 void
-user_mouse_resize(const Arg *arg) {
+user_mouse_resize(const Arg *) {
     Client *client;
     Monitor *monitor;
     XEvent event;
     Time last_time = 0;
     int sucess;
-
-    (void) arg;
 
     if (!(client = current_monitor->selected_client))
         return;
@@ -2945,9 +2937,8 @@ user_tag_monitor(const Arg *arg) {
 }
 
 void
-user_toggle_top_bar(const Arg *arg) {
+user_toggle_top_bar(const Arg *) {
     Monitor *monitor = current_monitor;
-    (void) arg;
 
     monitor->show_top_bar
         = monitor->pertag->top_bars[monitor->pertag->current_tag]
@@ -2963,9 +2954,8 @@ user_toggle_top_bar(const Arg *arg) {
 }
 
 void
-user_toggle_bottom_bar(const Arg *arg) {
+user_toggle_bottom_bar(const Arg *) {
     Monitor *monitor = current_monitor;
-    (void) arg;
 
     monitor->show_bottom_bar = !monitor->show_bottom_bar;
     update_bar_position(monitor);
@@ -2977,10 +2967,9 @@ user_toggle_bottom_bar(const Arg *arg) {
 }
 
 void
-user_toggle_floating(const Arg *arg) {
+user_toggle_floating(const Arg *) {
     Monitor *monitor = current_monitor;
     Client *client = monitor->selected_client;
-    (void) arg;
 
     if (!monitor->selected_client)
         return;
@@ -3010,8 +2999,7 @@ user_toggle_floating(const Arg *arg) {
 }
 
 void
-user_toggle_fullscreen(const Arg *arg) {
-    (void) arg;
+user_toggle_fullscreen(const Arg *) {
     if (current_monitor->selected_client) {
         set_fullscreen(current_monitor->selected_client,
                        !current_monitor->selected_client->is_fullscreen);
@@ -3619,7 +3607,7 @@ window_to_monitor(Window window) {
 /* Selects for the view of the focused window. The list of tags */
 /* to be displayed is matched to the focused window user_tag list. */
 void
-user_window_view(const Arg* arg) {
+user_window_view(const Arg *) {
     Window window;
     Window root_return;
     Window parent_return;
@@ -3628,8 +3616,6 @@ user_window_view(const Arg* arg) {
     int unused;
     Client *client;
     Arg view_arg;
-
-    (void) arg;
 
     if (!XGetInputFocus(display, &window, &unused))
         return;
@@ -3725,10 +3711,9 @@ xinitvisual(void) {
 }
 
 void
-user_promote_to_master(const Arg *arg) {
+user_promote_to_master(const Arg *) {
     Client *client = current_monitor->selected_client;
     Monitor *monitor = current_monitor;
-    (void) arg;
 
     if (!monitor->layout[monitor->lay_i]->function || !client || client->is_floating)
         return;
