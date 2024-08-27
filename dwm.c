@@ -251,16 +251,16 @@ static void client_update_icon(Client *);
 static void client_update_window_type(Client *);
 static void client_update_wm_hints(Client *);
 
-static void arrange(Monitor *);
-static void arrange_monitor(Monitor *);
-static void cleanup_monitor(Monitor *);
-static void draw_bar(Monitor *);
-static void layout_columns(Monitor *);
-static void layout_gapless_grid(Monitor *);
-static void layout_monocle(Monitor *);
-static void layout_tile(Monitor *);
-static void restack(Monitor *);
-static void update_bar_position(Monitor *);
+static void monitor_arrange(Monitor *);
+static void monitor_arrange_monitor(Monitor *);
+static void monitor_cleanup_monitor(Monitor *);
+static void monitor_draw_bar(Monitor *);
+static void monitor_layout_columns(Monitor *);
+static void monitor_layout_gapless_grid(Monitor *);
+static void monitor_layout_monocle(Monitor *);
+static void monitor_layout_tile(Monitor *);
+static void monitor_restack(Monitor *);
+static void monitor_update_bar_position(Monitor *);
 
 static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int dir);
@@ -587,7 +587,7 @@ client_apply_size_hints(Client *client, int *x, int *y, int *w, int *h, int inte
 }
 
 void
-arrange(Monitor *monitor) {
+monitor_arrange(Monitor *monitor) {
     if (monitor) {
         client_show_hide(monitor->stack);
     } else {
@@ -595,14 +595,14 @@ arrange(Monitor *monitor) {
             client_show_hide(monitor->stack);
     }
     if (monitor) {
-        arrange_monitor(monitor);
-        restack(monitor);
+        monitor_arrange_monitor(monitor);
+        monitor_restack(monitor);
     } else {
         XEvent event;
         for (Monitor *monitor_aux = monitors;
                       monitor_aux;
                       monitor_aux = monitor_aux->next) {
-            arrange_monitor(monitor_aux);
+            monitor_arrange_monitor(monitor_aux);
         }
         XSync(display, False);
         while (XCheckMaskEvent(display, EnterWindowMask, &event));
@@ -611,7 +611,7 @@ arrange(Monitor *monitor) {
 }
 
 void
-arrange_monitor(Monitor *monitor) {
+monitor_arrange_monitor(Monitor *monitor) {
     strncpy(monitor->layout_symbol,
             monitor->layout[monitor->lay_i]->symbol,
             sizeof(monitor->layout_symbol));
@@ -666,7 +666,7 @@ client_attach_stack(Client *client) {
 }
 
 void
-cleanup_monitor(Monitor *monitor) {
+monitor_cleanup_monitor(Monitor *monitor) {
     if (monitor == monitors) {
         monitors = monitors->next;
     } else {
@@ -823,7 +823,7 @@ direction_to_monitor(int direction) {
 }
 
 void
-draw_bar(Monitor *monitor) {
+monitor_draw_bar(Monitor *monitor) {
     int x;
     int w;
     int text_pixels = 0;
@@ -988,7 +988,7 @@ draw_bar(Monitor *monitor) {
 void
 draw_bars(void) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        draw_bar(monitor);
+        monitor_draw_bar(monitor);
     return;
 }
 
@@ -1084,7 +1084,7 @@ user_focus_direction(const Arg *arg) {
 
     if (f && f != selected) {
         client_focus(f);
-        restack(f->monitor);
+        monitor_restack(f->monitor);
     }
     return;
 }
@@ -1171,7 +1171,7 @@ user_focus_stack(const Arg *arg) {
     }
     if (client) {
         client_focus(client);
-        restack(current_monitor);
+        monitor_restack(current_monitor);
     }
     return;
 }
@@ -1203,7 +1203,7 @@ user_focus_urgent(const Arg *) {
 }
 
 void
-layout_columns(Monitor *monitor) {
+monitor_layout_columns(Monitor *monitor) {
     int i = 0;
     int n = 0;
     int x = 0;
@@ -1253,7 +1253,7 @@ layout_columns(Monitor *monitor) {
 }
 
 void
-layout_gapless_grid(Monitor *monitor) {
+monitor_layout_gapless_grid(Monitor *monitor) {
     int nclients = 0;
     int ncolumns = 0;
     int nrows;
@@ -1319,7 +1319,7 @@ layout_gapless_grid(Monitor *monitor) {
 }
 
 void
-layout_monocle(Monitor *monitor) {
+monitor_layout_monocle(Monitor *monitor) {
     uint n = 0;
 
     for (Client *client = monitor->clients; client; client = client->next) {
@@ -1343,7 +1343,7 @@ layout_monocle(Monitor *monitor) {
 }
 
 void
-layout_tile(Monitor *m) {
+monitor_layout_tile(Monitor *m) {
     int n = 0;
     int i = 0;
     int mon_w = 0;
@@ -1744,7 +1744,7 @@ handler_button_press(XEvent *event) {
         }
     } else if ((client = window_to_client(button_event->window))) {
         client_focus(client);
-        restack(current_monitor);
+        monitor_restack(current_monitor);
         XAllowEvents(display, ReplayPointer, CurrentTime);
         click = ClickClientWin;
     }
@@ -1877,7 +1877,7 @@ handler_configure_notify(XEvent *event) {
                               m->win_x, m->bottom_bar_y, (uint)m->win_w, bar_height);
         }
         client_focus(NULL);
-        arrange(NULL);
+        monitor_arrange(NULL);
     }
     return;
 }
@@ -1942,7 +1942,7 @@ handler_expose(XEvent *event) {
     if (expose_event->count != 0)
         return;
     if ((monitor = window_to_monitor(expose_event->window)))
-        draw_bar(monitor);
+        monitor_draw_bar(monitor);
     return;
 }
 
@@ -2033,7 +2033,7 @@ handler_property_notify(XEvent *event) {
             if (XGetTransientForHint(display, client->window, &trans)) {
                 if (window_to_client(trans)) {
                     client->is_floating = true;
-                    arrange(client->monitor);
+                    monitor_arrange(client->monitor);
                 }
             }
         }
@@ -2053,11 +2053,11 @@ handler_property_notify(XEvent *event) {
         || property_event->atom == netatom[NetWMName]) {
         client_update_title(client);
         if (client == client->monitor->selected_client)
-            draw_bar(client->monitor);
+            monitor_draw_bar(client->monitor);
     } else if (property_event->atom == netatom[NetWMIcon]) {
         client_update_icon(client);
         if (client == client->monitor->selected_client)
-            draw_bar(client->monitor);
+            monitor_draw_bar(client->monitor);
     }
     if (property_event->atom == netatom[NetWMWindowType])
         client_update_window_type(client);
@@ -2094,7 +2094,7 @@ user_inc_number_masters(const Arg *arg) {
     current_tag = current_monitor->pertag->current_tag;
     current_monitor->nmaster = current_monitor->pertag->nmasters[current_tag] = new_number_masters;
 
-    arrange(current_monitor);
+    monitor_arrange(current_monitor);
     return;
 }
 
@@ -2231,7 +2231,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
     if (client->monitor == current_monitor)
         client_unfocus(current_monitor->selected_client, 0);
     client->monitor->selected_client = client;
-    arrange(client->monitor);
+    monitor_arrange(client->monitor);
     XMapWindow(display, client->window);
     client_focus(NULL);
     return;
@@ -2254,7 +2254,7 @@ user_mouse_move(const Arg *) {
     if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
-    restack(current_monitor);
+    monitor_restack(current_monitor);
 
     sucess = XGrabPointer(display, root, False,
                           MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -2344,7 +2344,7 @@ user_mouse_resize(const Arg *) {
     if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
-    restack(current_monitor);
+    monitor_restack(current_monitor);
 
     sucess = XGrabPointer(display, root, False,
                           MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -2441,7 +2441,7 @@ client_pop(Client *client) {
     client_detach(client);
     client_attach(client);
     client_focus(client);
-    arrange(client->monitor);
+    monitor_arrange(client->monitor);
     return;
 }
 
@@ -2506,7 +2506,7 @@ client_resize_client(Client *client, int x, int y, int w, int h) {
 
     if (!(client->is_floating)) {
         const Layout *layout = current_monitor->layout[current_monitor->lay_i];
-        if (layout->function == layout_monocle || n == 1) {
+        if (layout->function == monitor_layout_monocle || n == 1) {
             window_changes.border_width = 0;
             client->w = window_changes.width += client->border_pixels*2;
             client->h = window_changes.height += client->border_pixels*2;
@@ -2521,10 +2521,10 @@ client_resize_client(Client *client, int x, int y, int w, int h) {
 }
 
 void
-restack(Monitor *m) {
+monitor_restack(Monitor *m) {
     XEvent event;
 
-    draw_bar(m);
+    monitor_draw_bar(m);
     if (!m->selected_client)
         return;
 
@@ -2611,7 +2611,7 @@ client_send_monitor(Client *client, Monitor *m) {
     client_attach_stack(client);
     client_set_client_tag_prop(client);
     client_focus(NULL);
-    arrange(NULL);
+    monitor_arrange(NULL);
     return;
 }
 
@@ -2694,7 +2694,7 @@ client_set_fullscreen(Client *client, int fullscreen) {
         client->w = client->old_w;
         client->h = client->old_h;
         client_resize_client(client, client->x, client->y, client->w, client->h);
-        arrange(client->monitor);
+        monitor_arrange(client->monitor);
     }
     return;
 }
@@ -2717,9 +2717,9 @@ user_set_layout(const Arg *arg) {
             sizeof(monitor->layout_symbol));
 
     if (monitor->selected_client)
-        arrange(monitor);
+        monitor_arrange(monitor);
     else
-        draw_bar(monitor);
+        monitor_draw_bar(monitor);
     return;
 }
 
@@ -2743,7 +2743,7 @@ user_set_master_fact(const Arg *arg) {
         return;
 
     current_monitor->master_fact = current_monitor->pertag->master_facts[current_tag] = factor;
-    arrange(current_monitor);
+    monitor_arrange(current_monitor);
     return;
 }
 
@@ -2914,7 +2914,7 @@ user_tag(const Arg *arg) {
         selected_client->tags = which_tag;
         client_set_client_tag_prop(selected_client);
         client_focus(NULL);
-        arrange(current_monitor);
+        monitor_arrange(current_monitor);
     }
 }
 
@@ -2948,12 +2948,12 @@ user_toggle_top_bar(const Arg *) {
         = monitor->pertag->top_bars[monitor->pertag->current_tag]
         = !monitor->show_top_bar;
 
-    update_bar_position(monitor);
+    monitor_update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->top_bar_window,
                       monitor->win_x, monitor->top_bar_y,
                       (uint)monitor->win_w, bar_height);
 
-    arrange(monitor);
+    monitor_arrange(monitor);
     return;
 }
 
@@ -2962,11 +2962,11 @@ user_toggle_bottom_bar(const Arg *) {
     Monitor *monitor = current_monitor;
 
     monitor->show_bottom_bar = !monitor->show_bottom_bar;
-    update_bar_position(monitor);
+    monitor_update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->bottom_bar_window,
                       monitor->win_x, monitor->bottom_bar_y,
                       (uint)monitor->win_w, bar_height);
-    arrange(monitor);
+    monitor_arrange(monitor);
     return;
 }
 
@@ -2998,7 +2998,7 @@ user_toggle_floating(const Arg *) {
     client->x = client->monitor->mon_x + (client->monitor->mon_w - WIDTH(client)) / 2;
     client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
 
-    arrange(monitor);
+    monitor_arrange(monitor);
     return;
 }
 
@@ -3054,11 +3054,11 @@ user_toggle_scratch(const Arg *arg) {
         if (new_tagset) {
             current_monitor->tagset[current_monitor->selected_tags] = new_tagset;
             client_focus(NULL);
-            arrange(current_monitor);
+            monitor_arrange(current_monitor);
         }
         if (ISVISIBLE(client)) {
             client_focus(client);
-            restack(current_monitor);
+            monitor_restack(current_monitor);
         }
     } else {
         current_monitor->tagset[current_monitor->selected_tags] |= scrath_tag;
@@ -3078,7 +3078,7 @@ user_toggle_tag(const Arg *arg) {
         current_monitor->selected_client->tags = newtags;
         client_set_client_tag_prop(current_monitor->selected_client);
         client_focus(NULL);
-        arrange(current_monitor);
+        monitor_arrange(current_monitor);
     }
     return;
 }
@@ -3121,7 +3121,7 @@ user_toggle_view(const Arg *arg) {
             user_toggle_top_bar(NULL);
 
         client_focus(NULL);
-        arrange(monitor);
+        monitor_arrange(monitor);
     }
     return;
 }
@@ -3177,7 +3177,7 @@ client_unmanage(Client *client, int destroyed) {
     free(client);
     client_focus(NULL);
     update_client_list();
-    arrange(monitor);
+    monitor_arrange(monitor);
     return;
 }
 
@@ -3226,7 +3226,7 @@ update_bars(void) {
 }
 
 void
-update_bar_position(Monitor *monitor) {
+monitor_update_bar_position(Monitor *monitor) {
     monitor->win_y = monitor->mon_y;
     monitor->win_h = monitor->mon_h;
 
@@ -3308,7 +3308,7 @@ update_geometry(void) {
                 monitor->mon_y = monitor->win_y = unique[i].y_org;
                 monitor->mon_w = monitor->win_w = unique[i].width;
                 monitor->mon_h = monitor->win_h = unique[i].height;
-                update_bar_position(monitor);
+                monitor_update_bar_position(monitor);
             }
         /* removed monitors if n > nn */
         for (i = nn; i < n; i += 1) {
@@ -3328,7 +3328,7 @@ update_geometry(void) {
 
             if (monitor == current_monitor)
                 current_monitor = monitors;
-            cleanup_monitor(monitor);
+            monitor_cleanup_monitor(monitor);
         }
         free(unique);
     } else
@@ -3340,7 +3340,7 @@ update_geometry(void) {
             dirty = 1;
             monitors->mon_w = monitors->win_w = screen_width;
             monitors->mon_h = monitors->win_h = screen_height;
-            update_bar_position(monitors);
+            monitor_update_bar_position(monitors);
         }
     }
     if (dirty) {
@@ -3453,7 +3453,7 @@ update_status(void) {
         strcpy(top_status, "dwm-"VERSION);
         status_text_pixels = (int)(TEXT_PIXELS(top_status) - lrpad + 2);
         bottom_status[0] = '\0';
-        draw_bar(current_monitor);
+        monitor_draw_bar(current_monitor);
         return;
     }
 
@@ -3469,7 +3469,7 @@ update_status(void) {
     strncpy(top_status, text, sizeof(top_status) - 1);
     status_text_pixels = status_count_pixels(top_status);
     bottom_status_pixels = status_count_pixels(bottom_status);
-    draw_bar(current_monitor);
+    monitor_draw_bar(current_monitor);
     return;
 }
 
@@ -3569,7 +3569,7 @@ user_view_tag(const Arg *arg) {
         user_toggle_top_bar(NULL);
 
     client_focus(NULL);
-    arrange(monitor);
+    monitor_arrange(monitor);
     return;
 }
 
@@ -3783,7 +3783,7 @@ main(int argc, char *argv[]) {
     XUngrabKey(display, AnyKey, AnyModifier, root);
 
     while (monitors)
-        cleanup_monitor(monitors);
+        monitor_cleanup_monitor(monitors);
     for (int i = 0; i < CursorLast; i += 1)
         drw_cur_free(drw, cursor[i]);
     for (int i = 0; i < LENGTH(colors); i += 1)
