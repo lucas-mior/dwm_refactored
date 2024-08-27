@@ -3626,21 +3626,23 @@ void
 client_update_wm_hints(Client *client) {
     XWMHints *wm_hints;
 
-    if ((wm_hints = XGetWMHints(display, client->window))) {
-        if (client == current_monitor->selected_client && wm_hints->flags & XUrgencyHint) {
-            wm_hints->flags &= ~XUrgencyHint;
-            XSetWMHints(display, client->window, wm_hints);
-        } else {
-            client->is_urgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
-            if (client->is_urgent)
-                XSetWindowBorder(display, client->window, scheme[SchemeUrgent][ColBorder].pixel);
-        }
-        if (wm_hints->flags & InputHint)
-            client->never_focus = !wm_hints->input;
-        else
-            client->never_focus = 0;
-        XFree(wm_hints);
+    if (!(wm_hints = XGetWMHints(display, client->window)))
+        return;
+
+    if (client == current_monitor->selected_client && wm_hints->flags & XUrgencyHint) {
+        wm_hints->flags &= ~XUrgencyHint;
+        XSetWMHints(display, client->window, wm_hints);
+    } else {
+        client->is_urgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
+        if (client->is_urgent)
+            XSetWindowBorder(display, client->window, scheme[SchemeUrgent][ColBorder].pixel);
     }
+
+    if (wm_hints->flags & InputHint)
+        client->never_focus = !wm_hints->input;
+    else
+        client->never_focus = 0;
+    XFree(wm_hints);
     return;
 }
 
