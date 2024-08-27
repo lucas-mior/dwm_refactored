@@ -1215,10 +1215,11 @@ user_promote_to_master(const Arg *) {
     Client *client = current_monitor->selected_client;
     Monitor *monitor = current_monitor;
     bool monitor_floating = !monitor->layout[monitor->lay_i]->function;
+    bool is_next_tiled = client == client_next_tiled(monitor->clients);
 
     if (!client || monitor_floating || client->is_floating)
         return;
-    if (client == client_next_tiled(monitor->clients) && !(client = client_next_tiled(client->next)))
+    if (is_next_tiled && !(client = client_next_tiled(client->next)))
         return;
     client_pop(client);
     return;
