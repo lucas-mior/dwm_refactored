@@ -2760,8 +2760,10 @@ client_new(Window window, XWindowAttributes *window_attributes) {
                       client->x + 2*screen_width, client->y,
                       (uint)client->w, (uint)client->h);
     client_set_client_state(client, NormalState);
+
     if (client->monitor == current_monitor)
         client_unfocus(current_monitor->selected_client, false);
+
     client->monitor->selected_client = client;
     monitor_arrange(client->monitor);
     XMapWindow(display, client->window);
