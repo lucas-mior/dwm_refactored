@@ -3088,8 +3088,9 @@ setup_once(void) {
 
     visual = NULL;
     for (int i = 0; i < nitems_return; i += 1) {
-        XVisualInfo visual_info = visual_infos[i];
         XRenderPictFormat *render_format;
+        XVisualInfo visual_info = visual_infos[i];
+
         render_format = XRenderFindVisualFormat(display, visual_info.visual);
         if (render_format->type == PictTypeDirect
             && render_format->direct.alphaMask) {
