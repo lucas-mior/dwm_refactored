@@ -2402,9 +2402,11 @@ handler_configure_notify(XEvent *event) {
                 }
             }
             XMoveResizeWindow(display, m->top_bar_window,
-                              m->win_x, m->top_bar_y, (uint)m->win_w, bar_height);
+                              m->win_x, m->top_bar_y,
+                              (uint)m->win_w, bar_height);
             XMoveResizeWindow(display, m->bottom_bar_window,
-                              m->win_x, m->bottom_bar_y, (uint)m->win_w, bar_height);
+                              m->win_x, m->bottom_bar_y,
+                              (uint)m->win_w, bar_height);
         }
         client_focus(NULL);
         monitor_arrange(NULL);
