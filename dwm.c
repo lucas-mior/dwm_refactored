@@ -3057,7 +3057,6 @@ client_set_fullscreen(Client *client, bool fullscreen) {
 
 void
 setup_once(void) {
-    XRenderPictFormat *render_format;
     XVisualInfo *visual_infos;
     XVisualInfo vinfo_template;
     int nitems_return;
@@ -3089,11 +3088,13 @@ setup_once(void) {
 
     visual = NULL;
     for (int i = 0; i < nitems_return; i += 1) {
-        render_format = XRenderFindVisualFormat(display, visual_infos[i].visual);
+        XVisualInfo visual_info = visual_infos[i];
+        XRenderPictFormat *render_format;
+        render_format = XRenderFindVisualFormat(display, visual_info.visual);
         if (render_format->type == PictTypeDirect
             && render_format->direct.alphaMask) {
-            visual = visual_infos[i].visual;
-            depth = visual_infos[i].depth;
+            visual = visual_info.visual;
+            depth = visual_info.depth;
             cmap = XCreateColormap(display, root, visual, AllocNone);
             break;
         }
