@@ -2220,16 +2220,22 @@ client_grab_buttons(Client *client, int focused) {
 void
 grab_keys(void) {
     uint modifiers[] = { 0, LockMask, numlock_mask, numlock_mask|LockMask };
-    int start, end, skip;
+    int start;
+    int end;
+    int skip;
     KeySym *key_sym;
 
     update_numlock_mask();
 
     XUngrabKey(display, AnyKey, AnyModifier, root);
     XDisplayKeycodes(display, &start, &end);
-    key_sym = XGetKeyboardMapping(display, (uchar) start, (uchar) end - start + 1, &skip);
+
+    key_sym = XGetKeyboardMapping(display,
+                                  (uchar) start, (uchar) end - start + 1,
+                                   &skip);
     if (!key_sym)
         return;
+
     for (int k = start; k <= end; k += 1) {
         for (int i = 0; i < LENGTH(keys); i += 1) {
             /* skip modifier codes, we do that ourselves */
