@@ -1028,9 +1028,9 @@ user_toggle_floating(const Arg *) {
     client->is_floating = !client->is_floating || client->is_fixed;
     if (client->is_floating) {
         client_resize(client,
-               client->stored_fx, client->stored_fy,
-               client->stored_fw, client->stored_fh,
-               False);
+                      client->stored_fx, client->stored_fy,
+                      client->stored_fw, client->stored_fh,
+                      False);
     } else {
         client->stored_fx = client->x;
         client->stored_fy = client->y;
