@@ -859,8 +859,8 @@ user_mouse_resize(const Arg *) {
     monitor_restack(current_monitor);
 
     success = XGrabPointer(display, root, False,
-                          MOUSEMASK, GrabModeAsync, GrabModeAsync,
-                          None, cursor[CursorResize]->cursor, CurrentTime);
+                           MOUSEMASK, GrabModeAsync, GrabModeAsync,
+                           None, cursor[CursorResize]->cursor, CurrentTime);
     if (success != GrabSuccess)
         return;
 
