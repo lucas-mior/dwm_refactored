@@ -659,21 +659,24 @@ user_focus_urgent(const Arg *) {
 
 void
 user_increment_number_masters(const Arg *arg) {
+    Monitor *monitor = current_monitor;
     int number_slaves = -1;
     int new_number_masters;
     uint tag;
 
-    for (Client *client = current_monitor->clients;
+    for (Client *client = monitor->clients;
                  client;
                  client = client_next_tiled(client->next)) {
         number_slaves += 1;
     }
 
-    new_number_masters = MAX(MIN(current_monitor->number_masters + arg->i, number_slaves + 1), 0);
-    tag = current_monitor->pertag->tag;
-    current_monitor->number_masters = current_monitor->pertag->number_masters[tag] = new_number_masters;
+    new_number_masters = MIN(monitor->number_masters + arg->i, number_slaves + 1);
 
-    monitor_arrange(current_monitor);
+    new_number_masters = MAX(new_number_masters, 0);
+    tag = monitor->pertag->tag;
+    monitor->number_masters = monitor->pertag->number_masters[tag] = new_number_masters;
+
+    monitor_arrange(monitor);
     return;
 }
 
