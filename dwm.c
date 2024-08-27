@@ -304,6 +304,7 @@ static uint bar_height;  /* bar height */
 static uint lrpad;      /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlock_mask = 0;
+
 static void (*handler[LASTEvent]) (XEvent *) = {
     [ButtonPress] = handler_button_press,
     [ClientMessage] = handler_client_message,
@@ -320,23 +321,24 @@ static void (*handler[LASTEvent]) (XEvent *) = {
     [PropertyNotify] = handler_property_notify,
     [UnmapNotify] = handler_unmap_notify
 };
+
 static Atom wmatom[WMLast], netatom[NetLast];
+static Display *display;
+static Visual *visual;
+static Colormap cmap;
+static Window root;
+static Window wmcheckwin;
 static int restart = 0;
 static bool running = true;
 static Cur *cursor[CursorLast];
 static Clr **scheme;
-static Display *display;
 static Drw *drw;
 static Monitor *monitors;
 static Monitor *current_monitor;
-static Window root;
-static Window wmcheckwin;
 
 static int alt_tab_direction = 0;
 static Client *all_clients = NULL;
-static Visual *visual;
 static int depth;
-static Colormap cmap;
 
 /* configuration, allows nested code to access above variables */
 #include "config.def.h"
