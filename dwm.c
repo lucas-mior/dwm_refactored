@@ -2716,9 +2716,9 @@ client_new(Window window, XWindowAttributes *window_attributes) {
                                     (uchar **)&prop_return);
         if (sucess == Success && nitems_return == 2) {
             client->tags = (uint)*prop_return;
-            for (Monitor *m = monitors; m; m = m->next) {
-                if (m->num == (int)*(prop_return+1)) {
-                    client->monitor = m;
+            for (Monitor *mon = monitors; mon; mon = mon->next) {
+                if (mon->num == (int)*(prop_return+1)) {
+                    client->monitor = mon;
                     break;
                 }
             }
@@ -2732,8 +2732,11 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     client->stored_fy = client->y;
     client->stored_fw = client->w;
     client->stored_fh = client->h;
-    client->x = client->monitor->mon_x + (client->monitor->mon_w - WIDTH(client)) / 2;
-    client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
+    {
+        Monitor *monitor = client->monitor;
+        client->x = monitor->mon_x + (monitor->mon_w - WIDTH(client))/2;
+        client->y = monitor->mon_y + (monitor->mon_h - HEIGHT(client))/2;
+    }
 
     XSelectInput(display, window,
                  EnterWindowMask
