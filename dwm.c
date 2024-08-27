@@ -1633,7 +1633,8 @@ monitor_draw_bar(Monitor *monitor) {
             if (client) {
                 snprintf(tagdisp, TAGWIDTH, "%s", tags[i]);
             } else {
-                masterclientontag[i][strcspn(masterclientontag[i], tag_label_delim)] = '\0';
+                int n = strcspn(masterclientontag[i], tag_label_delim);
+                masterclientontag[i][n] = '\0';
                 snprintf(tagdisp, TAGWIDTH, tag_label_format, tags[i], masterclientontag[i]);
             }
         } else {
