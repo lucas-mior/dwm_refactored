@@ -216,9 +216,9 @@ static void handler_map_request(XEvent *);
 static void handler_motion_notify(XEvent *);
 static void handler_property_notify(XEvent *);
 static void handler_unmap_notify(XEvent *);
-static int handler_xerror(Display *, XErrorEvent *ee);
-static int handler_xerror_dummy(Display *, XErrorEvent *ee);
-static int handler_xerror_start(Display *, XErrorEvent *ee);
+static int handler_xerror(Display *, XErrorEvent *);
+static int handler_xerror_dummy(Display *, XErrorEvent *);
+static int handler_xerror_start(Display *, XErrorEvent *);
 
 static void client_apply_rules(Client *);
 static int client_apply_size_hints(Client *, int *, int *, int *, int *, int);
