@@ -1274,9 +1274,9 @@ client_apply_rules(Client *client) {
             client->tags |= rule->tags;
 
             if (rule->is_floating) {
-                Monitor *monitor = client->monitor;
-                client->x = monitor->win_x + monitor->win_w / 2 - WIDTH(client) / 2;
-                client->y = monitor->win_y + monitor->win_h / 2 - HEIGHT(client) / 2;
+                Monitor *mon = client->monitor;
+                client->x = mon->win_x + mon->win_w / 2 - WIDTH(client) / 2;
+                client->y = mon->win_y + mon->win_h / 2 - HEIGHT(client) / 2;
             }
 
             for (monitor_aux = monitors;
