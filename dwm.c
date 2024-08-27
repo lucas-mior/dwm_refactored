@@ -1031,7 +1031,7 @@ user_focus_direction(const Arg *arg) {
     Client *client_aux;
     Client *next;
 
-    uint score = (uint)-1;
+    uint best_score = (uint)-1;
     int is_floating = selected->is_floating;
 
     if (!selected)
@@ -1041,7 +1041,7 @@ user_focus_direction(const Arg *arg) {
     if (!next)
         next = selected->monitor->clients;
     for (client_aux = next; client_aux != selected; client_aux = next) {
-        bool smaller;
+        bool left_or_up = arg->i == 0 || arg->i == 2;
         int client_score;
         int dist;
 
@@ -1077,10 +1077,9 @@ user_focus_direction(const Arg *arg) {
         }
 
 
-
-        if (client_score < score
-            || ((arg->i == 0 || arg->i == 2) && client_score <= (int)score)) {
-            score = (uint)client_score;
+        if ((uint)client_score < best_score
+            || (left_or_up && client_score <= (int)best_score)) {
+            best_score = (uint)client_score;
             client = client_aux;
         }
     }
