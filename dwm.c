@@ -3601,12 +3601,12 @@ client_update_title(Client *client) {
 void
 client_update_icon(Client *client) {
     Window window = client->window;
-    uint *picture_width = &client->icon_width;
-    uint *picture_height = &client->icon_height;
+    Atom actual_type_return;
     int actual_format_return;
     ulong nitems_return;
     ulong bytes_after_return;
     ulong *prop_return = NULL;
+
     ulong *pixel_find = NULL;
     uint32 *pixel_find32;
     uint32 width_find;
@@ -3614,7 +3614,8 @@ client_update_icon(Client *client) {
     uint32 icon_width;
     uint32 icon_height;
     uint32 area_find = 0;
-    Atom actual_type_return;
+    uint *picture_width = &client->icon_width;
+    uint *picture_height = &client->icon_height;
     int sucess;
 
     client_free_icon(client);
