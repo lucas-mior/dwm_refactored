@@ -3108,6 +3108,11 @@ client_set_fullscreen(Client *client, int fullscreen) {
 
 void
 setup_once(void) {
+    XRenderPictFormat *render_format;
+    XVisualInfo *visual_infos;
+    XVisualInfo vinfo_template;
+    int nitems_return;
+    long vinfo_mask = VisualScreenMask | VisualDepthMask | VisualClassMask;
     XSetWindowAttributes window_attributes;
     Atom utf8string;
     struct sigaction sig_action;
@@ -3127,17 +3132,9 @@ setup_once(void) {
     screen_height = DisplayHeight(display, screen);
     root = RootWindow(display, screen);
 
-    XVisualInfo *visual_infos;
-    XRenderPictFormat *render_format;
-    int nitems_return;
-    long vinfo_mask = VisualScreenMask | VisualDepthMask | VisualClassMask;
-
-    XVisualInfo vinfo_template = {
-        .screen = screen,
-        .depth = 32,
-        .class = TrueColor
-    };
-
+    vinfo_template.screen = screen;
+    vinfo_template.depth = 32;
+    vinfo_template.class = TrueColor;
     visual_infos = XGetVisualInfo(display,
                                   vinfo_mask, &vinfo_template, &nitems_return);
 
