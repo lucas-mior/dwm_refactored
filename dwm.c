@@ -285,10 +285,9 @@ static void update_numlock_mask(void);
 static void update_status(void);
 static Client *window_to_client(Window);
 static Monitor *window_to_monitor(Window);
-static int xerror(Display *, XErrorEvent *ee);
-static int xerrordummy(Display *, XErrorEvent *ee);
-static int xerrorstart(Display *, XErrorEvent *ee);
-static void xinitvisual(void);
+static int handler_xerror(Display *, XErrorEvent *ee);
+static int handler_xerror_dummy(Display *, XErrorEvent *ee);
+static int handler_xerror_start(Display *, XErrorEvent *ee);
 
 /* variables */
 static const char broken[] = "broken";
@@ -688,13 +687,13 @@ user_kill_client(const Arg *) {
 
     if (!client_send_event(current_monitor->selected_client, wmatom[WMDelete])) {
         XGrabServer(display);
-        XSetErrorHandler(xerrordummy);
+        XSetErrorHandler(handler_xerror_dummy);
         XSetCloseDownMode(display, DestroyAll);
 
         XKillClient(display, current_monitor->selected_client->window);
         XSync(display, False);
 
-        XSetErrorHandler(xerror);
+        XSetErrorHandler(handler_xerror);
         XUngrabServer(display);
     }
     return;
@@ -3091,7 +3090,41 @@ setup_once(void) {
     screen_width = DisplayWidth(display, screen);
     screen_height = DisplayHeight(display, screen);
     root = RootWindow(display, screen);
-    xinitvisual();
+
+    XVisualInfo *visual_infos;
+    XRenderPictFormat *render_format;
+    int nitems_return;
+    long vinfo_mask = VisualScreenMask | VisualDepthMask | VisualClassMask;
+
+    XVisualInfo vinfo_template = {
+        .screen = screen,
+        .depth = 32,
+        .class = TrueColor
+    };
+
+    visual_infos = XGetVisualInfo(display,
+                                  vinfo_mask, &vinfo_template, &nitems_return);
+
+    visual = NULL;
+    for (int i = 0; i < nitems_return; i += 1) {
+        render_format = XRenderFindVisualFormat(display, visual_infos[i].visual);
+        if (render_format->type == PictTypeDirect
+            && render_format->direct.alphaMask) {
+            visual = visual_infos[i].visual;
+            depth = visual_infos[i].depth;
+            cmap = XCreateColormap(display, root, visual, AllocNone);
+            break;
+        }
+    }
+
+    XFree(visual_infos);
+
+    if (!visual) {
+        visual = DefaultVisual(display, screen);
+        depth = DefaultDepth(display, screen);
+        cmap = DefaultColormap(display, screen);
+    }
+
     drw = drw_create(display, screen, root,
                      (uint)screen_width, (uint)screen_height,
                      visual, (uint)depth, cmap);
@@ -3249,7 +3282,7 @@ client_unmanage(Client *client, int destroyed) {
     if (!destroyed) {
         window_changes.border_width = client->old_border_pixels;
         XGrabServer(display); /* avoid race conditions */
-        XSetErrorHandler(xerrordummy);
+        XSetErrorHandler(handler_xerror_dummy);
 
         XSelectInput(display, client->window, NoEventMask);
 
@@ -3259,7 +3292,7 @@ client_unmanage(Client *client, int destroyed) {
         client_set_client_state(client, WithdrawnState);
 
         XSync(display, False);
-        XSetErrorHandler(xerror);
+        XSetErrorHandler(handler_xerror);
         XUngrabServer(display);
     }
 
@@ -3654,7 +3687,7 @@ window_to_monitor(Window window) {
  * ignored (especially on UnmapNotify's). Other types of errors call Xlibs
  * default error handler, which may call exit. */
 int
-xerror(Display *d, XErrorEvent *ee) {
+handler_xerror(Display *d, XErrorEvent *ee) {
     (void) d;
     if (ee->error_code == BadWindow
     || (ee->request_code == X_SetInputFocus && ee->error_code == BadMatch)
@@ -3672,7 +3705,7 @@ xerror(Display *d, XErrorEvent *ee) {
 }
 
 int
-xerrordummy(Display *d, XErrorEvent *ee) {
+handler_xerror_dummy(Display *d, XErrorEvent *ee) {
     (void) d;
     (void) ee;
     return 0;
@@ -3681,49 +3714,11 @@ xerrordummy(Display *d, XErrorEvent *ee) {
 /* Startup Error handler to check if another window manager
  * is already running. */
 int
-xerrorstart(Display *d, XErrorEvent *ee) {
+handler_xerror_start(Display *d, XErrorEvent *ee) {
     (void) d;
     (void) ee;
     die("dwm: another window manager is already running");
     return -1;
-}
-
-void
-xinitvisual(void) {
-    XVisualInfo *visual_infos;
-    XRenderPictFormat *render_format;
-    int nitems_return;
-    long vinfo_mask = VisualScreenMask | VisualDepthMask | VisualClassMask;
-
-    XVisualInfo vinfo_template = {
-        .screen = screen,
-        .depth = 32,
-        .class = TrueColor
-    };
-
-    visual_infos = XGetVisualInfo(display,
-                                  vinfo_mask, &vinfo_template, &nitems_return);
-
-    visual = NULL;
-    for (int i = 0; i < nitems_return; i += 1) {
-        render_format = XRenderFindVisualFormat(display, visual_infos[i].visual);
-        if (render_format->type == PictTypeDirect
-            && render_format->direct.alphaMask) {
-            visual = visual_infos[i].visual;
-            depth = visual_infos[i].depth;
-            cmap = XCreateColormap(display, root, visual, AllocNone);
-            break;
-        }
-    }
-
-    XFree(visual_infos);
-
-    if (!visual) {
-        visual = DefaultVisual(display, screen);
-        depth = DefaultDepth(display, screen);
-        cmap = DefaultColormap(display, screen);
-    }
-    return;
 }
 
 int
@@ -3739,7 +3734,7 @@ main(int argc, char *argv[]) {
     if (!(display = XOpenDisplay(NULL)))
         die("dwm: cannot open display");
     {
-        xerrorxlib = XSetErrorHandler(xerrorstart);
+        xerrorxlib = XSetErrorHandler(handler_xerror_start);
 
         /* this causes an error if some other window manager is running */
         XSelectInput(display,
@@ -3747,7 +3742,7 @@ main(int argc, char *argv[]) {
                      SubstructureRedirectMask);
 
         XSync(display, False);
-        XSetErrorHandler(xerror);
+        XSetErrorHandler(handler_xerror);
         XSync(display, False);
     }
 
