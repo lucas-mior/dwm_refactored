@@ -145,7 +145,7 @@ typedef struct Pertag Pertag;
 struct Monitor {
     char layout_symbol[16];
     float master_fact;
-    int nmaster;
+    int number_masters;
     int num;
     int top_bar_y;
     int bottom_bar_y;
@@ -351,7 +351,7 @@ static int alt_tab_direction = 0;
 struct Pertag {
     uint tag;
     uint old_tag;
-    int nmasters[LENGTH(tags) + 1];
+    int number_masters[LENGTH(tags) + 1];
     float master_facts[LENGTH(tags) + 1];
     uint selected_layouts[LENGTH(tags) + 1];
 
@@ -670,9 +670,9 @@ user_increment_number_master(const Arg *arg) {
         number_slaves += 1;
     }
 
-    new_number_masters = MAX(MIN(current_monitor->nmaster + arg->i, number_slaves + 1), 0);
+    new_number_masters = MAX(MIN(current_monitor->number_masters + arg->i, number_slaves + 1), 0);
     tag = current_monitor->pertag->tag;
-    current_monitor->nmaster = current_monitor->pertag->nmasters[tag] = new_number_masters;
+    current_monitor->number_masters = current_monitor->pertag->number_masters[tag] = new_number_masters;
 
     monitor_arrange(current_monitor);
     return;
@@ -1120,7 +1120,7 @@ user_toggle_view(const Arg *arg) {
         tag = monitor->pertag->tag;
 
         /* apply settings for this view */
-        monitor->nmaster = monitor->pertag->nmasters[tag];
+        monitor->number_masters = monitor->pertag->number_masters[tag];
         monitor->master_fact = monitor->pertag->master_facts[tag];
         monitor->lay_i = monitor->pertag->selected_layouts[tag];
         monitor->layout[monitor->lay_i]
@@ -1168,7 +1168,7 @@ user_view_tag(const Arg *arg) {
     }
 
     tag = monitor->pertag->tag;
-    monitor->nmaster = monitor->pertag->nmasters[tag];
+    monitor->number_masters = monitor->pertag->number_masters[tag];
     monitor->master_fact = monitor->pertag->master_facts[tag];
     monitor->lay_i = monitor->pertag->selected_layouts[tag];
     monitor->layout[monitor->lay_i]
@@ -1454,7 +1454,7 @@ create_monitor(void) {
 
     monitor->tagset[0] = monitor->tagset[1] = 1;
     monitor->master_fact = master_fact;
-    monitor->nmaster = nmaster;
+    monitor->number_masters = number_masters;
     monitor->show_top_bar = show_top_bar;
     monitor->show_bottom_bar = show_bottom_bar;
     monitor->layout[0] = &layouts[0];
@@ -1466,7 +1466,7 @@ create_monitor(void) {
     monitor->pertag->tag = monitor->pertag->old_tag = 1;
 
     for (int i = 0; i <= LENGTH(tags); i += 1) {
-        monitor->pertag->nmasters[i] = monitor->nmaster;
+        monitor->pertag->number_masters[i] = monitor->number_masters;
         monitor->pertag->master_facts[i] = monitor->master_fact;
 
         monitor->pertag->layout_tags_indexes[i][0] = monitor->layout[0];
@@ -1789,8 +1789,8 @@ monitor_layout_columns(Monitor *monitor) {
     if (n == 0)
         return;
 
-    if (n > monitor->nmaster) {
-        if (monitor->nmaster != 0)
+    if (n > monitor->number_masters) {
+        if (monitor->number_masters != 0)
             mon_w = (int)((float)monitor->win_w*monitor->master_fact);
         else
             mon_w = 0;
@@ -1803,8 +1803,8 @@ monitor_layout_columns(Monitor *monitor) {
                  client = client_next_tiled(client->next)) {
         int w;
         int h;
-        if (i < monitor->nmaster) {
-            w = (mon_w - x) / (MIN(n, monitor->nmaster) - i);
+        if (i < monitor->number_masters) {
+            w = (mon_w - x) / (MIN(n, monitor->number_masters) - i);
             client_resize(client,
                    x + monitor->win_x, monitor->win_y,
                    w - (2*client->border_pixels),
@@ -1931,8 +1931,8 @@ monitor_layout_tile(Monitor *m) {
     if (n == 0)
         return;
 
-    if (n > m->nmaster) {
-        if (m->nmaster != 0)
+    if (n > m->number_masters) {
+        if (m->number_masters != 0)
             mon_w = (int)((float)m->win_w*m->master_fact);
         else
             mon_w = 0;
@@ -1944,8 +1944,8 @@ monitor_layout_tile(Monitor *m) {
                  client;
                  client = client_next_tiled(client->next)) {
         int h;
-        if (i < m->nmaster) {
-            h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
+        if (i < m->number_masters) {
+            h = (m->win_h - mon_y) / (MIN(n, m->number_masters) - i);
             client_resize(client,
                    m->win_x, m->win_y + mon_y,
                    mon_w - (2*client->border_pixels),
