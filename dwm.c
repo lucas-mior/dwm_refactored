@@ -240,7 +240,7 @@ static void client_detach(Client *);
 static void client_detach_stack(Client *);
 static void client_focus(Client *);
 static Atom client_get_atom_property(Client *, Atom);
-static void client_grab_buttons(Client *, int);
+static void client_grab_buttons(Client *, bool);
 static Client *client_next_tiled(Client *);
 static void client_pop(Client *);
 static void client_resize(Client *, int, int, int, int, int);
@@ -251,7 +251,7 @@ static void client_set_client_state(Client *, long);
 static void client_set_client_tag_prop(Client *);
 static void client_set_focus(Client *);
 static void client_set_fullscreen(Client *, bool);
-static void client_set_urgent(Client *, int);
+static void client_set_urgent(Client *, bool);
 static void client_show_hide(Client *);
 static void client_free_icon(Client *);
 static void client_unfocus(Client *, bool);
@@ -1819,10 +1819,10 @@ client_focus(Client *client) {
         if (client->monitor != current_monitor)
             current_monitor = client->monitor;
         if (client->is_urgent)
-            client_set_urgent(client, 0);
+            client_set_urgent(client, false);
         client_detach_stack(client);
         client_attach_stack(client);
-        client_grab_buttons(client, 1);
+        client_grab_buttons(client, true);
         XSetWindowBorder(display, client->window,
                          scheme[SchemeSelected][ColBorder].pixel);
         client_set_focus(client);
@@ -2149,7 +2149,7 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
 }
 
 void
-client_grab_buttons(Client *client, int focused) {
+client_grab_buttons(Client *client, bool focused) {
     uint modifiers[] = { 0, LockMask, numlock_mask, numlock_mask|LockMask };
 
     update_numlock_mask();
@@ -2321,7 +2321,7 @@ handler_client_message(XEvent *event) {
         }
     } else if (message_type == net_atoms[NetActiveWindow]) {
         if (client != current_monitor->selected_client && !client->is_urgent)
-            client_set_urgent(client, 1);
+            client_set_urgent(client, true);
     }
     return;
 }
@@ -2780,7 +2780,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
                  |PropertyChangeMask
                  |StructureNotifyMask);
 
-    client_grab_buttons(client, 0);
+    client_grab_buttons(client, false);
 
     if (!client->is_floating) {
         client->is_floating = trans_window != None || client->is_fixed;
@@ -3214,7 +3214,7 @@ setup_once(void) {
 }
 
 void
-client_set_urgent(Client *client, int urgent) {
+client_set_urgent(Client *client, bool urgent) {
     XWMHints *wm_hints;
 
     client->is_urgent = urgent;
@@ -3288,7 +3288,7 @@ client_unfocus(Client *client, bool set_focus) {
     if (!client)
         return;
 
-    client_grab_buttons(client, 0);
+    client_grab_buttons(client, false);
     XSetWindowBorder(display, client->window,
                      scheme[SchemeNormal][ColBorder].pixel);
 
