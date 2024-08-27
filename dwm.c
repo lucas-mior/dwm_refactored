@@ -905,7 +905,7 @@ user_set_layout(const Arg *arg) {
 
     if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i]) {
         monitor->pertag->selected_layouts[monitor->pertag->tag] ^= 1;
-        monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->tag]; 
+        monitor->lay_i = monitor->pertag->selected_layouts[monitor->pertag->tag];
     }
 
     if (arg && arg->v) {
