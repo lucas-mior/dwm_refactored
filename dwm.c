@@ -67,6 +67,7 @@ typedef unsigned char uchar;
 #define NUMTAGS   (LENGTH(tags))
 #define TAGMASK   ((1 << NUMTAGS) - 1)
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define PAUSE_MILIS_AS_NANOS(X) ((X) * 1000 * 1000)
 
 #define OPAQUE 0xffU
 #define TAG_DISPLAY_SIZE 32
@@ -380,7 +381,7 @@ user_alt_tab(const Arg *) {
     for (int i = 0; i < GRAB_TRIES; i += 1) {
         struct timespec pause;
         pause.tv_sec = 0;
-        pause.tv_nsec = 1000000;
+        pause.tv_nsec = PAUSE_MILIS_AS_NANOS(5);
 
         if (grab_status != GrabSuccess) {
             grab_status = XGrabKeyboard(display, root, True,
