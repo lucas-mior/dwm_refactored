@@ -463,18 +463,18 @@ user_alt_tab(const Arg *) {
 
 void
 user_aspect_resize(const Arg *arg) {
+    Monitor *monitor = current_monitor;
     Client *client = current_monitor->selected_client;
     float ratio;
     int w, h;
     int new_width, new_height;
+    bool monitor_floating = !monitor->layout[monitor->lay_i]->function;
 
     if (!client || !arg)
         return;
 
-    if (!client->is_floating
-        && current_monitor->layout[current_monitor->lay_i]->function) {
+    if (!client->is_floating && !monitor_floating)
         return;
-    }
 
     ratio = (float)client->w / (float)client->h;
     h = arg->i;
