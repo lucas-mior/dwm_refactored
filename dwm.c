@@ -215,7 +215,7 @@ static void client_detach_stack(Client *);
 static void client_focus(Client *);
 static Atom client_get_atom_property(Client *, Atom );
 static void client_grab_buttons(Client *, int focused);
-static Client *next_tiled(Client *);
+static Client *client_next_tiled(Client *);
 static void client_pop(Client *);
 static void client_resize(Client *, int x, int y, int w, int h, int interact);
 static void client_resize_client(Client *, int x, int y, int w, int h);
@@ -1207,9 +1207,9 @@ layout_columns(Monitor *monitor) {
     int y = 0;
     int mon_w;
 
-    for (Client *client_aux = next_tiled(monitor->clients);
+    for (Client *client_aux = client_next_tiled(monitor->clients);
                  client_aux;
-                 client_aux = next_tiled(client_aux->next)) {
+                 client_aux = client_next_tiled(client_aux->next)) {
         n += 1;
     }
     if (n == 0)
@@ -1224,9 +1224,9 @@ layout_columns(Monitor *monitor) {
         mon_w = monitor->win_w;
     }
 
-    for (Client *client = next_tiled(monitor->clients);
+    for (Client *client = client_next_tiled(monitor->clients);
                  client;
-                 client = next_tiled(client->next)) {
+                 client = client_next_tiled(client->next)) {
         int w;
         int h;
         if (i < monitor->nmaster) {
@@ -1259,9 +1259,9 @@ layout_gapless_grid(Monitor *monitor) {
     int column_width;
     int i = 0;
 
-    for (Client *client = next_tiled(monitor->clients);
+    for (Client *client = client_next_tiled(monitor->clients);
                  client;
-                 client = next_tiled(client->next)) {
+                 client = client_next_tiled(client->next)) {
         nclients += 1;
     }
     if (nclients == 0)
@@ -1285,9 +1285,9 @@ layout_gapless_grid(Monitor *monitor) {
 
     col_i = 0;
     row_i = 0;
-    for (Client *client = next_tiled(monitor->clients);
+    for (Client *client = client_next_tiled(monitor->clients);
                  client;
-                 client = next_tiled(client->next)) {
+                 client = client_next_tiled(client->next)) {
         int client_height;
         int new_x;
         int new_y;
@@ -1327,9 +1327,9 @@ layout_monocle(Monitor *monitor) {
     if (n > 0) /* override layout symbol */
         snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol), "[%d]", n);
 
-    for (Client *client = next_tiled(monitor->clients);
+    for (Client *client = client_next_tiled(monitor->clients);
                  client;
-                 client = next_tiled(client->next)) {
+                 client = client_next_tiled(client->next)) {
         int new_x = monitor->win_x;
         int new_y = monitor->win_y;
         int new_w = monitor->win_w - 2*client->border_pixels;
@@ -1347,9 +1347,9 @@ layout_tile(Monitor *m) {
     int mon_y = 0;
     int tile_y = 0;
 
-    for (Client *client_aux = next_tiled(m->clients);
+    for (Client *client_aux = client_next_tiled(m->clients);
                  client_aux;
-                 client_aux = next_tiled(client_aux->next)) {
+                 client_aux = client_next_tiled(client_aux->next)) {
         n += 1;
     }
     if (n == 0)
@@ -1364,9 +1364,9 @@ layout_tile(Monitor *m) {
         mon_w = m->win_w;
     }
 
-    for (Client *client = next_tiled(m->clients);
+    for (Client *client = client_next_tiled(m->clients);
                  client;
-                 client = next_tiled(client->next)) {
+                 client = client_next_tiled(client->next)) {
         int h;
         if (i < m->nmaster) {
             h = (m->win_h - mon_y) / (MIN(n, m->nmaster) - i);
@@ -2083,7 +2083,7 @@ user_inc_number_masters(const Arg *arg) {
 
     for (Client *client = current_monitor->clients;
                  client;
-                 client = next_tiled(client->next)) {
+                 client = client_next_tiled(client->next)) {
         nslave += 1;
     }
 
@@ -2421,7 +2421,7 @@ user_mouse_resize(const Arg *) {
 }
 
 Client *
-next_tiled(Client *client) {
+client_next_tiled(Client *client) {
     while (true) {
         if (!client)
             break;
@@ -2495,9 +2495,9 @@ client_resize_client(Client *client, int x, int y, int w, int h) {
 
     window_changes.border_width = client->border_pixels;
 
-    for (Client *client_aux = next_tiled(current_monitor->clients);
+    for (Client *client_aux = client_next_tiled(current_monitor->clients);
                  client_aux;
-                 client_aux = next_tiled(client_aux->next)) {
+                 client_aux = client_next_tiled(client_aux->next)) {
         n += 1;
     }
 
@@ -3718,7 +3718,7 @@ user_promote_to_master(const Arg *) {
 
     if (!monitor->layout[monitor->lay_i]->function || !client || client->is_floating)
         return;
-    if (client == next_tiled(monitor->clients) && !(client = next_tiled(client->next)))
+    if (client == client_next_tiled(monitor->clients) && !(client = client_next_tiled(client->next)))
         return;
     client_pop(client);
     return;
