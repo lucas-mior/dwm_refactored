@@ -95,7 +95,7 @@ typedef struct {
     uint click;
     uint mask;
     ulong button;
-    void (*func)(const Arg *arg);
+    void (*function)(const Arg *arg);
     const Arg arg;
 } Button;
 
@@ -133,7 +133,7 @@ struct Client {
 typedef struct {
     ulong mod;
     KeySym keysym;
-    void (*func)(const Arg *);
+    void (*function)(const Arg *);
     const Arg arg;
 } Key;
 
@@ -2197,6 +2197,7 @@ handler_button_press(XEvent *event) {
         do {
             x += (uint)tag_width[i];
         } while ((uint)button_x >= x && ++i < LENGTH(tags));
+
         if (i < LENGTH(tags)) {
             click = ClickBarTags;
             arg.ui = 1 << i;
@@ -2256,7 +2257,7 @@ handler_button_press(XEvent *event) {
 
     for (uint i = 0; i < LENGTH(buttons); i += 1) {
         if (click == buttons[i].click
-            && buttons[i].func
+            && buttons[i].function
             && (buttons[i].button == button_event->button)
             && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state)) {
             const Arg *argument;
@@ -2265,7 +2266,7 @@ handler_button_press(XEvent *event) {
                 argument = &arg;
             else
                 argument = &buttons[i].arg;
-            buttons[i].func(argument);
+            buttons[i].function(argument);
         }
     }
     return;
@@ -2487,8 +2488,8 @@ handler_key_press(XEvent *event) {
     for (uint i = 0; i < LENGTH(keys); i += 1) {
         if (keysym == keys[i].keysym
             && CLEANMASK(keys[i].mod) == CLEANMASK(key_event->state)
-            && keys[i].func) {
-            keys[i].func(&(keys[i].arg));
+            && keys[i].function) {
+            keys[i].function(&(keys[i].arg));
         }
     }
     return;
@@ -3237,7 +3238,8 @@ client_unfocus(Client *client, bool set_focus) {
         return;
 
     client_grab_buttons(client, 0);
-    XSetWindowBorder(display, client->window, scheme[SchemeNormal][ColBorder].pixel);
+    XSetWindowBorder(display, client->window,
+                     scheme[SchemeNormal][ColBorder].pixel);
 
     if (set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
