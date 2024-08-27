@@ -2186,7 +2186,8 @@ grab_keys(void) {
     XDisplayKeycodes(display, &first_keycode, &end);
 
     key_sym = XGetKeyboardMapping(display,
-                                  (uchar) first_keycode, (uchar) end - first_keycode + 1,
+                                  (uchar) first_keycode,
+                                  (uchar) end - first_keycode + 1,
                                    &skip);
     if (!key_sym)
         return;
