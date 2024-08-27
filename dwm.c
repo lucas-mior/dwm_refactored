@@ -115,7 +115,8 @@ struct Client {
 
     bool hintsvalid;
     bool is_fixed, is_floating, is_urgent;
-    bool never_focus, old_state, is_fullscreen, is_fake_fullscreen;
+    bool never_focus, old_state;
+    bool is_fullscreen, is_fake_fullscreen;
 
     uint icon_width, icon_height;
     Picture icon;
