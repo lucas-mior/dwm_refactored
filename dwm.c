@@ -2363,6 +2363,9 @@ handler_configure_request(XEvent *event) {
             return;
         }
         if (client->is_floating || !current_monitor->layout[current_monitor->lay_i]->function) {
+            bool mask_xy;
+            bool mask_hw;
+
             monitor = client->monitor;
             if (conf_request_event->value_mask & CWX) {
                 client->old_x = client->x;
@@ -2388,7 +2391,9 @@ handler_configure_request(XEvent *event) {
                     client->y = monitor->mon_y + (monitor->mon_h / 2 - HEIGHT(client) / 2);
             }
 
-            if ((conf_request_event->value_mask & (CWX|CWY)) && !(conf_request_event->value_mask & (CWWidth|CWHeight)))
+            mask_xy = conf_request_event->value_mask & (CWX|CWY);
+            mask_hw = conf_request_event->value_mask & (CWWidth|CWHeight);
+            if (mask_xy && !mask_hw)
                 client_configure(client);
             if (ISVISIBLE(client))
                 XMoveResizeWindow(display, client->window,
