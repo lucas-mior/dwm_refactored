@@ -300,9 +300,9 @@ static Monitor *window_to_monitor(Window);
 
 /* variables */
 static const char broken[] = "broken";
-#define top_status_SIZE 256
-static char top_status[top_status_SIZE];
-static char bottom_status[top_status_SIZE];
+#define TOP_STATUS_SIZE 256
+static char top_status[TOP_STATUS_SIZE];
+static char bottom_status[TOP_STATUS_SIZE];
 static int top_status_pixels;
 static int bottom_status_pixels;
 static int status_signal;
