@@ -463,12 +463,10 @@ user_alt_tab(const Arg *) {
 
 void
 user_aspect_resize(const Arg *arg) {
-    float ratio;
-    int w;
-    int h;
-    int new_width;
-    int new_height;
     Client *client = current_monitor->selected_client;
+    float ratio;
+    int w, h;
+    int new_width, new_height;
 
     if (!client || !arg)
         return;
@@ -751,15 +749,15 @@ user_mouse_move(const Arg *) {
         case MotionNotify: {
             Monitor *monitor = current_monitor;
             bool is_floating = client->is_floating;
-            int nx = client->x + (event.xmotion.x - x);
-            int ny = client->y + (event.xmotion.y - y);
+            int new_x = client->x + (event.xmotion.x - x);
+            int new_y = client->y + (event.xmotion.y - y);
             int over_x[2] = {
-                abs(monitor->win_x - nx),
-                abs((monitor->win_x + monitor->win_w) - (nx + WIDTH(client))),
+                abs(monitor->win_x - new_x),
+                abs((monitor->win_x + monitor->win_w) - (new_x + WIDTH(client))),
             };
             int over_y[2] = {
-                abs(monitor->win_y - ny),
-                abs((monitor->win_y + monitor->win_h) - (ny + HEIGHT(client))),
+                abs(monitor->win_y - new_y),
+                abs((monitor->win_y + monitor->win_h) - (new_y + HEIGHT(client))),
             };
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
@@ -767,24 +765,24 @@ user_mouse_move(const Arg *) {
             last_time = event.xmotion.time;
 
             if (over_x[0] < SNAP_PIXELS)
-                nx = monitor->win_x;
+                new_x = monitor->win_x;
             else if (over_x[1] < SNAP_PIXELS)
-                nx = monitor->win_x + monitor->win_w - WIDTH(client);
+                new_x = monitor->win_x + monitor->win_w - WIDTH(client);
 
             if (over_y[0] < SNAP_PIXELS)
-                ny = monitor->win_y;
+                new_y = monitor->win_y;
             else if (over_y[1] < SNAP_PIXELS)
-                ny = monitor->win_y + monitor->win_h - HEIGHT(client);
+                new_y = monitor->win_y + monitor->win_h - HEIGHT(client);
 
             if (!is_floating && monitor->layout[monitor->lay_i]->function) {
-                bool moving_x = abs(nx - client->x) > SNAP_PIXELS;
-                bool moving_y = abs(ny - client->y) > SNAP_PIXELS;
+                bool moving_x = abs(new_x - client->x) > SNAP_PIXELS;
+                bool moving_y = abs(new_y - client->y) > SNAP_PIXELS;
                 if (moving_x || moving_y)
                     user_toggle_floating(NULL);
             }
 
             if (!monitor->layout[monitor->lay_i]->function || is_floating)
-                client_resize(client, nx, ny, client->w, client->h, 1);
+                client_resize(client, new_x, new_y, client->w, client->h, 1);
             break;
         }
         default:
