@@ -1114,11 +1114,11 @@ void
 user_toggle_view(const Arg *arg) {
     Monitor *monitor = current_monitor;
     uint new_tagset = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
+    uint tag;
 
     if (!new_tagset)
         return;
 
-    uint tag;
     monitor->tagset[monitor->selected_tags] = new_tagset;
 
     if (new_tagset == (uint)~0) {
