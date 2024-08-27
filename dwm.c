@@ -211,7 +211,6 @@ static void arrange(Monitor *);
 static void arrange_monitor(Monitor *);
 static void attach(Client *);
 static void attach_stack(Client *);
-static void cleanup(void);
 static void cleanup_monitor(Monitor *);
 static void configure(Client *);
 static Monitor *create_monitor(void);
@@ -652,37 +651,6 @@ void
 attach_stack(Client *client) {
     client->stack_next = client->monitor->stack;
     client->monitor->stack = client;
-    return;
-}
-
-void
-cleanup(void) {
-    Arg a = {.ui = (uint)~0};
-    Layout layout = { "", NULL };
-
-    user_view_tag(&a);
-    current_monitor->layout[current_monitor->lay_i] = &layout;
-    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        while (monitor->stack)
-            unmanage(monitor->stack, 0);
-    }
-
-    XUngrabKey(display, AnyKey, AnyModifier, root);
-
-    while (monitors)
-        cleanup_monitor(monitors);
-    for (int i = 0; i < CursorLast; i += 1)
-        drw_cur_free(drw, cursor[i]);
-    for (int i = 0; i < LENGTH(colors); i += 1)
-        free(scheme[i]);
-    free(scheme);
-
-    XDestroyWindow(display, wmcheckwin);
-    drw_free(drw);
-
-    XSync(display, False);
-    XSetInputFocus(display, PointerRoot, RevertToPointerRoot, CurrentTime);
-    XDeleteProperty(display, root, netatom[NetActiveWindow]);
     return;
 }
 
@@ -3793,7 +3761,28 @@ main(int argc, char *argv[]) {
         execvp(argv[0], argv);
     }
 
-    cleanup();
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+        while (monitor->stack)
+            unmanage(monitor->stack, 0);
+    }
+
+    XUngrabKey(display, AnyKey, AnyModifier, root);
+
+    while (monitors)
+        cleanup_monitor(monitors);
+    for (int i = 0; i < CursorLast; i += 1)
+        drw_cur_free(drw, cursor[i]);
+    for (int i = 0; i < LENGTH(colors); i += 1)
+        free(scheme[i]);
+    free(scheme);
+
+    XDestroyWindow(display, wmcheckwin);
+    drw_free(drw);
+
+    XSync(display, False);
+    XSetInputFocus(display, PointerRoot, RevertToPointerRoot, CurrentTime);
+    XDeleteProperty(display, root, netatom[NetActiveWindow]);
     XCloseDisplay(display);
+
     exit(EXIT_SUCCESS);
 }
