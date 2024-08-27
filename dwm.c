@@ -1035,6 +1035,7 @@ user_toggle_bottom_bar(const Arg *) {
 void
 user_toggle_floating(const Arg *) {
     Client *client = current_monitor->selected_client;
+    Monitor *monitor;
 
     if (!client)
         return;
@@ -1056,8 +1057,9 @@ user_toggle_floating(const Arg *) {
         client->stored_fh = client->h;
     }
 
-    client->x = client->monitor->mon_x + (client->monitor->mon_w - WIDTH(client)) / 2;
-    client->y = client->monitor->mon_y + (client->monitor->mon_h - HEIGHT(client)) / 2;
+    monitor = client->monitor;
+    client->x = monitor->mon_x + (monitor->mon_w - WIDTH(client)) / 2;
+    client->y = monitor->mon_y + (monitor->mon_h - HEIGHT(client)) / 2;
 
     monitor_arrange(current_monitor);
     return;
