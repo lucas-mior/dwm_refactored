@@ -3266,7 +3266,8 @@ update_bars(void) {
                                    value_mask, &window_attributes);
             monitor->top_bar_window = window;
 
-            XDefineCursor(display, monitor->top_bar_window, cursor[CursorNormal]->cursor);
+            XDefineCursor(display,monitor->top_bar_window,
+                          cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->top_bar_window);
             XSetClassHint(display, monitor->top_bar_window, &class_hint);
         }
@@ -3278,7 +3279,8 @@ update_bars(void) {
                                    value_mask, &window_attributes);
             monitor->bottom_bar_window = window;
 
-            XDefineCursor(display, monitor->bottom_bar_window, cursor[CursorNormal]->cursor);
+            XDefineCursor(display, monitor->bottom_bar_window,
+                          cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->bottom_bar_window);
             XSetClassHint(display, monitor->bottom_bar_window, &class_hint);
         }
@@ -3364,9 +3366,13 @@ update_geometry(void) {
 
         monitor = monitors;
         for (int k = 0; k < number_unique; k += 1) {
+            bool unique_x = unique[k].x_org != monitor->mon_x;
+            bool unique_y = unique[k].y_org != monitor->mon_y;
+            bool unique_w = unique[k].width != monitor->mon_w;
+            bool unique_h = unique[k].height != monitor->mon_h;
+
             if (k >= number_monitors
-                || unique[k].x_org != monitor->mon_x || unique[k].y_org != monitor->mon_y
-                || unique[k].width != monitor->mon_w || unique[k].height != monitor->mon_h) {
+                || unique_x || unique_y || unique_w || unique_h) {
                 dirty = true;
                 monitor->num = k;
                 monitor->mon_x = monitor->win_x = unique[k].x_org;
