@@ -2151,7 +2151,7 @@ get_icon_property(Window window, uint *picture_width, uint *picture_height) {
         uint8 a = pixel >> 24u;
         uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
         uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
-        pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | (a << 24u);
+        pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | ((uint)a << 24u);
     }
 
     drw_picture = drw_picture_create_resized(drw, (char *)pixel_find,
@@ -3191,7 +3191,7 @@ setup_once(void) {
     cursor[CursorMove] = drw_cur_create(drw, XC_fleur);
 
     /* init appearance */
-    scheme = ecalloc(LENGTH(colors), sizeof(*scheme));
+    scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
     for (int i = 0; i < LENGTH(colors); i += 1)
         scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
 
@@ -3388,7 +3388,7 @@ monitor_update_bar_position(Monitor *monitor) {
     if (monitor->show_top_bar) {
         monitor->win_h -= bar_height;
         monitor->top_bar_y = monitor->win_y;
-        monitor->win_y = monitor->win_y + bar_height;
+        monitor->win_y = monitor->win_y + (int)bar_height;
     } else {
         monitor->top_bar_y = - (int)bar_height;
     }
