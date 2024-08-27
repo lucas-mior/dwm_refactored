@@ -716,8 +716,8 @@ user_mouse_move(const Arg *) {
     XEvent event;
     Time last_time = 0;
     int sucess;
-    int x;
-    int y;
+    int x, y;
+    int ocx, ocy;
 
     if (!(client = current_monitor->selected_client))
         return;
@@ -727,6 +727,8 @@ user_mouse_move(const Arg *) {
         return;
 
     monitor_restack(current_monitor);
+    ocx = client->x;
+    ocy = client->y;
 
     sucess = XGrabPointer(display, root, False,
                           MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -749,8 +751,8 @@ user_mouse_move(const Arg *) {
         case MotionNotify: {
             Monitor *monitor = current_monitor;
             bool is_floating = client->is_floating;
-            int new_x = client->x + (event.xmotion.x - x);
-            int new_y = client->y + (event.xmotion.y - y);
+            int new_x = ocx + (event.xmotion.x - x);
+            int new_y = ocy + (event.xmotion.y - y);
             int over_x[2] = {
                 abs(monitor->win_x - new_x),
                 abs(monitor->win_x + monitor->win_w - (new_x + WIDTH(client))),
