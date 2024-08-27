@@ -2325,9 +2325,12 @@ handler_configure_request(XEvent *event) {
             mask_hw = conf_request_event->value_mask & (CWWidth|CWHeight);
             if (mask_xy && !mask_hw)
                 client_configure(client);
-            if (ISVISIBLE(client))
+
+            if (ISVISIBLE(client)) {
                 XMoveResizeWindow(display, client->window,
-                                  client->x, client->y, (uint)client->w, (uint)client->h);
+                                  client->x, client->y,
+                                  (uint)client->w, (uint)client->h);
+            }
         } else {
             client_configure(client);
         }
@@ -3708,8 +3711,10 @@ client_update_wm_hints(Client *client) {
         XSetWMHints(display, client->window, wm_hints);
     } else {
         client->is_urgent = wm_hints->flags & XUrgencyHint;
-        if (client->is_urgent)
-            XSetWindowBorder(display, client->window, scheme[SchemeUrgent][ColBorder].pixel);
+        if (client->is_urgent) {
+            XSetWindowBorder(display, client->window,
+                             scheme[SchemeUrgent][ColBorder].pixel);
+        }
     }
 
     if (wm_hints->flags & InputHint)
