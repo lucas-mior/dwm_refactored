@@ -1027,8 +1027,8 @@ client_focus(Client *client) {
 void
 user_focus_direction(const Arg *arg) {
     Client *selected = current_monitor->selected_client;
-    Client *f = NULL;
-    Client *client;
+    Client *client = NULL;
+    Client *client_aux;
     Client *next;
 
     uint score = (uint)-1;
@@ -1040,51 +1040,54 @@ user_focus_direction(const Arg *arg) {
     next = selected->next;
     if (!next)
         next = selected->monitor->clients;
-    for (client = next; client != selected; client = next) {
+    for (client_aux = next; client_aux != selected; client_aux = next) {
+        bool smaller;
         int client_score;
         int dist;
 
-        next = client->next;
+        next = client_aux->next;
         if (!next)
             next = selected->monitor->clients;
 
-        if (!ISVISIBLE(client) || client->is_floating != is_floating) // || HIDDEN(client)
+        if (!ISVISIBLE(client_aux) || client_aux->is_floating != is_floating) // || HIDDEN(client_aux)
             continue;
 
         switch (arg->i) {
         case 0: // left
-            dist = selected->x - client->x - client->w;
+            dist = selected->x - client_aux->x - client_aux->w;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
-            client_score += abs(selected->y - client->y);
+            client_score += abs(selected->y - client_aux->y);
             break;
         case 1: // right
-            dist = client->x - selected->x - selected->w;
+            dist = client_aux->x - selected->x - selected->w;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
-            client_score += abs(client->y - selected->y);
+            client_score += abs(client_aux->y - selected->y);
             break;
         case 2: // up
-            dist = selected->y - client->y - client->h;
+            dist = selected->y - client_aux->y - client_aux->h;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
-            client_score += abs(selected->x - client->x);
+            client_score += abs(selected->x - client_aux->x);
             break;
         default:
         case 3: // down
-            dist = client->y - selected->y - selected->h;
+            dist = client_aux->y - selected->y - selected->h;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
-            client_score += abs(client->x - selected->x);
+            client_score += abs(client_aux->x - selected->x);
             break;
         }
+
+
 
         if (client_score < score
             || ((arg->i == 0 || arg->i == 2) && client_score <= (int)score)) {
             score = (uint)client_score;
-            f = client;
+            client = client_aux;
         }
     }
 
-    if (f && f != selected) {
-        client_focus(f);
-        monitor_restack(f->monitor);
+    if (client && client != selected) {
+        client_focus(client);
+        monitor_restack(client->monitor);
     }
     return;
 }
