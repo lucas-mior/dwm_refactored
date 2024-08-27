@@ -2131,7 +2131,8 @@ user_kill_client(const Arg *arg) {
 
 void
 manage(Window window, XWindowAttributes *window_attributes) {
-    Client *client, *t = NULL;
+    Client *client;
+    Client *t = NULL;
     Window trans = None;
     XWindowChanges window_changes;
 
@@ -2238,8 +2239,8 @@ manage(Window window, XWindowAttributes *window_attributes) {
 
 void
 user_mouse_move(const Arg *arg) {
-    int x, y;
-    int ocx, ocy;
+    int x;
+    int y;
     Client *client;
     Monitor *monitor_aux;
     XEvent event;
@@ -2255,8 +2256,6 @@ user_mouse_move(const Arg *arg) {
         return;
 
     restack(current_monitor);
-    ocx = client->x;
-    ocy = client->y;
 
     sucess = XGrabPointer(display, root, False,
                           MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -2278,8 +2277,8 @@ user_mouse_move(const Arg *arg) {
         case MotionNotify: {
             Monitor *monitor = current_monitor;
             bool is_floating = client->is_floating;
-            int nx = ocx + (event.xmotion.x - x);
-            int ny = ocy + (event.xmotion.y - y);
+            int nx = client->x + (event.xmotion.x - x);
+            int ny = client->y + (event.xmotion.y - y);
             int over_x[2] = {
                 abs(monitor->win_x - nx),
                 abs((monitor->win_x + monitor->win_w) - (nx + WIDTH(client))),
