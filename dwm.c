@@ -1967,7 +1967,7 @@ client_get_atom_property(Client *client, Atom property) {
                                 0L, sizeof(atom), False, XA_ATOM,
                                 &actual_type_return, &actual_format_return,
                                 &nitems_return, &nitems_return,
-                                (uchar **) &prop_return);
+                                (uchar **)&prop_return);
     if (sucess == Success && prop_return) {
         atom = *prop_return;
         XFree(prop_return);
@@ -2786,7 +2786,7 @@ manage(Window window, XWindowAttributes *window_attributes) {
     client_attach_stack(client);
 
     XChangeProperty(display, root, netatom[NetClientList], XA_WINDOW,
-                    32, PropModeAppend, (uchar *) &(client->window), 1);
+                    32, PropModeAppend, (uchar *)&(client->window), 1);
 
     /* some windows require this */
     XMoveResizeWindow(display, client->window,
@@ -3025,7 +3025,7 @@ client_set_focus(Client *client) {
         XSetInputFocus(display, client->window, RevertToPointerRoot, CurrentTime);
         XChangeProperty(display, root, netatom[NetActiveWindow],
             XA_WINDOW, 32, PropModeReplace,
-            (uchar *) &(client->window), 1);
+            (uchar *)&(client->window), 1);
     }
     client_send_event(client, wmatom[WMTakeFocus]);
     return;
@@ -3168,15 +3168,15 @@ setup_once(void) {
     /* supporting window for NetWMCheck */
     wmcheckwin = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
     XChangeProperty(display, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32,
-        PropModeReplace, (uchar *) &wmcheckwin, 1);
+        PropModeReplace, (uchar *)&wmcheckwin, 1);
     XChangeProperty(display, wmcheckwin, netatom[NetWMName], utf8string, 8,
-        PropModeReplace, (uchar *) "dwm", 3);
+        PropModeReplace, (uchar *)"dwm", 3);
     XChangeProperty(display, root, netatom[NetWMCheck], XA_WINDOW, 32,
-        PropModeReplace, (uchar *) &wmcheckwin, 1);
+        PropModeReplace, (uchar *)&wmcheckwin, 1);
 
     /* EWMH support per view */
     XChangeProperty(display, root, netatom[NetSupported], XA_ATOM, 32,
-        PropModeReplace, (uchar *) netatom, NetLast);
+        PropModeReplace, (uchar *)netatom, NetLast);
     XDeleteProperty(display, root, netatom[NetClientList]);
     XDeleteProperty(display, root, netatom[NetClientInfo]);
 
@@ -3243,7 +3243,7 @@ void
 client_set_client_tag_prop(Client *client) {
     long data[] = { (long) client->tags, (long) client->monitor->num };
     XChangeProperty(display, client->window, netatom[NetClientInfo],
-                    XA_CARDINAL, 32, PropModeReplace, (uchar *) data, 2);
+                    XA_CARDINAL, 32, PropModeReplace, (uchar *)data, 2);
     return;
 }
 
@@ -3377,7 +3377,7 @@ update_client_list(void) {
         for (Client *client = monitor->clients; client; client = client->next) {
             XChangeProperty(display, root, netatom[NetClientList],
                             XA_WINDOW, 32, PropModeAppend,
-                            (uchar *) &(client->window), 1);
+                            (uchar *)&(client->window), 1);
         }
     }
     return;
