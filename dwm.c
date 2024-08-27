@@ -1231,7 +1231,7 @@ client_apply_rules(Client *client) {
     XClassHint class_hint = { NULL, NULL };
 
     /* rule matching */
-    client->is_floating = 0;
+    client->is_floating = false;
     client->tags = 0;
     XGetClassHint(display, client->window, &class_hint);
     class    = class_hint.res_class ? class_hint.res_class : broken;
@@ -3677,7 +3677,7 @@ client_update_wm_hints(Client *client) {
         wm_hints->flags &= ~XUrgencyHint;
         XSetWMHints(display, client->window, wm_hints);
     } else {
-        client->is_urgent = (wm_hints->flags & XUrgencyHint) ? 1 : 0;
+        client->is_urgent = wm_hints->flags & XUrgencyHint;
         if (client->is_urgent)
             XSetWindowBorder(display, client->window, scheme[SchemeUrgent][ColBorder].pixel);
     }
