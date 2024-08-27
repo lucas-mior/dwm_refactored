@@ -2529,21 +2529,23 @@ resize_client(Client *client, int x, int y, int w, int h) {
 
 void
 restack(Monitor *m) {
-    Client *client;
     XEvent event;
-    XWindowChanges window_changes;
 
     draw_bar(m);
     if (!m->selected_client)
         return;
+
     if (m->selected_client->is_floating || !m->layout[m->lay_i]->function)
         XRaiseWindow(display, m->selected_client->window);
+
     if (m->layout[m->lay_i]->function) {
+        XWindowChanges window_changes;
         window_changes.stack_mode = Below;
         window_changes.sibling = m->top_bar_window;
-        for (client = m->stack; client; client = client->stack_next) {
+        for (Client *client = m->stack; client; client = client->stack_next) {
             if (!client->is_floating && ISVISIBLE(client)) {
-                XConfigureWindow(display, client->window, CWSibling|CWStackMode, &window_changes);
+                XConfigureWindow(display, client->window,
+                                 CWSibling|CWStackMode, &window_changes);
                 window_changes.sibling = client->window;
             }
         }
