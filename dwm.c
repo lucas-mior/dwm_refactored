@@ -1341,14 +1341,15 @@ client_apply_size_hints(Client *client,
     if (resizehints
         || client->is_floating
         || !client->monitor->layout[client->monitor->lay_i]->function) {
-        int baseismin;
+        int base_is_min;
 
         if (!client->hintsvalid)
             client_update_size_hints(client);
 
         /* see last two sentences in ICCCM 4.1.2.3 */
-        baseismin = client->base_w == client->min_w && client->base_h == client->min_h;
-        if (!baseismin) { /* temporarily remove base dimensions */
+        base_is_min = client->base_w == client->min_w 
+                      && client->base_h == client->min_h;
+        if (!base_is_min) { /* temporarily remove base dimensions */
             *w -= client->base_w;
             *h -= client->base_h;
         }
@@ -1361,7 +1362,7 @@ client_apply_size_hints(Client *client,
                 *h = *w*((int)(client->min_a + 0.5f));
         }
 
-        if (baseismin) { /* increment calculation requires this */
+        if (base_is_min) { /* increment calculation requires this */
             *w -= client->base_w;
             *h -= client->base_h;
         }
