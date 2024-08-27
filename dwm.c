@@ -327,8 +327,10 @@ static Cur *cursor[CursorLast];
 static Clr **scheme;
 static Display *display;
 static Drw *drw;
-static Monitor *monitors, *current_monitor;
-static Window root, wmcheckwin;
+static Monitor *monitors;
+static Monitor *current_monitor;
+static Window root;
+static Window wmcheckwin;
 
 static int alt_tab_direction = 0;
 static Client *all_clients = NULL;
