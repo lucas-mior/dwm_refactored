@@ -1681,7 +1681,8 @@ client_new(Window window, XWindowAttributes *window_attributes) {
         ulong bytes_after_return;
         Atom actual_type_return;
 
-        success = XGetWindowProperty(display, client->window, net_atoms[NetClientInfo],
+        success = XGetWindowProperty(display, client->window,
+                                     net_atoms[NetClientInfo],
                                      0L, 2L, False, XA_CARDINAL,
                                      &actual_type_return, &actual_format_return,
                                      &nitems_return, &bytes_after_return,
@@ -1841,7 +1842,8 @@ void
 client_set_client_state(Client *client, long state) {
     long data[] = { state, None };
 
-    XChangeProperty(display, client->window, wm_atoms[WMState], wm_atoms[WMState], 32,
+    XChangeProperty(display, client->window,
+                    wm_atoms[WMState], wm_atoms[WMState], 32,
                     PropModeReplace, (uchar *)data, 2);
     return;
 }
@@ -1873,7 +1875,8 @@ client_send_event(Client *client, Atom proto) {
 void
 client_set_focus(Client *client) {
     if (!client->never_focus) {
-        XSetInputFocus(display, client->window, RevertToPointerRoot, CurrentTime);
+        XSetInputFocus(display, client->window,
+                       RevertToPointerRoot, CurrentTime);
         XChangeProperty(display, root, net_atoms[NetActiveWindow],
             XA_WINDOW, 32, PropModeReplace,
             (uchar *)&(client->window), 1);
@@ -1885,8 +1888,10 @@ client_set_focus(Client *client) {
 void
 client_set_fullscreen(Client *client, bool fullscreen) {
     if (fullscreen && !client->is_fullscreen) {
-        XChangeProperty(display, client->window, net_atoms[NetWMState], XA_ATOM, 32,
-            PropModeReplace, (uchar*)&net_atoms[NetWMFullscreen], 1);
+        XChangeProperty(display, client->window,
+                        net_atoms[NetWMState], XA_ATOM, 32,
+                        PropModeReplace,
+                        (uchar*)&net_atoms[NetWMFullscreen], 1);
         client->is_fullscreen = true;
         if (client->is_fake_fullscreen) {
             client_resize_apply(client,
@@ -3784,7 +3789,9 @@ setup_once(void) {
     window_attributes.event_mask = SubstructureRedirectMask|SubstructureNotifyMask
         |ButtonPressMask|PointerMotionMask|EnterWindowMask
         |LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
-    XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &window_attributes);
+
+    XChangeWindowAttributes(display, root,
+                            CWEventMask|CWCursor, &window_attributes);
     XSelectInput(display, root, window_attributes.event_mask);
     grab_keys();
     client_focus(NULL);
@@ -3872,7 +3879,9 @@ update_geometry(void) {
 
         /* new monitors if number_unique > number_monitors */
         for (int k = number_monitors; k < number_unique; k += 1) {
-            for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
+            for (monitor = monitors;
+                 monitor && monitor->next;
+                 monitor = monitor->next);
             if (monitor)
                 monitor->next = create_monitor();
             else
