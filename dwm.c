@@ -2451,20 +2451,20 @@ handler_configure_notify(XEvent *event) {
     if (update_geometry() || dirty) {
         drw_resize(drw, (uint)screen_width, bar_height);
         update_bars();
-        for (Monitor *m = monitors; m; m = m->next) {
-            for (Client *client = m->clients; client; client = client->next) {
+        for (Monitor *mon = monitors; mon; mon = mon->next) {
+            for (Client *client = mon->clients; client; client = client->next) {
                 if (client->is_fullscreen && !client->is_fake_fullscreen) {
                     client_resize_apply(client,
-                                        m->mon_x, m->mon_y,
-                                        m->mon_w, m->mon_h);
+                                        mon->mon_x, mon->mon_y,
+                                        mon->mon_w, mon->mon_h);
                 }
             }
-            XMoveResizeWindow(display, m->top_bar_window,
-                              m->win_x, m->top_bar_y,
-                              (uint)m->win_w, bar_height);
-            XMoveResizeWindow(display, m->bottom_bar_window,
-                              m->win_x, m->bottom_bar_y,
-                              (uint)m->win_w, bar_height);
+            XMoveResizeWindow(display, mon->top_bar_window,
+                              mon->win_x, mon->top_bar_y,
+                              (uint)mon->win_w, bar_height);
+            XMoveResizeWindow(display, mon->bottom_bar_window,
+                              mon->win_x, mon->bottom_bar_y,
+                              (uint)mon->win_w, bar_height);
         }
         client_focus(NULL);
         monitor_arrange(NULL);
