@@ -320,7 +320,7 @@ static uint text_padding;      /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlock_mask = 0;
 
-static void (*handler[LASTEvent]) (XEvent *) = {
+static void (*handlers[LASTEvent]) (XEvent *) = {
     [ButtonPress] = handler_button_press,
     [ClientMessage] = handler_client_message,
     [ConfigureRequest] = handler_configure_request,
@@ -796,7 +796,7 @@ user_mouse_move(const Arg *) {
         case ConfigureRequest:
         case Expose:
         case MapRequest:
-            handler[event.type](&event);
+            handlers[event.type](&event);
             break;
         case MotionNotify: {
             Monitor *monitor = current_monitor;
@@ -888,7 +888,7 @@ user_mouse_resize(const Arg *) {
         case ConfigureRequest:
         case Expose:
         case MapRequest:
-            handler[event.type](&event);
+            handlers[event.type](&event);
             break;
         case MotionNotify: {
             bool monitor_floating;
@@ -2688,7 +2688,7 @@ handler_unmap_notify(XEvent *event) {
 
 /* There's no way to check accesses to destroyed windows, thus those cases are
  * ignored (especially on UnmapNotify's). Other types of errors call Xlibs
- * default error handler, which may call exit. */
+ * default error handlers, which may call exit. */
 int
 handler_xerror(Display *d, XErrorEvent *ee) {
     (void) d;
@@ -3958,8 +3958,10 @@ main(int argc, char *argv[]) {
         XSync(display, False);
 
         while (dwm_running && !XNextEvent(display, &event)) {
-            if (handler[event.type])
-                handler[event.type](&event);
+            if (handlers[event.type])
+                handlers[event.type](&event);
+            else
+                DWM_DEBUG("event has no handlers: %d\n", event.type);
         }
     }
 
