@@ -3801,6 +3801,7 @@ update_bars(void) {
         .event_mask = ButtonPressMask|ExposureMask
     };
     XClassHint class_hint = {"dwm", "dwm"};
+
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Window window;
         ulong value_mask = CWOverrideRedirect
