@@ -424,10 +424,11 @@ user_alt_tab(const Arg *) {
     if (all_clients == NULL)
         return;
 
-    client_unfocus(current_monitor->selected_client, false);
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+        client_unfocus(current_monitor->selected_client, false);
         current_monitor = monitor;
         client_focus(NULL);
+
         user_view_tag(&(Arg){ .ui = (uint)~0 });
         user_set_layout(&(Arg){.v = &layouts[3]});
     }
@@ -2675,7 +2676,7 @@ handler_unmap_notify(XEvent *event) {
             DWM_DEBUG("send_event!");
             client_set_client_state(client, WithdrawnState);
         } else {
-            DWM_DEBUG("unnammaing client!");
+            DWM_DEBUG("unmanaging client!");
             client_unmanage(client, 0);
         }
     } else {
