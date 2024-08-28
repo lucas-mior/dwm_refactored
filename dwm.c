@@ -74,6 +74,10 @@ typedef unsigned char uchar;
 
 #define X_INTERN_ATOM(X) XInternAtom(display, X, False)
 
+#define DWM_DEBUG(...) do { \
+    dwm_debug(__func__, __VA_ARGS__); \
+} while (0);
+
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
 enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent };
@@ -275,7 +279,7 @@ static void monitor_update_bar_position(Monitor *);
 
 static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int);
-static void dwm_debug(char *, ...);
+static void dwm_debug(char *, char *, ...);
 static void draw_bars(void);
 static void draw_status_text(char *, int, int);
 static int get_root_pointer(int *, int *);
@@ -1559,13 +1563,13 @@ create_monitor(void) {
     return monitor;
 }
 
-void dwm_debug(char *message, ...) {
+void dwm_debug(char *function, char *message, ...) {
     char buffer[256];
     char *argv[6] = {
         [0] = "dunstify",
         [1] = "-t",
         [2] = "900",
-        [3] = "dwm",
+        [3] = function,
         [4] = NULL,
         [5] = NULL,
     };
@@ -2103,7 +2107,6 @@ get_status_bar_pid(void) {
     }
 
     if (read(pipefd[0], buffer, sizeof (buffer) - 1) <= 0) {
-        dwm_debug("read failed: %s\n", strerror(errno));
         close(pipefd[0]);
         return -1;
     }
@@ -3947,7 +3950,7 @@ main(int argc, char *argv[]) {
     }
 
     if (dwm_restart) {
-        dwm_debug("restarting...");
+        DWM_DEBUG("restarting...");
         execvp(argv[0], argv);
     }
 
