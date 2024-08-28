@@ -409,15 +409,14 @@ void error(char *function, char *format, ...) {
     int message_length;
     int header_length;
     va_list args;
-    char buffer[512];
-    char buffer2[128];
-    char *notifiers[2] = { "dunstify", "notify-send" };
+    char message[256];
+    char header[128];
 
-    header_length = snprintf(buffer2, sizeof (buffer2) - 1,
+    header_length = snprintf(header, sizeof (header) - 1,
                              "dwm: %s: ", function);
 
     va_start(args, format);
-    message_length = vsnprintf(buffer, sizeof (buffer) - 1,
+    message_length = vsnprintf(message, sizeof (message) - 1,
                                format, args);
     va_end(args);
 
@@ -427,20 +426,18 @@ void error(char *function, char *format, ...) {
         exit(EXIT_FAILURE);
     }
 
-    buffer[message_length] = '\0';
-    buffer[header_length] = '\0';
-    (void) write(STDERR_FILENO, buffer2, header_length);
-    (void) write(STDERR_FILENO, buffer, message_length);
+    message[message_length] = '\0';
+    header[header_length] = '\0';
+    (void) write(STDERR_FILENO, header, (size_t) header_length);
+    (void) write(STDERR_FILENO, message, (size_t) message_length);
 
     switch (fork()) {
         case -1:
             fprintf(stderr, "Error forking: %s\n", strerror(errno));
             break;
         case 0:
-            for (uint i = 0; i < LENGTH(notifiers); i += 1) {
-                execlp(notifiers[i], notifiers[i], "-u", "critical",
-                                     buffer2, buffer, NULL);
-            }
+            execlp("dunstify", "dunstify", "-u", "critical", "-t", "2000",
+                               header, message, NULL);
             fprintf(stderr, "Error trying to exec dunstify.\n");
             exit(EXIT_FAILURE);
         default:
@@ -2558,9 +2555,9 @@ handler_configure_notify(XEvent *event) {
 
 void
 handler_destroy_notify(XEvent *event) {
-    DWM_DEBUG("");
     Client *client;
     XDestroyWindowEvent *destroy_window_event = &event->xdestroywindow;
+    DWM_DEBUG("");
 
     if ((client = window_to_client(destroy_window_event->window))) {
         DWM_DEBUG("%s", client->name);
