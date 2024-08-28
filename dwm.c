@@ -2047,9 +2047,10 @@ monitor_layout_tile(Monitor *monitor) {
                  client = client_next_tiled(client->next)) {
         int h;
         int borders = 2*client->border_pixels;
+        int min_number = MIN(number_tiled, monitor->number_masters);
 
         if (i < monitor->number_masters) {
-            h = (monitor->win_h - mon_y) / (MIN(number_tiled, monitor->number_masters) - i);
+            h = (monitor->win_h - mon_y) / (min_number - i);
             client_resize(client,
                           monitor->win_x, monitor->win_y + mon_y,
                           mon_w - borders, h - borders,
