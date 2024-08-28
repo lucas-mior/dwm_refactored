@@ -4091,6 +4091,19 @@ main(int argc, char *argv[]) {
 #endif /* __OpenBSD__ */
 
     scan_windows();
+
+    for (Monitor *m = monitors; m; m = m->next) {
+        monitor_focus(m);
+
+        user_view_tag(&(Arg){.ui = 1 << 5});
+        user_set_layout(&(Arg){.v = &layouts[2]});
+
+        user_toggle_top_bar(0);
+        user_toggle_bottom_bar(0);
+
+        user_view_tag(&(Arg){.ui = 1 << 1});
+    }
+
     {
         XEvent event;
         XSync(display, False);
