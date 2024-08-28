@@ -723,8 +723,8 @@ user_increment_number_masters(const Arg *arg) {
     }
 
     number_masters = MIN(monitor->number_masters + arg->i, number_slaves + 1);
-
     number_masters = MAX(number_masters, 0);
+
     tag = monitor->pertag->tag;
     monitor->number_masters
         = monitor->pertag->number_masters[tag] = number_masters;
