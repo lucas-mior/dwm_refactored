@@ -420,7 +420,6 @@ void error(const char *function, char *format, ...) {
                                format, args);
     va_end(args);
 
-
     if (message_length < 0 || header_length < 0) {
         fprintf(stderr, "Error in vsnprintf()\n");
         exit(EXIT_FAILURE);
@@ -443,13 +442,6 @@ void error(const char *function, char *format, ...) {
         default:
             break;
     }
-    return;
-}
-
-void monitor_focus(Monitor *monitor) {
-    client_unfocus(current_monitor->selected_client, false);
-    current_monitor = monitor;
-    client_focus(NULL);
     return;
 }
 
@@ -1514,6 +1506,14 @@ monitor_arrange_monitor(Monitor *monitor) {
             sizeof(monitor->layout_symbol));
     if (monitor->layout[monitor->lay_i]->function)
         monitor->layout[monitor->lay_i]->function(monitor);
+    return;
+}
+
+void
+monitor_focus(Monitor *monitor) {
+    client_unfocus(current_monitor->selected_client, false);
+    current_monitor = monitor;
+    client_focus(NULL);
     return;
 }
 
