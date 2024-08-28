@@ -217,6 +217,7 @@ static void user_toggle_view(const Arg *);
 static void user_view_tag(const Arg *);
 static void user_window_view(const Arg *);
 
+static void handler_others(XEvent *);
 static void handler_button_press(XEvent *);
 static void handler_client_message(XEvent *);
 static void handler_configure_notify(XEvent *);
@@ -301,70 +302,6 @@ static void update_numlock_mask(void);
 static void update_status(void);
 static Client *window_to_client(Window);
 static Monitor *window_to_monitor(Window);
-
-static void
-handler_others(XEvent *event) {
-    switch (event->type) {
-    case CirculateNotify:
-        DWM_DEBUG("CirculateNotify");
-        break;
-    case CirculateRequest:
-        DWM_DEBUG("CirculateRequest");
-        break;
-    case ColormapNotify:
-        DWM_DEBUG("ColormapNotify");
-        break;
-    case CreateNotify:
-        DWM_DEBUG("CreateNotify");
-        break;
-    case FocusOut:
-        DWM_DEBUG("FocusOut");
-        break;
-    case GenericEvent:
-        DWM_DEBUG("GenericEvent");
-        break;
-    case GraphicsExpose:
-        DWM_DEBUG("GraphicsExpose");
-        break;
-    case GravityNotify:
-        DWM_DEBUG("GravityNotify");
-        break;
-    case KeymapNotify:
-        DWM_DEBUG("KeymapNotify");
-        break;
-    case LeaveNotify:
-        DWM_DEBUG("LeaveNotify");
-        break;
-    case MapNotify:
-        DWM_DEBUG("MapNotify");
-        break;
-    case NoExpose:
-        DWM_DEBUG("NoExpose");
-        break;
-    case ReparentNotify:
-        DWM_DEBUG("ReparentNotify");
-        break;
-    case ResizeRequest:
-        DWM_DEBUG("ResizeRequest");
-        break;
-    case SelectionClear:
-        DWM_DEBUG("SelectionClear");
-        break;
-    case SelectionNotify:
-        DWM_DEBUG("SelectionNotify");
-        break;
-    case SelectionRequest:
-        DWM_DEBUG("SelectionRequest");
-        break;
-    case VisibilityNotify:
-        DWM_DEBUG("VisibilityNotify");
-        break;
-    default:
-        DWM_DEBUG("unkown event type");
-        break;
-    }
-    return;
-}
 
 /* variables */
 static const char broken[] = "broken";
@@ -2332,6 +2269,70 @@ grab_keys(void) {
         }
     }
     XFree(key_sym);
+    return;
+}
+
+void
+handler_others(XEvent *event) {
+    switch (event->type) {
+    case CirculateNotify:
+        DWM_DEBUG("CirculateNotify");
+        break;
+    case CirculateRequest:
+        DWM_DEBUG("CirculateRequest");
+        break;
+    case ColormapNotify:
+        DWM_DEBUG("ColormapNotify");
+        break;
+    case CreateNotify:
+        DWM_DEBUG("CreateNotify");
+        break;
+    case FocusOut:
+        DWM_DEBUG("FocusOut");
+        break;
+    case GenericEvent:
+        DWM_DEBUG("GenericEvent");
+        break;
+    case GraphicsExpose:
+        DWM_DEBUG("GraphicsExpose");
+        break;
+    case GravityNotify:
+        DWM_DEBUG("GravityNotify");
+        break;
+    case KeymapNotify:
+        DWM_DEBUG("KeymapNotify");
+        break;
+    case LeaveNotify:
+        DWM_DEBUG("LeaveNotify");
+        break;
+    case MapNotify:
+        DWM_DEBUG("MapNotify");
+        break;
+    case NoExpose:
+        DWM_DEBUG("NoExpose");
+        break;
+    case ReparentNotify:
+        DWM_DEBUG("ReparentNotify");
+        break;
+    case ResizeRequest:
+        DWM_DEBUG("ResizeRequest");
+        break;
+    case SelectionClear:
+        DWM_DEBUG("SelectionClear");
+        break;
+    case SelectionNotify:
+        DWM_DEBUG("SelectionNotify");
+        break;
+    case SelectionRequest:
+        DWM_DEBUG("SelectionRequest");
+        break;
+    case VisibilityNotify:
+        DWM_DEBUG("VisibilityNotify");
+        break;
+    default:
+        DWM_DEBUG("unkown event type");
+        break;
+    }
     return;
 }
 
