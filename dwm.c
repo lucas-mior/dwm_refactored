@@ -1538,9 +1538,10 @@ monitor_cleanup_monitor(Monitor *monitor) {
         monitor_aux->next = monitor->next;
     }
     XUnmapWindow(display, monitor->top_bar_window);
-    XDestroyWindow(display, monitor->bottom_bar_window);
+
     XDestroyWindow(display, monitor->top_bar_window);
     XDestroyWindow(display, monitor->bottom_bar_window);
+
     free(monitor);
     return;
 }
