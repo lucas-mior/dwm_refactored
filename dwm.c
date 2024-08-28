@@ -1962,16 +1962,16 @@ monitor_layout_gapless_grid(Monitor *monitor) {
 
 void
 monitor_layout_monocle(Monitor *monitor) {
-    uint n = 0;
+    uint number_clients = 0;
 
     for (Client *client = monitor->clients; client; client = client->next) {
         if (ISVISIBLE(client))
-            n += 1;
+            number_clients += 1;
     }
 
-    if (n > 0) { /* override layout symbol */
+    if (number_clients > 0) {
         snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol),
-                 "[%d]", n);
+                 "[%d]", number_clients);
     }
 
     for (Client *client = client_next_tiled(monitor->clients);
