@@ -305,7 +305,6 @@ static void grab_keys(void);
 static void scan_windows(void);
 static void setup_once(void);
 static void update_bars(void);
-static void update_client_list(void);
 static void update_numlock_mask(void);
 static void update_status(void);
 
@@ -2085,7 +2084,16 @@ client_unmanage(Client *client, int destroyed) {
 
     free(client);
     client_focus(NULL);
-    update_client_list();
+
+    XDeleteProperty(display, root, net_atoms[NetClientList]);
+    for (Monitor *mon = monitors; mon; mon = mon->next) {
+        for (Client *c = mon->clients; c; c = c->next) {
+            XChangeProperty(display, root, net_atoms[NetClientList],
+                            XA_WINDOW, 32, PropModeAppend,
+                            (uchar *)&(c->window), 1);
+        }
+    }
+
     monitor_arrange(monitor);
     return;
 }
@@ -3824,20 +3832,6 @@ update_bars(void) {
                           cursor[CursorNormal]->cursor);
             XMapRaised(display, monitor->bottom_bar_window);
             XSetClassHint(display, monitor->bottom_bar_window, &class_hint);
-        }
-    }
-    return;
-}
-
-void
-update_client_list(void) {
-    XDeleteProperty(display, root, net_atoms[NetClientList]);
-
-    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        for (Client *client = monitor->clients; client; client = client->next) {
-            XChangeProperty(display, root, net_atoms[NetClientList],
-                            XA_WINDOW, 32, PropModeAppend,
-                            (uchar *)&(client->window), 1);
         }
     }
     return;
