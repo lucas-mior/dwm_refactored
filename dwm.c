@@ -3545,7 +3545,8 @@ update_geometry(void) {
     { /* default monitor setup */
         if (!monitors)
             monitors = create_monitor();
-        if (monitors->mon_w != screen_width || monitors->mon_h != screen_height) {
+        if (monitors->mon_w != screen_width
+            || monitors->mon_h != screen_height) {
             dirty = true;
             monitors->mon_w = monitors->win_w = screen_width;
             monitors->mon_h = monitors->win_h = screen_height;
