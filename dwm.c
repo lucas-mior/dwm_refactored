@@ -1894,7 +1894,7 @@ monitor_layout_columns(Monitor *monitor) {
 
 void
 monitor_layout_gapless_grid(Monitor *monitor) {
-    int nclients = 0;
+    int number_tiled = 0;
     int ncolumns = 0;
     int nrows;
     int col_i;
@@ -1905,23 +1905,23 @@ monitor_layout_gapless_grid(Monitor *monitor) {
     for (Client *client = client_next_tiled(monitor->clients);
                  client;
                  client = client_next_tiled(client->next)) {
-        nclients += 1;
+        number_tiled += 1;
     }
-    if (nclients == 0)
+    if (number_tiled == 0)
         return;
 
     /* grid dimensions */
-    while (ncolumns*ncolumns < nclients) {
-        if (ncolumns > (nclients / 2))
+    while (ncolumns*ncolumns < number_tiled) {
+        if (ncolumns > (number_tiled / 2))
             break;
         ncolumns += 1;
     }
 
-    if (nclients == 5) {
+    if (number_tiled == 5) {
         /* set layout against the general calculation: not 1:2:2, but 2:3 */
         ncolumns = 2;
     }
-    nrows = nclients/ncolumns;
+    nrows = number_tiled/ncolumns;
 
     if (ncolumns == 0)
         column_width = monitor->win_w;
@@ -1939,8 +1939,8 @@ monitor_layout_gapless_grid(Monitor *monitor) {
         int new_w;
         int new_h;
 
-        if ((i/nrows + 1) > (ncolumns - nclients % ncolumns))
-            nrows = nclients/ncolumns + 1;
+        if ((i/nrows + 1) > (ncolumns - number_tiled % ncolumns))
+            nrows = number_tiled/ncolumns + 1;
 
         client_height = monitor->win_h / nrows;
 
