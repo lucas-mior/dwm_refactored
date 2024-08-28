@@ -492,6 +492,7 @@ user_alt_tab(const Arg *) {
         XNextEvent(display, &event);
         switch (event.type) {
         case ConfigureRequest:
+        case DestroyNotify:
         case Expose:
         case MapRequest:
             handlers[event.type](&event);
