@@ -1994,7 +1994,7 @@ monitor_layout_tile(Monitor *m) {
     int mon_y = 0;
     int tile_y = 0;
 
-    for (Client *client_aux = client_next_tiled(m->clients);
+    for (Client *client_aux = client_next_tiled(monitor->clients);
                  client_aux;
                  client_aux = client_next_tiled(client_aux->next)) {
         n += 1;
@@ -2002,34 +2002,34 @@ monitor_layout_tile(Monitor *m) {
     if (n == 0)
         return;
 
-    if (n > m->number_masters) {
-        if (m->number_masters != 0)
-            mon_w = (int)((float)m->win_w*m->master_fact);
+    if (n > monitor->number_masters) {
+        if (monitor->number_masters != 0)
+            mon_w = (int)((float)monitor->win_w*monitor->master_fact);
         else
             mon_w = 0;
     } else {
-        mon_w = m->win_w;
+        mon_w = monitor->win_w;
     }
 
-    for (Client *client = client_next_tiled(m->clients);
+    for (Client *client = client_next_tiled(monitor->clients);
                  client;
                  client = client_next_tiled(client->next)) {
         int h;
-        if (i < m->number_masters) {
-            h = (m->win_h - mon_y) / (MIN(n, m->number_masters) - i);
+        if (i < monitor->number_masters) {
+            h = (monitor->win_h - mon_y) / (MIN(n, monitor->number_masters) - i);
             client_resize(client,
-                          m->win_x, m->win_y + mon_y,
+                          monitor->win_x, monitor->win_y + mon_y,
                           mon_w - (2*client->border_pixels),
                           h - (2*client->border_pixels), false);
-            if (mon_y + HEIGHT(client) < m->win_h)
+            if (mon_y + HEIGHT(client) < monitor->win_h)
                 mon_y += HEIGHT(client);
         } else {
-            h = (m->win_h - tile_y) / (n - i);
+            h = (monitor->win_h - tile_y) / (n - i);
             client_resize(client,
-                          m->win_x + mon_w, m->win_y + tile_y,
-                          m->win_w - mon_w - (2*client->border_pixels),
+                          monitor->win_x + mon_w, monitor->win_y + tile_y,
+                          monitor->win_w - mon_w - (2*client->border_pixels),
                           h - (2*client->border_pixels), false);
-            if (tile_y + HEIGHT(client) < m->win_h)
+            if (tile_y + HEIGHT(client) < monitor->win_h)
                 tile_y += HEIGHT(client);
         }
         i += 1;
