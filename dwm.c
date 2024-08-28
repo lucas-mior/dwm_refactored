@@ -2781,10 +2781,10 @@ handler_unmap_notify(XEvent *event) {
  * ignored (especially on UnmapNotify's). Other types of errors call Xlibs
  * default error handlers, which may call exit. */
 int
-handler_xerror(Display *d, XErrorEvent *error_event) {
+handler_xerror(Display *error_display, XErrorEvent *error_event) {
     uchar error_code = error_event->error_code;
     uchar request_code = error_event->request_code;
-    (void) d;
+    (void) error_display;
 
     if (error_code == BadWindow) {
         error("BadWindow");
