@@ -406,25 +406,31 @@ static int tag_width[LENGTH(tags)];
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 void error(char *function, char *format, ...) {
-    int n;
+    int message_length;
+    int header_length;
     va_list args;
     char buffer[512];
     char buffer2[128];
     char *notifiers[2] = { "dunstify", "notify-send" };
 
-    va_start(args, format);
-    n = vsnprintf(buffer, sizeof (buffer) - 1, format, args);
-    va_end(args);
-    int m = snprintf(buffer2, sizeof (buffer2) - 1, "dwm: %s: ", function);
+    header_length = snprintf(buffer2, sizeof (buffer2) - 1,
+                             "dwm: %s: ", function);
 
-    if (n < 0) {
+    va_start(args, format);
+    message_length = vsnprintf(buffer, sizeof (buffer) - 1,
+                               format, args);
+    va_end(args);
+
+
+    if (message_length < 0 || header_length < 0) {
         fprintf(stderr, "Error in vsnprintf()\n");
         exit(EXIT_FAILURE);
     }
 
-    buffer[n] = '\0';
-    (void) write(STDERR_FILENO, buffer2, m);
-    (void) write(STDERR_FILENO, buffer, (size_t) n);
+    buffer[message_length] = '\0';
+    buffer[header_length] = '\0';
+    (void) write(STDERR_FILENO, buffer2, header_length);
+    (void) write(STDERR_FILENO, buffer, message_length);
 
     switch (fork()) {
         case -1:
