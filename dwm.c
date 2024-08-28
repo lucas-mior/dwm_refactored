@@ -412,7 +412,7 @@ void error(const char *function, char *format, ...) {
     char header[128];
 
     header_length = snprintf(header, sizeof (header) - 1,
-                             "dwm: %s: ", function);
+                             "dwm: %s() ", function);
 
     va_start(args, format);
     message_length = vsnprintf(message, sizeof (message) - 1,
