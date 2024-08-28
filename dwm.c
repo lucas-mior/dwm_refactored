@@ -279,7 +279,7 @@ static void monitor_update_bar_position(Monitor *);
 
 static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int);
-static void dwm_debug(char *, char *, ...);
+static void dwm_debug(char const *, char *, ...);
 static void draw_bars(void);
 static void draw_status_text(char *, int, int);
 static int get_root_pointer(int *, int *);
@@ -1563,7 +1563,7 @@ create_monitor(void) {
     return monitor;
 }
 
-void dwm_debug(char *function, char *message, ...) {
+void dwm_debug(char const *function, char *message, ...) {
     char buffer[256];
     char *argv[6] = {
         [0] = "dunstify",
