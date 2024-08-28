@@ -303,119 +303,12 @@ static Client *window_to_client(Window);
 static Monitor *window_to_monitor(Window);
 
 static void
-handler_circulate_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_circulate_request(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_colormap_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_create_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_focus_out(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_generic_event(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_gravity_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_graphics_expose(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-
-static void
-handler_keymap_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_leave_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_map_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_no_expose(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_reparent_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_resize_request(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_selection_clear(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_selection_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_selection_request(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
-    return;
-}
-static void
-handler_visibility_notify(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("");
+handler_others(XEvent *event) {
+    switch (event->type) {
+        default:
+            DWM_DEBUG("unkown event type");
+            break;
+    }
     return;
 }
 
@@ -440,38 +333,38 @@ static uint numlock_mask = 0;
 static void (*handlers[LASTEvent]) (XEvent *) = {
     [ButtonPress] = handler_button_press,
     [ButtonRelease] = NULL,
-    [CirculateNotify] = handler_circulate_notify,
-    [CirculateRequest] = handler_circulate_request,
+    [CirculateNotify] = handler_others,
+    [CirculateRequest] = handler_others,
     [ClientMessage] = handler_client_message,
-    [ColormapNotify] = handler_colormap_notify,
+    [ColormapNotify] = handler_others,
     [ConfigureNotify] = handler_configure_notify,
     [ConfigureRequest] = handler_configure_request,
-    [CreateNotify] = handler_create_notify,
+    [CreateNotify] = handler_others,
     [DestroyNotify] = handler_destroy_notify,
     [EnterNotify] = handler_enter_notify,
     [Expose] = handler_expose,
     [FocusIn] = handler_focus_in,
-    [FocusOut] = handler_focus_out,
-    [GenericEvent] = handler_generic_event,
-    [GraphicsExpose] = handler_graphics_expose,
-    [GravityNotify] = handler_gravity_notify,
+    [FocusOut] = handler_others,
+    [GenericEvent] = handler_others,
+    [GraphicsExpose] = handler_others,
+    [GravityNotify] = handler_others,
     [KeyPress] = handler_key_press,
     [KeyRelease] = NULL,
-    [KeymapNotify] = handler_keymap_notify,
-    [LeaveNotify] = handler_leave_notify,
-    [MapNotify] = handler_map_notify,
+    [KeymapNotify] = handler_others,
+    [LeaveNotify] = handler_others,
+    [MapNotify] = handler_others,
     [MapRequest] = handler_map_request,
     [MappingNotify] = handler_mapping_notify,
     [MotionNotify] = handler_motion_notify,
-    [NoExpose] = handler_no_expose,
+    [NoExpose] = handler_others,
     [PropertyNotify] = handler_property_notify,
-    [ReparentNotify] = handler_reparent_notify,
-    [ResizeRequest] = handler_resize_request,
-    [SelectionClear] = handler_selection_clear,
-    [SelectionNotify] = handler_selection_notify,
-    [SelectionRequest] = handler_selection_request,
+    [ReparentNotify] = handler_others,
+    [ResizeRequest] = handler_others,
+    [SelectionClear] = handler_others,
+    [SelectionNotify] = handler_others,
+    [SelectionRequest] = handler_others,
     [UnmapNotify] = handler_unmap_notify,
-    [VisibilityNotify] = handler_visibility_notify,
+    [VisibilityNotify] = handler_others,
 };
 
 static Atom wm_atoms[WMLast];
