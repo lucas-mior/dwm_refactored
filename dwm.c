@@ -1926,7 +1926,6 @@ monitor_arrange(Monitor *monitor) {
     return;
 }
 
-
 void
 client_attach(Client *client) {
     client->next = client->monitor->clients;
