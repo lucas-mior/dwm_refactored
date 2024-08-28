@@ -1746,7 +1746,8 @@ monitor_draw_bar(Monitor *monitor) {
             drw_setscheme(drw, scheme[SchemeNormal]);
 
         drw_text(drw, x, 0, (uint)w,
-                 bar_height, text_padding / 2, tags_display, (int)urgent & 1 << i);
+                 bar_height, text_padding / 2,
+                 tags_display, (int)urgent & 1 << i);
         x += w;
         if (client_with_icon) {
             drw_text(drw, x, 0, client_with_icon->icon_width + text_padding/2,
@@ -3036,7 +3037,8 @@ void
 client_set_client_state(Client *client, long state) {
     long data[] = { state, None };
 
-    XChangeProperty(display, client->window, wm_atoms[WMState], wm_atoms[WMState], 32,
+    XChangeProperty(display, client->window,
+                    wm_atoms[WMState], wm_atoms[WMState], 32,
                     PropModeReplace, (uchar *)data, 2);
     return;
 }
@@ -3068,10 +3070,11 @@ client_send_event(Client *client, Atom proto) {
 void
 client_set_focus(Client *client) {
     if (!client->never_focus) {
-        XSetInputFocus(display, client->window, RevertToPointerRoot, CurrentTime);
+        XSetInputFocus(display, client->window,
+                       RevertToPointerRoot, CurrentTime);
         XChangeProperty(display, root, net_atoms[NetActiveWindow],
-            XA_WINDOW, 32, PropModeReplace,
-            (uchar *)&(client->window), 1);
+                        XA_WINDOW, 32, PropModeReplace,
+                        (uchar *)&(client->window), 1);
     }
     client_send_event(client, wm_atoms[WMTakeFocus]);
     return;
@@ -3080,8 +3083,9 @@ client_set_focus(Client *client) {
 void
 client_set_fullscreen(Client *client, bool fullscreen) {
     if (fullscreen && !client->is_fullscreen) {
-        XChangeProperty(display, client->window, net_atoms[NetWMState], XA_ATOM, 32,
-            PropModeReplace, (uchar*)&net_atoms[NetWMFullscreen], 1);
+        XChangeProperty(display, client->window, net_atoms[NetWMState],
+                        XA_ATOM, 32, PropModeReplace,
+                        (uchar*)&net_atoms[NetWMFullscreen], 1);
         client->is_fullscreen = true;
         if (client->is_fake_fullscreen) {
             client_resize_apply(client,
@@ -3235,10 +3239,14 @@ setup_once(void) {
 
     /* select events */
     window_attributes.cursor = cursor[CursorNormal]->cursor;
-    window_attributes.event_mask = SubstructureRedirectMask|SubstructureNotifyMask
-        |ButtonPressMask|PointerMotionMask|EnterWindowMask
-        |LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
-    XChangeWindowAttributes(display, root, CWEventMask|CWCursor, &window_attributes);
+    window_attributes.event_mask
+        = SubstructureRedirectMask|SubstructureNotifyMask
+          |ButtonPressMask|PointerMotionMask|EnterWindowMask
+          |LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
+
+    XChangeWindowAttributes(display, root,
+                            CWEventMask|CWCursor, &window_attributes);
+
     XSelectInput(display, root, window_attributes.event_mask);
     grab_keys();
     client_focus(NULL);
@@ -3481,8 +3489,9 @@ update_geometry(void) {
 
         /* new monitors if number_unique > number_monitors */
         for (int k = number_monitors; k < number_unique; k += 1) {
-            for (monitor = monitors; monitor && monitor->next; monitor = monitor->next);
-            if (monitor)
+            Monitor *mon;
+            for (mon = monitors; mon && mon->next; mon = mon->next);
+            if (mon)
                 monitor->next = create_monitor();
             else
                 monitors = create_monitor();
