@@ -309,9 +309,9 @@ static void update_numlock_mask(void);
 static void update_status(void);
 
 static const char broken[] = "broken";
-#define TOP_STATUS_SIZE 256
-static char top_status[TOP_STATUS_SIZE];
-static char bottom_status[TOP_STATUS_SIZE];
+#define STATUS_BUFFER_SIZE 256
+static char top_status[STATUS_BUFFER_SIZE];
+static char bottom_status[STATUS_BUFFER_SIZE];
 static int top_status_pixels;
 static int bottom_status_pixels;
 static int status_signal;
@@ -3988,7 +3988,7 @@ status_count_pixels(char *text) {
 
 void
 update_status(void) {
-    char text[768];
+    char text[STATUS_BUFFER_SIZE*2];
     char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
