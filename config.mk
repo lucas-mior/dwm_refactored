@@ -28,10 +28,11 @@ LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS} -lXrender -lImlib2
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
 #CFLAGS   = -g -std=c99 -pedantic -Wall -O0 ${INCS} ${CPPFLAGS}
-CFLAGS   = -std=c99 -Weverything -Wfatal-errors -Os ${INCS} ${CPPFLAGS}
+CFLAGS   = -std=c99 -Weverything -Wfatal-errors ${INCS} ${CPPFLAGS}
 CFLAGS += -Wno-unsafe-buffer-usage -Wno-padded -Wno-format-nonliteral
 CFLAGS += -Wno-missing-noreturn -Wno-deprecated-declarations -Wno-c23-extensions
 CFLAGS += -Wno-unused-function
+CFLAGS += -O2 -flto
 # CFLAGS += -Wno-sign-compare -Wno-sign-conversion
 LDFLAGS  = ${LIBS}
 
