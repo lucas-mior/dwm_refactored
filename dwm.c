@@ -3733,11 +3733,12 @@ client_update_icon(Client *client) {
     }
 
     do {
+        ulong *pointer = prop_return;
         const ulong *end = prop_return + nitems_return;
         uint32 bstd = UINT32_MAX;
         uint32 d;
 
-        for (ulong *pointer = prop_return; pointer < (end - 1); pointer += area_find) {
+        while (pointer < (end - 1)) {
             uint32 max_dim;
             uint32 w = (uint32)*pointer++;
             uint32 h = (uint32)*pointer++;
@@ -3754,12 +3755,14 @@ client_update_icon(Client *client) {
                 bstd = d;
                 pixel_find = pointer;
             }
+            pointer += area_find;
         }
 
         if (pixel_find)
             break;
 
-        for (ulong *pointer = prop_return; pointer < (end - 1); pointer += area_find) {
+        pointer = prop_return;
+        while (pointer < (end - 1)) {
             uint32 max_dim;
             uint32 w = (uint32)*pointer++;
             uint32 h = (uint32)*pointer++;
@@ -3776,6 +3779,7 @@ client_update_icon(Client *client) {
                 bstd = d;
                 pixel_find = pointer;
             }
+            pointer += area_find;
         }
     } while (false);
 
