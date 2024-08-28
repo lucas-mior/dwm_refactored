@@ -1542,6 +1542,7 @@ monitor_cleanup_monitor(Monitor *monitor) {
     XDestroyWindow(display, monitor->top_bar_window);
     XDestroyWindow(display, monitor->bottom_bar_window);
 
+    free(monitor->pertag);
     free(monitor);
     return;
 }
