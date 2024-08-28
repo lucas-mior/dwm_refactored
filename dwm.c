@@ -538,7 +538,7 @@ user_focus_direction(const Arg *arg) {
     Client *client = NULL;
     Client *client_aux;
     Client *next;
-    uint best_score = (uint)-1;
+    uint best_score = UINT_MAX;
 
     if (!selected)
         return;
