@@ -610,17 +610,17 @@ user_focus_monitor(const Arg *arg) {
 
 void
 user_focus_next(const Arg *arg) {
-    Monitor *m;
+    Monitor *monitor;
     Client *client;
 
-    m = current_monitor;
-    client = m->selected_client;
-    while (client == NULL && m->next) {
-        m = m->next;
+    monitor = current_monitor;
+    client = monitor->selected_client;
+    while (client == NULL && monitor->next) {
+        monitor = monitor->next;
         client_unfocus(current_monitor->selected_client, true);
-        current_monitor = m;
+        current_monitor = monitor;
         client_focus(NULL);
-        client = m->selected_client;
+        client = monitor->selected_client;
     }
     if (client == NULL)
         return;
@@ -3686,10 +3686,8 @@ client_update_icon(Client *client) {
 
     ulong *pixel_find = NULL;
     uint32 *pixel_find32;
-    uint32 width_find;
-    uint32 height_find;
-    uint32 icon_width;
-    uint32 icon_height;
+    uint32 width_find, height_find;
+    uint32 icon_width, icon_height;
     uint32 area_find = 0;
     uint *picture_width = &client->icon_width;
     uint *picture_height = &client->icon_height;
@@ -3844,8 +3842,8 @@ client_update_wm_hints(Client *client) {
 
 Client *
 window_to_client(Window window) {
-    for (Monitor *m = monitors; m; m = m->next) {
-        for (Client *client = m->clients; client; client = client->next) {
+    for (Monitor *mon = monitors; mon; mon = mon->next) {
+        for (Client *client = mon->clients; client; client = client->next) {
             if (client->window == window)
                 return client;
         }
