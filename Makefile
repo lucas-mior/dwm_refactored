@@ -7,7 +7,7 @@ SRC = drw.c dwm.c util.c
 
 all: dwm
 
-dwm: ${SRC} config.mk config.def.h
+dwm: ${SRC} config.mk config.h
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
 	${CC} $(CFLAGS) -o $@ ${SRC} ${LDFLAGS}
@@ -17,7 +17,7 @@ clean: ${SRC}
 
 dist: clean
 	mkdir -p dwm-${VERSION}
-	cp -R LICENSE Makefile README config.def.h config.mk\
+	cp -R LICENSE Makefile README config.h config.mk\
 		dwm.1 drw.h util.h ${SRC} dwm.png transient.c dwm-${VERSION}
 	tar -cf dwm-${VERSION}.tar dwm-${VERSION}
 	gzip dwm-${VERSION}.tar

@@ -20,6 +20,7 @@
  *
  * To understand everything else, start reading main().
  */
+
 #include <errno.h>
 #include <locale.h>
 #include <signal.h>
@@ -40,9 +41,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
+
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
+
 #include <X11/Xft/Xft.h>
 
 #include "drw.h"
@@ -191,7 +194,6 @@ typedef struct {
     int monitor;
 } Rule;
 
-/* function declarations */
 static void error(char *, char *, ...);
 static void user_alt_tab(const Arg *);
 static void user_aspect_resize(const Arg *);
@@ -306,7 +308,6 @@ static void update_client_list(void);
 static void update_numlock_mask(void);
 static void update_status(void);
 
-/* variables */
 static const char broken[] = "broken";
 #define TOP_STATUS_SIZE 256
 static char top_status[TOP_STATUS_SIZE];
@@ -320,7 +321,7 @@ static int screen_width;
 static int screen_height;
 
 static uint bar_height;
-static uint text_padding;      /* sum of left and right padding for text */
+static uint text_padding;
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlock_mask = 0;
 
@@ -381,8 +382,7 @@ static Monitor *monitors;
 static Monitor *current_monitor;
 static Client *all_clients = NULL;
 
-/* configuration, allows nested code to access above variables */
-#include "config.def.h"
+#include "config.h"
 
 struct Pertag {
     uint tag;
@@ -742,8 +742,7 @@ user_focus_urgent(const Arg *) {
             while (i < LENGTH(tags) && !((1 << i) & client->tags))
                 i += 1;
             if (i < LENGTH(tags)) {
-                const Arg a = {.ui = 1 << i};
-                user_view_tag(&a);
+                user_view_tag(&(Arg){.ui = 1 << i});
                 client_focus(client);
             }
         }
