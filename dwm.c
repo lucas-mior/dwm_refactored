@@ -283,6 +283,7 @@ static void monitor_layout_monocle(Monitor *);
 static void monitor_layout_tile(Monitor *);
 static void monitor_restack(Monitor *);
 static void monitor_update_bar_position(Monitor *);
+static void monitor_focus(Monitor *);
 
 static Client *window_to_client(Window);
 static Monitor *create_monitor(void);
@@ -445,6 +446,13 @@ void error(const char *function, char *format, ...) {
     return;
 }
 
+void monitor_focus(Monitor *monitor) {
+    client_unfocus(current_monitor->selected_client, false);
+    current_monitor = monitor;
+    client_focus(NULL);
+    return;
+}
+
 void
 user_alt_tab(const Arg *) {
     static bool alt_tab_direction = false;
@@ -456,9 +464,7 @@ user_alt_tab(const Arg *) {
         return;
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        client_unfocus(current_monitor->selected_client, false);
-        current_monitor = monitor;
-        client_focus(NULL);
+        monitor_focus(monitor);
 
         user_view_tag(&(Arg){ .ui = (uint)~0 });
         user_set_layout(&(Arg){.v = &layouts[3]});
@@ -645,9 +651,7 @@ user_focus_monitor(const Arg *arg) {
     if ((monitor = direction_to_monitor(arg->i)) == current_monitor)
         return;
 
-    client_unfocus(current_monitor->selected_client, false);
-    current_monitor = monitor;
-    client_focus(NULL);
+    monitor_focus(monitor);
     return;
 }
 
