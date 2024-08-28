@@ -1857,6 +1857,10 @@ monitor_layout_columns(Monitor *monitor) {
     }
     if (number_tiled == 0)
         return;
+    if (number_tiled > 0) {
+        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol),
+                 "|%d|", number_tiled);
+    }
 
     if (number_tiled > monitor->number_masters) {
         if (monitor->number_masters != 0)
@@ -2006,6 +2010,10 @@ monitor_layout_tile(Monitor *monitor) {
     }
     if (number_tiled == 0)
         return;
+    if (number_tiled > 0) {
+        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol),
+                 "=%d|", number_tiled);
+    }
 
     if (number_tiled > monitor->number_masters) {
         if (monitor->number_masters != 0)
