@@ -217,7 +217,6 @@ static void user_toggle_view(const Arg *);
 static void user_view_tag(const Arg *);
 static void user_window_view(const Arg *);
 
-static void handler_dummy(XEvent *);
 static void handler_button_press(XEvent *);
 static void handler_client_message(XEvent *);
 static void handler_configure_notify(XEvent *);
@@ -306,117 +305,117 @@ static Monitor *window_to_monitor(Window);
 static void
 handler_circulate_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_circulate_request(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_colormap_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_create_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_focus_out(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_generic_event(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_gravity_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_graphics_expose(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
 static void
 handler_keymap_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_leave_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_map_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_no_expose(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_reparent_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_resize_request(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_selection_clear(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_selection_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_selection_request(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 static void
 handler_visibility_notify(XEvent *event) {
     (void) event;
-    DWM_DEBUG("event:");
+    DWM_DEBUG("");
     return;
 }
 
@@ -460,11 +459,11 @@ static void (*handlers[LASTEvent]) (XEvent *) = {
     [KeyRelease] = NULL,
     [KeymapNotify] = handler_keymap_notify,
     [LeaveNotify] = handler_leave_notify,
-    [MapNotify] = NULL,
+    [MapNotify] = handler_map_notify,
     [MapRequest] = handler_map_request,
     [MappingNotify] = handler_mapping_notify,
     [MotionNotify] = handler_motion_notify,
-    [NoExpose] = NULL,
+    [NoExpose] = handler_no_expose,
     [PropertyNotify] = handler_property_notify,
     [ReparentNotify] = handler_reparent_notify,
     [ResizeRequest] = handler_resize_request,
@@ -885,10 +884,13 @@ user_increment_number_masters(const Arg *arg) {
 void
 user_kill_client(const Arg *) {
     Client *selected = current_monitor->selected_client;
-    if (!selected)
+    if (!selected) {
+        DWM_DEBUG("no selected client to kill");
         return;
+    }
 
     if (!client_send_event(selected, wm_atoms[WMDelete])) {
+        DWM_DEBUG("Cant send delete event to %s\n", selected->name);
         XGrabServer(display);
         XSetErrorHandler(handler_xerror_dummy);
         XSetCloseDownMode(display, DestroyAll);
@@ -2383,13 +2385,6 @@ grab_keys(void) {
         }
     }
     XFree(key_sym);
-    return;
-}
-
-void
-handler_dummy(XEvent *event) {
-    (void) event;
-    DWM_DEBUG("event:");
     return;
 }
 
