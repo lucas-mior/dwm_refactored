@@ -69,7 +69,7 @@ typedef unsigned char uchar;
 #define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
 #define TAGMASK   ((1 << (LENGTH(tags))) - 1)
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + text_padding)
-#define PAUSE_MILIS_AS_NANOS(X) ((X) * 1000 * 1000)
+#define PAUSE_MILIS_AS_NANOS(X) ((X)*1000*1000)
 
 #define OPAQUE 0xffU
 #define TAG_DISPLAY_SIZE 32
