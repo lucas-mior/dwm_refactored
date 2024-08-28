@@ -76,7 +76,7 @@ typedef unsigned char uchar;
 
 #define DWM_DEBUG(...) do { \
     dwm_debug(__func__, __VA_ARGS__); \
-} while (0);
+} while (0)
 
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
@@ -323,7 +323,7 @@ static uint numlock_mask = 0;
 
 static void (*handlers[LASTEvent]) (XEvent *) = {
     [ButtonPress] = handler_button_press,
-    [ButtonRelease] = handler_dummy,
+    [ButtonRelease] = NULL,
     [CirculateNotify] = handler_dummy,
     [CirculateRequest] = handler_dummy,
     [ClientMessage] = handler_client_message,
@@ -340,7 +340,7 @@ static void (*handlers[LASTEvent]) (XEvent *) = {
     [GraphicsExpose] = handler_dummy,
     [GravityNotify] = handler_dummy,
     [KeyPress] = handler_key_press,
-    [KeyRelease] = handler_dummy,
+    [KeyRelease] = NULL,
     [KeymapNotify] = handler_dummy,
     [LeaveNotify] = handler_dummy,
     [MapNotify] = handler_dummy,
@@ -1597,18 +1597,16 @@ void dwm_debug(char const *function, char *message, ...) {
         [0] = "dunstify",
         [1] = "-t",
         [2] = "900",
-        [3] = "-r",
-        [4] = function,
-        [5] = function,
-        [6] = NULL,
-        [7] = NULL,
+        [3] = function,
+        [4] = NULL,
+        [5] = NULL,
     };
 
     va_list args;
     va_start(args, message);
 
     vsnprintf(buffer, sizeof(buffer), message, args);
-    argv[6] = buffer;
+    argv[LENGTH(argv) - 2] = buffer;
     va_end(args);
 
     switch (fork()) {
@@ -2273,7 +2271,8 @@ grab_keys(void) {
 
 void
 handler_dummy(XEvent *event) {
-    DWM_DEBUG("event:%d\n", event->type);
+    (void) event;
+    DWM_DEBUG("event:");
     return;
 }
 
@@ -2699,21 +2698,15 @@ handler_property_notify(XEvent *event) {
 
 void
 handler_unmap_notify(XEvent *event) {
-    DWM_DEBUG("");
     Client *client;
     XUnmapEvent *unmap_event = &event->xunmap;
 
     if ((client = window_to_client(unmap_event->window))) {
-        DWM_DEBUG("%s", client->name);
         if (unmap_event->send_event) {
-            DWM_DEBUG("send_event!");
             client_set_client_state(client, WithdrawnState);
         } else {
-            DWM_DEBUG("unmanaging client!");
             client_unmanage(client, 0);
         }
-    } else {
-        DWM_DEBUG("unmpa no client!!!");
     }
     return;
 }
