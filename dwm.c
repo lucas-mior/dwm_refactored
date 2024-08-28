@@ -460,11 +460,11 @@ static void (*handlers[LASTEvent]) (XEvent *) = {
     [KeyRelease] = NULL,
     [KeymapNotify] = handler_keymap_notify,
     [LeaveNotify] = handler_leave_notify,
-    [MapNotify] = handler_map_notify,
+    [MapNotify] = NULL,
     [MapRequest] = handler_map_request,
     [MappingNotify] = handler_mapping_notify,
     [MotionNotify] = handler_motion_notify,
-    [NoExpose] = handler_no_expose,
+    [NoExpose] = NULL,
     [PropertyNotify] = handler_property_notify,
     [ReparentNotify] = handler_reparent_notify,
     [ResizeRequest] = handler_resize_request,
@@ -4102,8 +4102,6 @@ main(int argc, char *argv[]) {
         while (dwm_running && !XNextEvent(display, &event)) {
             if (handlers[event.type])
                 handlers[event.type](&event);
-            else
-                DWM_DEBUG("event has no handlers: %d\n", event.type);
         }
     }
 
