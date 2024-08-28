@@ -753,6 +753,7 @@ user_focus_urgent(const Arg *) {
 void
 user_increment_number_masters(const Arg *arg) {
     Monitor *monitor = current_monitor;
+    Pertag *pertag = monitor->pertag;
     int number_slaves = -1;
     int number_masters;
     uint tag;
@@ -767,8 +768,7 @@ user_increment_number_masters(const Arg *arg) {
     number_masters = MAX(number_masters, 0);
 
     tag = monitor->pertag->tag;
-    monitor->number_masters
-        = monitor->pertag->number_masters[tag] = number_masters;
+    monitor->number_masters = pertag->number_masters[tag] = number_masters;
 
     monitor_arrange(monitor);
     return;
