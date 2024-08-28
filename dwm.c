@@ -400,7 +400,7 @@ void error(char *format, ...) {
             break;
         case 0:
             for (uint i = 0; i < LENGTH(notifiers); i += 1) {
-                execlp(notifiers[i], notifiers[i], "-u", "critical", 
+                execlp(notifiers[i], notifiers[i], "-u", "critical",
                                      "dwm", buffer, NULL);
             }
             fprintf(stderr, "Error trying to exec dunstify.\n");
@@ -2015,20 +2015,21 @@ monitor_layout_tile(Monitor *monitor) {
                  client;
                  client = client_next_tiled(client->next)) {
         int h;
+        int borders = 2*client->border_pixels;
         if (i < monitor->number_masters) {
             h = (monitor->win_h - mon_y) / (MIN(number_tiled, monitor->number_masters) - i);
             client_resize(client,
                           monitor->win_x, monitor->win_y + mon_y,
-                          mon_w - (2*client->border_pixels),
-                          h - (2*client->border_pixels), false);
+                          mon_w - borders, h - borders,
+                          false);
             if (mon_y + HEIGHT(client) < monitor->win_h)
                 mon_y += HEIGHT(client);
         } else {
             h = (monitor->win_h - tile_y) / (number_tiled - i);
             client_resize(client,
                           monitor->win_x + mon_w, monitor->win_y + tile_y,
-                          monitor->win_w - mon_w - (2*client->border_pixels),
-                          h - (2*client->border_pixels), false);
+                          monitor->win_w - mon_w - borders, h - borders,
+                          false);
             if (tile_y + HEIGHT(client) < monitor->win_h)
                 tile_y += HEIGHT(client);
         }
