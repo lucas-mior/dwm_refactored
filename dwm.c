@@ -1845,7 +1845,7 @@ client_focus(Client *client) {
 void
 monitor_layout_columns(Monitor *monitor) {
     int i = 0;
-    int n = 0;
+    int number_tiled = 0;
     int x = 0;
     int y = 0;
     int mon_w;
@@ -1853,12 +1853,12 @@ monitor_layout_columns(Monitor *monitor) {
     for (Client *client_aux = client_next_tiled(monitor->clients);
                  client_aux;
                  client_aux = client_next_tiled(client_aux->next)) {
-        n += 1;
+        number_tiled += 1;
     }
-    if (n == 0)
+    if (number_tiled == 0)
         return;
 
-    if (n > monitor->number_masters) {
+    if (number_tiled > monitor->number_masters) {
         if (monitor->number_masters != 0)
             mon_w = (int)((float)monitor->win_w*monitor->master_fact);
         else
@@ -1873,14 +1873,14 @@ monitor_layout_columns(Monitor *monitor) {
         int w;
         int h;
         if (i < monitor->number_masters) {
-            w = (mon_w - x) / (MIN(n, monitor->number_masters) - i);
+            w = (mon_w - x) / (MIN(number_tiled, monitor->number_masters) - i);
             client_resize(client,
                           x + monitor->win_x, monitor->win_y,
                           w - (2*client->border_pixels),
                           monitor->win_h - (2*client->border_pixels), false);
             x += WIDTH(client);
         } else {
-            h = (monitor->win_h - y) / (n - i);
+            h = (monitor->win_h - y) / (number_tiled - i);
             client_resize(client,
                           x + monitor->win_x, monitor->win_y + y,
                           monitor->win_w - x - (2*client->border_pixels),
