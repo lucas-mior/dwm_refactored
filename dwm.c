@@ -65,7 +65,7 @@ typedef unsigned char uchar;
 #define WIDTH(X)  ((X)->w + 2*(X)->border_pixels)
 #define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
 #define TAGMASK   ((1 << (LENGTH(tags))) - 1)
-#define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + text_padding)
 #define PAUSE_MILIS_AS_NANOS(X) ((X) * 1000 * 1000)
 
 #define OPAQUE 0xffU
@@ -311,8 +311,8 @@ static int screen;
 static int screen_width;
 static int screen_height;
 
-static uint bar_height;  /* bar height */
-static uint lrpad;      /* sum of left and right padding for text */
+static uint bar_height;
+static uint text_padding;      /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlock_mask = 0;
 
@@ -1659,7 +1659,7 @@ void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
             temp = *s;
             *s = '\0';
 
-            text_pixels = (int)(TEXT_PIXELS(text) - lrpad);
+            text_pixels = (int)(TEXT_PIXELS(text) - text_padding);
             drw_text(drw,
                      mon_win_w - status_pixels + x, 0,
                      (uint)text_pixels, bar_height, 0, text, 0);
@@ -1669,7 +1669,7 @@ void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
             text = s + 1;
         }
     }
-    text_pixels = (int)(TEXT_PIXELS(text) - lrpad + 2);
+    text_pixels = (int)(TEXT_PIXELS(text) - text_padding + 2);
     drw_text(drw,
              mon_win_w - status_pixels + x, 0,
              (uint)text_pixels, bar_height, 0, text, 0);
@@ -1745,23 +1745,23 @@ monitor_draw_bar(Monitor *monitor) {
             drw_setscheme(drw, scheme[SchemeNormal]);
 
         drw_text(drw, x, 0, (uint)w,
-                 bar_height, lrpad / 2, tags_display, (int)urgent & 1 << i);
+                 bar_height, text_padding / 2, tags_display, (int)urgent & 1 << i);
         x += w;
         if (client_with_icon) {
-            drw_text(drw, x, 0, client_with_icon->icon_width + lrpad/2,
+            drw_text(drw, x, 0, client_with_icon->icon_width + text_padding/2,
                      bar_height, 0, " ", urgent & 1 << i);
             drw_pic(drw,
                     x, (bar_height - client_with_icon->icon_height) / 2,
                     client_with_icon->icon_width, client_with_icon->icon_height,
                     client_with_icon->icon);
-            x += client_with_icon->icon_width + lrpad/2;
-            tag_width[i] += client_with_icon->icon_width + lrpad/2;
+            x += client_with_icon->icon_width + text_padding/2;
+            tag_width[i] += client_with_icon->icon_width + text_padding/2;
         }
     }
     w = (int)TEXT_PIXELS(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
     x = drw_text(drw,
-                 x, 0, (uint)w, bar_height, lrpad / 2,
+                 x, 0, (uint)w, bar_height, text_padding / 2,
                  monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - text_pixels - x) > (int)bar_height) {
@@ -1778,7 +1778,7 @@ monitor_draw_bar(Monitor *monitor) {
 
             drw_text(drw,
                      x, 0, (uint)w, bar_height,
-                     lrpad / 2, monitor->selected_client->name, 0);
+                     text_padding / 2, monitor->selected_client->name, 0);
             if (monitor->selected_client->is_floating)
                 drw_rect(drw, x + boxs, boxs,
                          (uint)boxw, (uint)boxw,
@@ -2299,7 +2299,7 @@ get_signal_number(char *status, int x, int max_x) {
             char byte = *s;
             *s = '\0';
 
-            x += TEXT_PIXELS(text) - lrpad;
+            x += TEXT_PIXELS(text) - text_padding;
 
             *s = byte;
             text = s + 1;
@@ -3167,7 +3167,7 @@ setup_once(void) {
         error("Error loading fonts for dwm.\n");
         exit(EXIT_FAILURE);
     }
-    lrpad = drw->fonts->h / 2;
+    text_padding = drw->fonts->h / 2;
     bar_height = drw->fonts->h + 2;
     update_geometry();
 
@@ -3625,12 +3625,12 @@ status_count_pixels(char *text) {
         if ((uchar)(*s) < ' ') {
             byte = *s;
             *s = '\0';
-            pixels += TEXT_PIXELS(text2) - lrpad;
+            pixels += TEXT_PIXELS(text2) - text_padding;
             *s = byte;
             text2 = s + 1;
         }
     }
-    pixels += TEXT_PIXELS(text2) - lrpad + 2;
+    pixels += TEXT_PIXELS(text2) - text_padding + 2;
     return pixels;
 }
 
@@ -3641,7 +3641,7 @@ update_status(void) {
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(top_status, "dwm-"VERSION);
-        top_status_pixels = (int)(TEXT_PIXELS(top_status) - lrpad + 2);
+        top_status_pixels = (int)(TEXT_PIXELS(top_status) - text_padding + 2);
         bottom_status[0] = '\0';
         monitor_draw_bar(current_monitor);
         return;
