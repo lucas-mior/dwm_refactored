@@ -554,7 +554,9 @@ user_aspect_resize(const Arg *arg) {
     int new_width, new_height;
     bool monitor_floating = !monitor->layout[monitor->lay_i]->function;
 
-    if (!client || !arg)
+    if (!arg)
+        return;
+    if (client == NULL)
         return;
 
     if (!client->is_floating && !monitor_floating)
@@ -694,7 +696,7 @@ user_focus_stack(const Arg *arg) {
         for (client = current_monitor->selected_client->next;
              client && !ISVISIBLE(client);
              client = client->next);
-        if (!client) {
+        if (client == NULL) {
             for (client = current_monitor->clients;
                  client && !ISVISIBLE(client);
                  client = client->next);
@@ -707,7 +709,7 @@ user_focus_stack(const Arg *arg) {
             if (ISVISIBLE(client_aux))
                 client = client_aux;
         }
-        if (!client) {
+        if (client == NULL) {
             for (; client_aux; client_aux = client_aux->next) {
                 if (ISVISIBLE(client_aux))
                     client = client_aux;
@@ -1122,7 +1124,7 @@ user_toggle_floating(const Arg *) {
     Client *client = current_monitor->selected_client;
     Monitor *monitor;
 
-    if (!client)
+    if (client == NULL)
         return;
 
     /* no support for fullscreen windows */
@@ -1329,10 +1331,13 @@ user_promote_to_master(const Arg *) {
     bool monitor_floating = !monitor->layout[monitor->lay_i]->function;
     bool is_next_tiled = client == client_next_tiled(monitor->clients);
 
-    if (!client || monitor_floating || client->is_floating)
+    if (client == NULL)
+        return;
+    if (monitor_floating || client->is_floating)
         return;
     if (is_next_tiled && !(client = client_next_tiled(client->next)))
         return;
+
     client_pop(client);
     return;
 }
@@ -1752,7 +1757,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
 Client *
 client_next_tiled(Client *client) {
     while (true) {
-        if (!client)
+        if (client == NULL)
             break;
         if (!client->is_floating && ISVISIBLE(client))
             break;
@@ -1997,7 +2002,7 @@ client_set_urgent(Client *client, bool urgent) {
 void
 client_show_hide(Client *client) {
     Monitor *mon;
-    if (!client)
+    if (client == NULL)
         return;
 
     mon = client->monitor;
@@ -2047,7 +2052,7 @@ client_free_icon(Client *client) {
 
 void
 client_unfocus(Client *client, bool set_focus) {
-    if (!client)
+    if (client == NULL)
         return;
 
     client_grab_buttons(client, false);
@@ -3148,7 +3153,7 @@ handler_client_message(XEvent *event) {
     Atom message_type = client_message_event->message_type;
     Client *client = window_to_client(client_message_event->window);
 
-    if (!client)
+    if (client == NULL)
         return;
 
     if (message_type == net_atoms[NetWMState]) {
@@ -3318,7 +3323,7 @@ handler_enter_notify(XEvent *event) {
         current_monitor = monitor;
     } else if (client == current_monitor->selected_client) {
         return;
-    } else if (!client) {
+    } else if (client == NULL) {
         return;
     }
     client_focus(client);
