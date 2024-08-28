@@ -432,6 +432,7 @@ user_alt_tab(const Arg *) {
         user_view_tag(&(Arg){ .ui = (uint)~0 });
         user_set_layout(&(Arg){.v = &layouts[3]});
     }
+    client_unfocus(current_monitor->selected_client, false);
     current_monitor = old;
     client_focus(current_monitor->selected_client);
     user_focus_next(&(Arg){ .i = alt_tab_direction });
