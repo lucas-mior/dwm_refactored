@@ -430,16 +430,16 @@ void error(const char *function, char *format, ...) {
     (void) write(STDERR_FILENO, message, (size_t) message_length);
 
     switch (fork()) {
-        case -1:
-            fprintf(stderr, "Error forking: %s\n", strerror(errno));
-            break;
-        case 0:
-            execlp("dunstify", "dunstify", "-u", "critical", "-t", "2000",
-                               header, message, NULL);
-            fprintf(stderr, "Error trying to exec dunstify.\n");
-            exit(EXIT_FAILURE);
-        default:
-            break;
+    case -1:
+        fprintf(stderr, "Error forking: %s\n", strerror(errno));
+        break;
+    case 0:
+        execlp("dunstify", "dunstify", "-u", "critical", "-t", "2000",
+                           header, message, NULL);
+        fprintf(stderr, "Error trying to exec dunstify.\n");
+        exit(EXIT_FAILURE);
+    default:
+        break;
     }
     return;
 }
