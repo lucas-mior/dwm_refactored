@@ -368,7 +368,7 @@ static Display *display;
 static Visual *visual;
 static Colormap cmap;
 static Window root;
-static Window wmcheckwin;
+static Window wm_check_window;
 static int depth;
 
 static bool dwm_restart = false;
@@ -3770,13 +3770,13 @@ setup_once(void) {
     update_status();
 
     /* supporting window for NetWMCheck */
-    wmcheckwin = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
-    XChangeProperty(display, wmcheckwin, net_atoms[NetWMCheck], XA_WINDOW, 32,
-        PropModeReplace, (uchar *)&wmcheckwin, 1);
-    XChangeProperty(display, wmcheckwin, net_atoms[NetWMName], UTF8STRING, 8,
+    wm_check_window = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
+    XChangeProperty(display, wm_check_window, net_atoms[NetWMCheck], XA_WINDOW, 32,
+        PropModeReplace, (uchar *)&wm_check_window, 1);
+    XChangeProperty(display, wm_check_window, net_atoms[NetWMName], UTF8STRING, 8,
         PropModeReplace, (uchar *)"dwm", 3);
     XChangeProperty(display, root, net_atoms[NetWMCheck], XA_WINDOW, 32,
-        PropModeReplace, (uchar *)&wmcheckwin, 1);
+        PropModeReplace, (uchar *)&wm_check_window, 1);
 
     /* EWMH support per view */
     XChangeProperty(display, root, net_atoms[NetSupported], XA_ATOM, 32,
@@ -4135,7 +4135,7 @@ main(int argc, char *argv[]) {
         free(scheme[i]);
     free(scheme);
 
-    XDestroyWindow(display, wmcheckwin);
+    XDestroyWindow(display, wm_check_window);
     drw_free(drw);
 
     XSync(display, False);
