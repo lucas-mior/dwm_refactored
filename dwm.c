@@ -1476,30 +1476,6 @@ client_apply_size_hints(Client *client,
 }
 
 void
-monitor_arrange(Monitor *monitor) {
-    if (monitor) {
-        client_show_hide(monitor->stack);
-    } else {
-        for (monitor = monitors; monitor; monitor = monitor->next)
-            client_show_hide(monitor->stack);
-    }
-    if (monitor) {
-        monitor_arrange_monitor(monitor);
-        monitor_restack(monitor);
-    } else {
-        XEvent event;
-        for (Monitor *monitor_aux = monitors;
-                      monitor_aux;
-                      monitor_aux = monitor_aux->next) {
-            monitor_arrange_monitor(monitor_aux);
-        }
-        XSync(display, False);
-        while (XCheckMaskEvent(display, EnterWindowMask, &event));
-    }
-    return;
-}
-
-void
 monitor_arrange_monitor(Monitor *monitor) {
     strncpy(monitor->layout_symbol,
             monitor->layout[monitor->lay_i]->symbol,
@@ -1514,22 +1490,6 @@ monitor_focus(Monitor *monitor) {
     client_unfocus(current_monitor->selected_client, false);
     current_monitor = monitor;
     client_focus(NULL);
-    return;
-}
-
-void
-client_attach(Client *client) {
-    client->next = client->monitor->clients;
-    client->all_next = all_clients;
-    client->monitor->clients = client;
-    all_clients = client;
-    return;
-}
-
-void
-client_attach_stack(Client *client) {
-    client->stack_next = client->monitor->stack;
-    client->monitor->stack = client;
     return;
 }
 
@@ -1550,146 +1510,6 @@ monitor_cleanup_monitor(Monitor *monitor) {
 
     free(monitor->pertag);
     free(monitor);
-    return;
-}
-
-void
-client_configure(Client *client) {
-    XConfigureEvent configure_event;
-
-    configure_event.type = ConfigureNotify;
-    configure_event.display = display;
-    configure_event.event = client->window;
-    configure_event.window = client->window;
-    configure_event.x = client->x;
-    configure_event.y = client->y;
-    configure_event.width = client->w;
-    configure_event.height = client->h;
-    configure_event.border_width = client->border_pixels;
-    configure_event.above = None;
-    configure_event.override_redirect = False;
-    XSendEvent(display, client->window,
-               False, StructureNotifyMask, (XEvent *)&configure_event);
-    return;
-}
-
-Monitor *
-create_monitor(void) {
-    Monitor *monitor = ecalloc(1, sizeof(*monitor));
-    Pertag *pertag = ecalloc(1, sizeof(*pertag));
-
-    monitor->tagset[0] = monitor->tagset[1] = 1;
-    monitor->master_fact = master_fact;
-    monitor->number_masters = 1;
-    monitor->show_top_bar = show_top_bar;
-    monitor->show_bottom_bar = show_bottom_bar;
-
-    monitor->layout[0] = &layouts[0];
-    monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
-    strncpy(monitor->layout_symbol,
-            layouts[0].symbol,
-            sizeof(monitor->layout_symbol));
-
-    pertag->tag = pertag->old_tag = 1;
-
-    for (int i = 0; i <= LENGTH(tags); i += 1) {
-        pertag->number_masters[i] = monitor->number_masters;
-        pertag->master_facts[i] = monitor->master_fact;
-
-        pertag->layouts[i][0] = monitor->layout[0];
-        pertag->layouts[i][1] = monitor->layout[1];
-        pertag->selected_layouts[i] = monitor->lay_i;
-
-        pertag->top_bars[i] = monitor->show_top_bar;
-        pertag->bottom_bars[i] = monitor->show_bottom_bar;
-    }
-    monitor->pertag = pertag;
-
-    return monitor;
-}
-
-void
-client_detach(Client *client) {
-    Client **clients;
-
-    for (clients = &client->monitor->clients;
-         *clients && *clients != client;
-         clients = &(*clients)->next);
-    *clients = client->next;
-
-    for (clients = &all_clients;
-         *clients && *clients != client;
-         clients = &(*clients)->all_next);
-    *clients = client->all_next;
-
-    return;
-}
-
-void
-client_detach_stack(Client *client) {
-    Client **client_aux;
-
-    for (client_aux = &client->monitor->stack;
-         *client_aux && *client_aux != client;
-         client_aux = &(*client_aux)->stack_next);
-    *client_aux = client->stack_next;
-
-    if (client == client->monitor->selected_client) {
-        Client *t;
-        for (t = client->monitor->stack;
-             t && !ISVISIBLE(t);
-             t = t->stack_next);
-        client->monitor->selected_client = t;
-    }
-    return;
-}
-
-Monitor *
-direction_to_monitor(int direction) {
-    Monitor *monitor = NULL;
-
-    if (direction > 0) {
-        if (!(monitor = current_monitor->next))
-            monitor = monitors;
-    } else if (current_monitor == monitors) {
-        for (monitor = monitors;
-             monitor->next;
-             monitor = monitor->next);
-    } else {
-        for (monitor = monitors;
-             monitor->next != current_monitor;
-             monitor = monitor->next);
-    }
-    return monitor;
-}
-
-void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
-    char *text;
-    char *s = status_text;
-    int x = 0;
-    int text_pixels = 0;
-
-    for (text = status_text; *s; s += 1) {
-        char temp;
-
-        if ((uchar)(*s) < ' ') {
-            temp = *s;
-            *s = '\0';
-
-            text_pixels = (int)(TEXT_PIXELS(text) - text_padding);
-            drw_text(drw,
-                     mon_win_w - status_pixels + x, 0,
-                     (uint)text_pixels, bar_height, 0, text, 0);
-            x += text_pixels;
-
-            *s = temp;
-            text = s + 1;
-        }
-    }
-    text_pixels = (int)(TEXT_PIXELS(text) - text_padding + 2);
-    drw_text(drw,
-             mon_win_w - status_pixels + x, 0,
-             (uint)text_pixels, bar_height, 0, text, 0);
     return;
 }
 
@@ -1816,47 +1636,6 @@ monitor_draw_bar(Monitor *monitor) {
         draw_status_text(bottom_status, bottom_status_pixels, monitor->win_w);
     drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
-    return;
-}
-
-void
-draw_bars(void) {
-    for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        monitor_draw_bar(monitor);
-    return;
-}
-
-void
-client_focus(Client *client) {
-    Client *selected = current_monitor->selected_client;
-    if (!client || !ISVISIBLE(client)) {
-        for (client = current_monitor->stack;
-             client && !ISVISIBLE(client);
-             client = client->stack_next);
-    }
-
-    if (selected && selected != client)
-        client_unfocus(selected, false);
-
-    if (client) {
-        if (client->monitor != current_monitor)
-            current_monitor = client->monitor;
-        if (client->is_urgent)
-            client_set_urgent(client, false);
-        client_detach_stack(client);
-        client_attach_stack(client);
-        client_grab_buttons(client, true);
-        XSetWindowBorder(display, client->window,
-                         scheme[SchemeSelected][ColBorder].pixel);
-        client_set_focus(client);
-    } else {
-        XSetInputFocus(display, current_monitor->top_bar_window,
-                       RevertToPointerRoot, CurrentTime);
-        XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
-    }
-
-    current_monitor->selected_client = client;
-    draw_bars();
     return;
 }
 
@@ -2068,6 +1847,280 @@ monitor_layout_tile(Monitor *monitor) {
         }
         i += 1;
     }
+    return;
+}
+
+void
+monitor_restack(Monitor *m) {
+    XEvent event;
+
+    monitor_draw_bar(m);
+    if (!m->selected_client)
+        return;
+
+    if (m->selected_client->is_floating || !m->layout[m->lay_i]->function)
+        XRaiseWindow(display, m->selected_client->window);
+
+    if (m->layout[m->lay_i]->function) {
+        XWindowChanges window_changes;
+        window_changes.stack_mode = Below;
+        window_changes.sibling = m->top_bar_window;
+
+        for (Client *client = m->stack; client; client = client->stack_next) {
+            if (!client->is_floating && ISVISIBLE(client)) {
+                XConfigureWindow(display, client->window,
+                                 CWSibling|CWStackMode, &window_changes);
+                window_changes.sibling = client->window;
+            }
+        }
+    }
+    XSync(display, False);
+    while (XCheckMaskEvent(display, EnterWindowMask, &event));
+    return;
+}
+
+void
+monitor_update_bar_position(Monitor *monitor) {
+    monitor->win_y = monitor->mon_y;
+    monitor->win_h = monitor->mon_h;
+
+    if (monitor->show_top_bar) {
+        monitor->win_h -= bar_height;
+        monitor->top_bar_y = monitor->win_y;
+        monitor->win_y = monitor->win_y + (int)bar_height;
+    } else {
+        monitor->top_bar_y = - (int)bar_height;
+    }
+
+    if (monitor->show_bottom_bar) {
+        monitor->win_h -= bar_height;
+        monitor->bottom_bar_y = monitor->win_y + monitor->win_h;
+        monitor->win_y = monitor->win_y;
+    } else {
+        monitor->bottom_bar_y = - (int)bar_height;
+    }
+    return;
+}
+
+void
+monitor_arrange(Monitor *monitor) {
+    if (monitor) {
+        client_show_hide(monitor->stack);
+    } else {
+        for (monitor = monitors; monitor; monitor = monitor->next)
+            client_show_hide(monitor->stack);
+    }
+    if (monitor) {
+        monitor_arrange_monitor(monitor);
+        monitor_restack(monitor);
+    } else {
+        XEvent event;
+        for (Monitor *monitor_aux = monitors;
+                      monitor_aux;
+                      monitor_aux = monitor_aux->next) {
+            monitor_arrange_monitor(monitor_aux);
+        }
+        XSync(display, False);
+        while (XCheckMaskEvent(display, EnterWindowMask, &event));
+    }
+    return;
+}
+
+
+void
+client_attach(Client *client) {
+    client->next = client->monitor->clients;
+    client->all_next = all_clients;
+    client->monitor->clients = client;
+    all_clients = client;
+    return;
+}
+
+void
+client_attach_stack(Client *client) {
+    client->stack_next = client->monitor->stack;
+    client->monitor->stack = client;
+    return;
+}
+
+void
+client_configure(Client *client) {
+    XConfigureEvent configure_event;
+
+    configure_event.type = ConfigureNotify;
+    configure_event.display = display;
+    configure_event.event = client->window;
+    configure_event.window = client->window;
+    configure_event.x = client->x;
+    configure_event.y = client->y;
+    configure_event.width = client->w;
+    configure_event.height = client->h;
+    configure_event.border_width = client->border_pixels;
+    configure_event.above = None;
+    configure_event.override_redirect = False;
+    XSendEvent(display, client->window,
+               False, StructureNotifyMask, (XEvent *)&configure_event);
+    return;
+}
+
+Monitor *
+create_monitor(void) {
+    Monitor *monitor = ecalloc(1, sizeof(*monitor));
+    Pertag *pertag = ecalloc(1, sizeof(*pertag));
+
+    monitor->tagset[0] = monitor->tagset[1] = 1;
+    monitor->master_fact = master_fact;
+    monitor->number_masters = 1;
+    monitor->show_top_bar = show_top_bar;
+    monitor->show_bottom_bar = show_bottom_bar;
+
+    monitor->layout[0] = &layouts[0];
+    monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
+    strncpy(monitor->layout_symbol,
+            layouts[0].symbol,
+            sizeof(monitor->layout_symbol));
+
+    pertag->tag = pertag->old_tag = 1;
+
+    for (int i = 0; i <= LENGTH(tags); i += 1) {
+        pertag->number_masters[i] = monitor->number_masters;
+        pertag->master_facts[i] = monitor->master_fact;
+
+        pertag->layouts[i][0] = monitor->layout[0];
+        pertag->layouts[i][1] = monitor->layout[1];
+        pertag->selected_layouts[i] = monitor->lay_i;
+
+        pertag->top_bars[i] = monitor->show_top_bar;
+        pertag->bottom_bars[i] = monitor->show_bottom_bar;
+    }
+    monitor->pertag = pertag;
+
+    return monitor;
+}
+
+void
+client_detach(Client *client) {
+    Client **clients;
+
+    for (clients = &client->monitor->clients;
+         *clients && *clients != client;
+         clients = &(*clients)->next);
+    *clients = client->next;
+
+    for (clients = &all_clients;
+         *clients && *clients != client;
+         clients = &(*clients)->all_next);
+    *clients = client->all_next;
+
+    return;
+}
+
+void
+client_detach_stack(Client *client) {
+    Client **client_aux;
+
+    for (client_aux = &client->monitor->stack;
+         *client_aux && *client_aux != client;
+         client_aux = &(*client_aux)->stack_next);
+    *client_aux = client->stack_next;
+
+    if (client == client->monitor->selected_client) {
+        Client *t;
+        for (t = client->monitor->stack;
+             t && !ISVISIBLE(t);
+             t = t->stack_next);
+        client->monitor->selected_client = t;
+    }
+    return;
+}
+
+Monitor *
+direction_to_monitor(int direction) {
+    Monitor *monitor = NULL;
+
+    if (direction > 0) {
+        if (!(monitor = current_monitor->next))
+            monitor = monitors;
+    } else if (current_monitor == monitors) {
+        for (monitor = monitors;
+             monitor->next;
+             monitor = monitor->next);
+    } else {
+        for (monitor = monitors;
+             monitor->next != current_monitor;
+             monitor = monitor->next);
+    }
+    return monitor;
+}
+
+void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
+    char *text;
+    char *s = status_text;
+    int x = 0;
+    int text_pixels = 0;
+
+    for (text = status_text; *s; s += 1) {
+        char temp;
+
+        if ((uchar)(*s) < ' ') {
+            temp = *s;
+            *s = '\0';
+
+            text_pixels = (int)(TEXT_PIXELS(text) - text_padding);
+            drw_text(drw,
+                     mon_win_w - status_pixels + x, 0,
+                     (uint)text_pixels, bar_height, 0, text, 0);
+            x += text_pixels;
+
+            *s = temp;
+            text = s + 1;
+        }
+    }
+    text_pixels = (int)(TEXT_PIXELS(text) - text_padding + 2);
+    drw_text(drw,
+             mon_win_w - status_pixels + x, 0,
+             (uint)text_pixels, bar_height, 0, text, 0);
+    return;
+}
+
+void
+draw_bars(void) {
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
+        monitor_draw_bar(monitor);
+    return;
+}
+
+void
+client_focus(Client *client) {
+    Client *selected = current_monitor->selected_client;
+    if (!client || !ISVISIBLE(client)) {
+        for (client = current_monitor->stack;
+             client && !ISVISIBLE(client);
+             client = client->stack_next);
+    }
+
+    if (selected && selected != client)
+        client_unfocus(selected, false);
+
+    if (client) {
+        if (client->monitor != current_monitor)
+            current_monitor = client->monitor;
+        if (client->is_urgent)
+            client_set_urgent(client, false);
+        client_detach_stack(client);
+        client_attach_stack(client);
+        client_grab_buttons(client, true);
+        XSetWindowBorder(display, client->window,
+                         scheme[SchemeSelected][ColBorder].pixel);
+        client_set_focus(client);
+    } else {
+        XSetInputFocus(display, current_monitor->top_bar_window,
+                       RevertToPointerRoot, CurrentTime);
+        XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
+    }
+
+    current_monitor->selected_client = client;
+    draw_bars();
     return;
 }
 
@@ -3084,35 +3137,6 @@ client_resize_apply(Client *client, int x, int y, int w, int h) {
 }
 
 void
-monitor_restack(Monitor *m) {
-    XEvent event;
-
-    monitor_draw_bar(m);
-    if (!m->selected_client)
-        return;
-
-    if (m->selected_client->is_floating || !m->layout[m->lay_i]->function)
-        XRaiseWindow(display, m->selected_client->window);
-
-    if (m->layout[m->lay_i]->function) {
-        XWindowChanges window_changes;
-        window_changes.stack_mode = Below;
-        window_changes.sibling = m->top_bar_window;
-
-        for (Client *client = m->stack; client; client = client->stack_next) {
-            if (!client->is_floating && ISVISIBLE(client)) {
-                XConfigureWindow(display, client->window,
-                                 CWSibling|CWStackMode, &window_changes);
-                window_changes.sibling = client->window;
-            }
-        }
-    }
-    XSync(display, False);
-    while (XCheckMaskEvent(display, EnterWindowMask, &event));
-    return;
-}
-
-void
 scan_windows(void) {
     Window root_return;
     Window parent_return;
@@ -3557,29 +3581,6 @@ update_bars(void) {
             XMapRaised(display, monitor->bottom_bar_window);
             XSetClassHint(display, monitor->bottom_bar_window, &class_hint);
         }
-    }
-    return;
-}
-
-void
-monitor_update_bar_position(Monitor *monitor) {
-    monitor->win_y = monitor->mon_y;
-    monitor->win_h = monitor->mon_h;
-
-    if (monitor->show_top_bar) {
-        monitor->win_h -= bar_height;
-        monitor->top_bar_y = monitor->win_y;
-        monitor->win_y = monitor->win_y + (int)bar_height;
-    } else {
-        monitor->top_bar_y = - (int)bar_height;
-    }
-
-    if (monitor->show_bottom_bar) {
-        monitor->win_h -= bar_height;
-        monitor->bottom_bar_y = monitor->win_y + monitor->win_h;
-        monitor->win_y = monitor->win_y;
-    } else {
-        monitor->bottom_bar_y = - (int)bar_height;
     }
     return;
 }
