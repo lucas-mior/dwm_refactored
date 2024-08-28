@@ -425,6 +425,7 @@ user_alt_tab(const Arg *) {
         current_monitor = monitor;
         client_focus(NULL);
         user_view_tag(&(Arg){ .ui = (uint)~0 });
+        user_set_layout(&(Arg){.v = &layouts[3]});
     }
     current_monitor = old;
     client_focus(current_monitor->selected_client);
