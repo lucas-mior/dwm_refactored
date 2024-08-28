@@ -1972,6 +1972,326 @@ client_update_wm_hints(Client *client) {
 }
 
 void
+client_set_urgent(Client *client, bool urgent) {
+    XWMHints *wm_hints;
+
+    client->is_urgent = urgent;
+    if (!(wm_hints = XGetWMHints(display, client->window)))
+        return;
+
+    if (urgent)
+        wm_hints->flags = wm_hints->flags | XUrgencyHint;
+    else
+        wm_hints->flags = wm_hints->flags & ~XUrgencyHint;
+
+    XSetWMHints(display, client->window, wm_hints);
+    XFree(wm_hints);
+    return;
+}
+
+void
+client_show_hide(Client *client) {
+    Monitor *mon;
+    if (!client)
+        return;
+
+    mon = client->monitor;
+
+    if (ISVISIBLE(client)) {
+        bool monitor_floating;
+
+        if ((client->tags) && client->is_floating) {
+            client->x = mon->win_x + (mon->win_w / 2 - WIDTH(client) / 2);
+            client->y = mon->win_y + (mon->win_h / 2 - HEIGHT(client) / 2);
+        }
+        /* show clients top down */
+        XMoveWindow(display, client->window, client->x, client->y);
+
+        monitor_floating = !mon->layout[mon->lay_i]->function;
+        if ((monitor_floating || client->is_floating)
+            && (!client->is_fullscreen || client->is_fake_fullscreen)) {
+            client_resize(client,
+                          client->x, client->y, client->w, client->h,
+                          false);
+        }
+        client_show_hide(client->stack_next);
+    } else {
+        /* hide clients bottom up */
+        client_show_hide(client->stack_next);
+        XMoveWindow(display, client->window, -2*WIDTH(client), client->y);
+    }
+    return;
+}
+
+void
+client_set_client_tag_prop(Client *client) {
+    long data[] = { (long) client->tags, (long) client->monitor->num };
+    XChangeProperty(display, client->window, net_atoms[NetClientInfo],
+                    XA_CARDINAL, 32, PropModeReplace, (uchar *)data, 2);
+    return;
+}
+
+void
+client_free_icon(Client *client) {
+    if (client->icon) {
+        XRenderFreePicture(display, client->icon);
+        client->icon = None;
+    }
+    return;
+}
+
+void
+client_unfocus(Client *client, bool set_focus) {
+    if (!client)
+        return;
+
+    client_grab_buttons(client, false);
+    XSetWindowBorder(display, client->window,
+                     scheme[SchemeNormal][ColBorder].pixel);
+
+    if (set_focus) {
+        XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
+        XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
+    }
+    return;
+}
+
+void
+client_unmanage(Client *client, int destroyed) {
+    Monitor *monitor = client->monitor;
+    XWindowChanges window_changes;
+
+    client_detach(client);
+    client_detach_stack(client);
+    client_free_icon(client);
+
+    if (!destroyed) {
+        window_changes.border_width = client->old_border_pixels;
+        XGrabServer(display); /* avoid race conditions */
+        XSetErrorHandler(handler_xerror_dummy);
+
+        XSelectInput(display, client->window, NoEventMask);
+
+        /* restore border */
+        XConfigureWindow(display, client->window,
+                         CWBorderWidth, &window_changes);
+        XUngrabButton(display, AnyButton, AnyModifier, client->window);
+        client_set_client_state(client, WithdrawnState);
+
+        XSync(display, False);
+        XSetErrorHandler(handler_xerror);
+        XUngrabServer(display);
+    }
+
+    free(client);
+    client_focus(NULL);
+    update_client_list();
+    monitor_arrange(monitor);
+    return;
+}
+
+void
+client_update_size_hints(Client *client) {
+    long supplied_return;
+    bool has_maxes;
+    bool mins_match_maxes;
+    XSizeHints size_hints;
+    int success;
+
+    success = XGetWMNormalHints(display, client->window,
+                               &size_hints, &supplied_return);
+    if (!success) {
+        /* size_hints is uninitialized,
+         * ensure that size_hints.flags aren't used */
+        size_hints.flags = PSize;
+    }
+
+    if (size_hints.flags & PBaseSize) {
+        client->base_w = size_hints.base_width;
+        client->base_h = size_hints.base_height;
+    } else if (size_hints.flags & PMinSize) {
+        client->base_w = size_hints.min_width;
+        client->base_h = size_hints.min_height;
+    } else {
+        client->base_w = client->base_h = 0;
+    }
+    if (size_hints.flags & PResizeInc) {
+        client->increment_w = size_hints.width_inc;
+        client->increment_h = size_hints.height_inc;
+    } else {
+        client->increment_w = client->increment_h = 0;
+    }
+    if (size_hints.flags & PMaxSize) {
+        client->max_w = size_hints.max_width;
+        client->max_h = size_hints.max_height;
+    } else {
+        client->max_w = client->max_h = 0;
+    }
+    if (size_hints.flags & PMinSize) {
+        client->min_w = size_hints.min_width;
+        client->min_h = size_hints.min_height;
+    } else if (size_hints.flags & PBaseSize) {
+        client->min_w = size_hints.base_width;
+        client->min_h = size_hints.base_height;
+    } else {
+        client->min_w = client->min_h = 0;
+    }
+    if (size_hints.flags & PAspect) {
+        client->min_a = (float)size_hints.min_aspect.y
+                        / (float)size_hints.min_aspect.x;
+        client->max_a = (float)size_hints.max_aspect.x
+                        / (float)size_hints.max_aspect.y;
+    } else {
+        client->max_a = client->min_a = 0.0;
+    }
+
+    has_maxes = client->max_w && client->max_h;
+    mins_match_maxes = client->max_w == client->min_w
+                       && client->max_h == client->min_h;
+    client->is_fixed = has_maxes && mins_match_maxes;
+
+    client->hintsvalid = true;
+    return;
+}
+
+void
+client_update_title(Client *client) {
+    if (!get_text_property(client->window, net_atoms[NetWMName],
+                           client->name, sizeof(client->name))) {
+        get_text_property(client->window, XA_WM_NAME,
+                          client->name, sizeof(client->name));
+    }
+    if (client->name[0] == '\0') /* hack to mark broken clients */
+        strcpy(client->name, broken);
+    return;
+}
+
+void
+client_update_icon(Client *client) {
+    Window window = client->window;
+    Atom actual_type_return;
+    int actual_format_return;
+    ulong nitems_return;
+    ulong bytes_after_return;
+    ulong *prop_return = NULL;
+
+    ulong *pixel_find = NULL;
+    uint32 *pixel_find32;
+    uint32 width_find, height_find;
+    uint32 icon_width, icon_height;
+    uint32 area_find = 0;
+    uint *picture_width = &client->icon_width;
+    uint *picture_height = &client->icon_height;
+    int success;
+
+    client_free_icon(client);
+    success = XGetWindowProperty(display, window, net_atoms[NetWMIcon],
+                                 0L, LONG_MAX, False, AnyPropertyType,
+                                 &actual_type_return, &actual_format_return,
+                                 &nitems_return, &bytes_after_return,
+                                 (uchar **)&prop_return);
+    if (success != Success)
+        return;
+
+    if (nitems_return == 0 || actual_format_return != 32) {
+        XFree(prop_return);
+        return;
+    }
+
+    do {
+        ulong *pointer = prop_return;
+        const ulong *end = prop_return + nitems_return;
+        uint32 bstd = UINT32_MAX;
+        uint32 d;
+
+        while (pointer < (end - 1)) {
+            uint32 max_dim;
+            uint32 w = (uint32)*pointer++;
+            uint32 h = (uint32)*pointer++;
+
+            if (w >= 16384 || h >= 16384) {
+                XFree(prop_return);
+                return;
+            }
+            if ((area_find = w*h) > (end - pointer))
+                break;
+
+            max_dim = w > h ? w : h;
+            if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
+                bstd = d;
+                pixel_find = pointer;
+            }
+            pointer += area_find;
+        }
+
+        if (pixel_find)
+            break;
+
+        pointer = prop_return;
+        while (pointer < (end - 1)) {
+            uint32 max_dim;
+            uint32 w = (uint32)*pointer++;
+            uint32 h = (uint32)*pointer++;
+
+            if (w >= 16384 || h >= 16384) {
+                XFree(prop_return);
+                return;
+            }
+            if ((area_find = w*h) > (end - pointer))
+                break;
+
+            max_dim = w > h ? w : h;
+            if ((d = ICONSIZE - max_dim) < bstd) {
+                bstd = d;
+                pixel_find = pointer;
+            }
+            pointer += area_find;
+        }
+    } while (false);
+
+    if (!pixel_find) {
+        XFree(prop_return);
+        return;
+    }
+
+    width_find = (uint32)pixel_find[-2];
+    height_find = (uint32)pixel_find[-1];
+    if ((width_find == 0) || (height_find == 0)) {
+        XFree(prop_return);
+        return;
+    }
+
+    if (width_find <= height_find) {
+        icon_height = ICONSIZE;
+        icon_width = width_find*ICONSIZE / height_find;
+        if (icon_width == 0)
+            icon_width = 1;
+    } else {
+        icon_width = ICONSIZE;
+        icon_height = height_find*ICONSIZE / width_find;
+        if (icon_height == 0)
+            icon_height = 1;
+    }
+    *picture_width = icon_width;
+    *picture_height = icon_height;
+
+    pixel_find32 = (uint32 *)pixel_find;
+    for (uint32 i = 0; i < width_find*height_find; i += 1) {
+        uint32 pixel = (uint32)pixel_find[i];
+        uint8 a = pixel >> 24u;
+        uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
+        uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
+        pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | ((uint)a << 24u);
+    }
+
+    client->icon = drw_picture_create_resized(drw, (char *)pixel_find,
+                                              width_find, height_find,
+                                              icon_width, icon_height);
+    XFree(prop_return);
+    return;
+}
+
+void
 monitor_arrange_monitor(Monitor *monitor) {
     strncpy(monitor->layout_symbol,
             monitor->layout[monitor->lay_i]->symbol,
@@ -3464,125 +3784,6 @@ setup_once(void) {
 }
 
 void
-client_set_urgent(Client *client, bool urgent) {
-    XWMHints *wm_hints;
-
-    client->is_urgent = urgent;
-    if (!(wm_hints = XGetWMHints(display, client->window)))
-        return;
-
-    if (urgent)
-        wm_hints->flags = wm_hints->flags | XUrgencyHint;
-    else
-        wm_hints->flags = wm_hints->flags & ~XUrgencyHint;
-
-    XSetWMHints(display, client->window, wm_hints);
-    XFree(wm_hints);
-    return;
-}
-
-void
-client_show_hide(Client *client) {
-    Monitor *mon;
-    if (!client)
-        return;
-
-    mon = client->monitor;
-
-    if (ISVISIBLE(client)) {
-        bool monitor_floating;
-
-        if ((client->tags) && client->is_floating) {
-            client->x = mon->win_x + (mon->win_w / 2 - WIDTH(client) / 2);
-            client->y = mon->win_y + (mon->win_h / 2 - HEIGHT(client) / 2);
-        }
-        /* show clients top down */
-        XMoveWindow(display, client->window, client->x, client->y);
-
-        monitor_floating = !mon->layout[mon->lay_i]->function;
-        if ((monitor_floating || client->is_floating)
-            && (!client->is_fullscreen || client->is_fake_fullscreen)) {
-            client_resize(client,
-                          client->x, client->y, client->w, client->h,
-                          false);
-        }
-        client_show_hide(client->stack_next);
-    } else {
-        /* hide clients bottom up */
-        client_show_hide(client->stack_next);
-        XMoveWindow(display, client->window, -2*WIDTH(client), client->y);
-    }
-    return;
-}
-
-void
-client_set_client_tag_prop(Client *client) {
-    long data[] = { (long) client->tags, (long) client->monitor->num };
-    XChangeProperty(display, client->window, net_atoms[NetClientInfo],
-                    XA_CARDINAL, 32, PropModeReplace, (uchar *)data, 2);
-    return;
-}
-
-void
-client_free_icon(Client *client) {
-    if (client->icon) {
-        XRenderFreePicture(display, client->icon);
-        client->icon = None;
-    }
-    return;
-}
-
-void
-client_unfocus(Client *client, bool set_focus) {
-    if (!client)
-        return;
-
-    client_grab_buttons(client, false);
-    XSetWindowBorder(display, client->window,
-                     scheme[SchemeNormal][ColBorder].pixel);
-
-    if (set_focus) {
-        XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
-        XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
-    }
-    return;
-}
-
-void
-client_unmanage(Client *client, int destroyed) {
-    Monitor *monitor = client->monitor;
-    XWindowChanges window_changes;
-
-    client_detach(client);
-    client_detach_stack(client);
-    client_free_icon(client);
-
-    if (!destroyed) {
-        window_changes.border_width = client->old_border_pixels;
-        XGrabServer(display); /* avoid race conditions */
-        XSetErrorHandler(handler_xerror_dummy);
-
-        XSelectInput(display, client->window, NoEventMask);
-
-        /* restore border */
-        XConfigureWindow(display, client->window,
-                         CWBorderWidth, &window_changes);
-        XUngrabButton(display, AnyButton, AnyModifier, client->window);
-        client_set_client_state(client, WithdrawnState);
-
-        XSync(display, False);
-        XSetErrorHandler(handler_xerror);
-        XUngrabServer(display);
-    }
-
-    free(client);
-    client_focus(NULL);
-    update_client_list();
-    monitor_arrange(monitor);
-    return;
-}
-
-void
 update_bars(void) {
     XSetWindowAttributes window_attributes = {
         .override_redirect = True,
@@ -3762,70 +3963,6 @@ update_numlock_mask(void) {
     XFreeModifiermap(modmap);
 }
 
-void
-client_update_size_hints(Client *client) {
-    long supplied_return;
-    bool has_maxes;
-    bool mins_match_maxes;
-    XSizeHints size_hints;
-    int success;
-
-    success = XGetWMNormalHints(display, client->window,
-                               &size_hints, &supplied_return);
-    if (!success) {
-        /* size_hints is uninitialized,
-         * ensure that size_hints.flags aren't used */
-        size_hints.flags = PSize;
-    }
-
-    if (size_hints.flags & PBaseSize) {
-        client->base_w = size_hints.base_width;
-        client->base_h = size_hints.base_height;
-    } else if (size_hints.flags & PMinSize) {
-        client->base_w = size_hints.min_width;
-        client->base_h = size_hints.min_height;
-    } else {
-        client->base_w = client->base_h = 0;
-    }
-    if (size_hints.flags & PResizeInc) {
-        client->increment_w = size_hints.width_inc;
-        client->increment_h = size_hints.height_inc;
-    } else {
-        client->increment_w = client->increment_h = 0;
-    }
-    if (size_hints.flags & PMaxSize) {
-        client->max_w = size_hints.max_width;
-        client->max_h = size_hints.max_height;
-    } else {
-        client->max_w = client->max_h = 0;
-    }
-    if (size_hints.flags & PMinSize) {
-        client->min_w = size_hints.min_width;
-        client->min_h = size_hints.min_height;
-    } else if (size_hints.flags & PBaseSize) {
-        client->min_w = size_hints.base_width;
-        client->min_h = size_hints.base_height;
-    } else {
-        client->min_w = client->min_h = 0;
-    }
-    if (size_hints.flags & PAspect) {
-        client->min_a = (float)size_hints.min_aspect.y
-                        / (float)size_hints.min_aspect.x;
-        client->max_a = (float)size_hints.max_aspect.x
-                        / (float)size_hints.max_aspect.y;
-    } else {
-        client->max_a = client->min_a = 0.0;
-    }
-
-    has_maxes = client->max_w && client->max_h;
-    mins_match_maxes = client->max_w == client->min_w
-                       && client->max_h == client->min_h;
-    client->is_fixed = has_maxes && mins_match_maxes;
-
-    client->hintsvalid = true;
-    return;
-}
-
 int
 status_count_pixels(char *text) {
     char *s;
@@ -3871,143 +4008,6 @@ update_status(void) {
     top_status_pixels = status_count_pixels(top_status);
     bottom_status_pixels = status_count_pixels(bottom_status);
     monitor_draw_bar(current_monitor);
-    return;
-}
-
-void
-client_update_title(Client *client) {
-    if (!get_text_property(client->window, net_atoms[NetWMName],
-                           client->name, sizeof(client->name))) {
-        get_text_property(client->window, XA_WM_NAME,
-                          client->name, sizeof(client->name));
-    }
-    if (client->name[0] == '\0') /* hack to mark broken clients */
-        strcpy(client->name, broken);
-    return;
-}
-
-void
-client_update_icon(Client *client) {
-    Window window = client->window;
-    Atom actual_type_return;
-    int actual_format_return;
-    ulong nitems_return;
-    ulong bytes_after_return;
-    ulong *prop_return = NULL;
-
-    ulong *pixel_find = NULL;
-    uint32 *pixel_find32;
-    uint32 width_find, height_find;
-    uint32 icon_width, icon_height;
-    uint32 area_find = 0;
-    uint *picture_width = &client->icon_width;
-    uint *picture_height = &client->icon_height;
-    int success;
-
-    client_free_icon(client);
-    success = XGetWindowProperty(display, window, net_atoms[NetWMIcon],
-                                 0L, LONG_MAX, False, AnyPropertyType,
-                                 &actual_type_return, &actual_format_return,
-                                 &nitems_return, &bytes_after_return,
-                                 (uchar **)&prop_return);
-    if (success != Success)
-        return;
-
-    if (nitems_return == 0 || actual_format_return != 32) {
-        XFree(prop_return);
-        return;
-    }
-
-    do {
-        ulong *pointer = prop_return;
-        const ulong *end = prop_return + nitems_return;
-        uint32 bstd = UINT32_MAX;
-        uint32 d;
-
-        while (pointer < (end - 1)) {
-            uint32 max_dim;
-            uint32 w = (uint32)*pointer++;
-            uint32 h = (uint32)*pointer++;
-
-            if (w >= 16384 || h >= 16384) {
-                XFree(prop_return);
-                return;
-            }
-            if ((area_find = w*h) > (end - pointer))
-                break;
-
-            max_dim = w > h ? w : h;
-            if (max_dim >= ICONSIZE && (d = max_dim - ICONSIZE) < bstd) {
-                bstd = d;
-                pixel_find = pointer;
-            }
-            pointer += area_find;
-        }
-
-        if (pixel_find)
-            break;
-
-        pointer = prop_return;
-        while (pointer < (end - 1)) {
-            uint32 max_dim;
-            uint32 w = (uint32)*pointer++;
-            uint32 h = (uint32)*pointer++;
-
-            if (w >= 16384 || h >= 16384) {
-                XFree(prop_return);
-                return;
-            }
-            if ((area_find = w*h) > (end - pointer))
-                break;
-
-            max_dim = w > h ? w : h;
-            if ((d = ICONSIZE - max_dim) < bstd) {
-                bstd = d;
-                pixel_find = pointer;
-            }
-            pointer += area_find;
-        }
-    } while (false);
-
-    if (!pixel_find) {
-        XFree(prop_return);
-        return;
-    }
-
-    width_find = (uint32)pixel_find[-2];
-    height_find = (uint32)pixel_find[-1];
-    if ((width_find == 0) || (height_find == 0)) {
-        XFree(prop_return);
-        return;
-    }
-
-    if (width_find <= height_find) {
-        icon_height = ICONSIZE;
-        icon_width = width_find*ICONSIZE / height_find;
-        if (icon_width == 0)
-            icon_width = 1;
-    } else {
-        icon_width = ICONSIZE;
-        icon_height = height_find*ICONSIZE / width_find;
-        if (icon_height == 0)
-            icon_height = 1;
-    }
-    *picture_width = icon_width;
-    *picture_height = icon_height;
-
-    pixel_find32 = (uint32 *)pixel_find;
-    for (uint32 i = 0; i < width_find*height_find; i += 1) {
-        uint32 pixel = (uint32)pixel_find[i];
-        uint8 a = pixel >> 24u;
-        uint32 rb = (a*(pixel & 0xFF00FFu)) >> 8u;
-        uint32 g = (a*(pixel & 0x00FF00u)) >> 8u;
-        pixel_find32[i] = (rb & 0xFF00FFu) | (g & 0x00FF00u) | ((uint)a << 24u);
-    }
-
-    client->icon = drw_picture_create_resized(drw, (char *)pixel_find,
-                                              width_find, height_find,
-                                              icon_width, icon_height);
-    XFree(prop_return);
     return;
 }
 
