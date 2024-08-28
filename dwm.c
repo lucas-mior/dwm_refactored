@@ -74,9 +74,13 @@ typedef unsigned char uchar;
 
 #define X_INTERN_ATOM(X) XInternAtom(display, X, False)
 
+#if 0
 #define DWM_DEBUG(...) do { \
     dwm_debug(__func__, __VA_ARGS__); \
 } while (0)
+#else
+#define DWM_DEBUG(...)
+#endif
 
 /* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
