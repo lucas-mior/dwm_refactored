@@ -3586,11 +3586,11 @@ static int
 is_unique_geometry(XineramaScreenInfo *unique,
                    int n, XineramaScreenInfo *screen_info) {
     while (n--) {
-        bool unique_x = unique[n].x_org == screen_info->x_org;
-        bool unique_y = unique[n].y_org == screen_info->y_org;
-        bool unique_w = unique[n].width == screen_info->width;
-        bool unique_h = unique[n].height == screen_info->height;
-        if (unique_x && unique_y && unique_w && unique_h)
+        bool equal_x = unique[n].x_org == screen_info->x_org;
+        bool equal_y = unique[n].y_org == screen_info->y_org;
+        bool equal_w = unique[n].width == screen_info->width;
+        bool equal_h = unique[n].height == screen_info->height;
+        if (equal_x && equal_y && equal_w && equal_h)
             return 0;
     }
     return 1;
