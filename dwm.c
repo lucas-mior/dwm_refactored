@@ -1987,7 +1987,7 @@ monitor_layout_monocle(Monitor *monitor) {
 }
 
 void
-monitor_layout_tile(Monitor *m) {
+monitor_layout_tile(Monitor *monitor) {
     int n = 0;
     int i = 0;
     int mon_w = 0;
