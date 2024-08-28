@@ -1565,20 +1565,22 @@ create_monitor(void) {
 
 void dwm_debug(char const *function, char *message, ...) {
     char buffer[256];
-    char *argv[6] = {
+    char *argv[] = {
         [0] = "dunstify",
         [1] = "-t",
         [2] = "900",
-        [3] = function,
-        [4] = NULL,
-        [5] = NULL,
+        [3] = "-r",
+        [4] = function,
+        [5] = function,
+        [6] = NULL,
+        [7] = NULL,
     };
 
     va_list args;
     va_start(args, message);
 
     vsnprintf(buffer, sizeof(buffer), message, args);
-    argv[4] = buffer;
+    argv[6] = buffer;
     va_end(args);
 
     switch (fork()) {
@@ -2477,11 +2479,14 @@ handler_configure_notify(XEvent *event) {
 
 void
 handler_destroy_notify(XEvent *event) {
+    DWM_DEBUG("");
     Client *client;
     XDestroyWindowEvent *destroy_window_event = &event->xdestroywindow;
 
-    if ((client = window_to_client(destroy_window_event->window)))
+    if ((client = window_to_client(destroy_window_event->window))) {
+        DWM_DEBUG("%s", client->name);
         client_unmanage(client, 1);
+    }
     return;
 }
 
@@ -2660,14 +2665,21 @@ handler_property_notify(XEvent *event) {
 
 void
 handler_unmap_notify(XEvent *event) {
+    DWM_DEBUG("");
     Client *client;
     XUnmapEvent *unmap_event = &event->xunmap;
 
     if ((client = window_to_client(unmap_event->window))) {
-        if (unmap_event->send_event)
+        DWM_DEBUG("%s", client->name);
+        if (unmap_event->send_event) {
+            DWM_DEBUG("send_event!");
             client_set_client_state(client, WithdrawnState);
-        else
+        } else {
+            DWM_DEBUG("unnammaing client!");
             client_unmanage(client, 0);
+        }
+    } else {
+        DWM_DEBUG("unmpa no client!!!");
     }
     return;
 }
@@ -3949,11 +3961,6 @@ main(int argc, char *argv[]) {
         }
     }
 
-    if (dwm_restart) {
-        DWM_DEBUG("restarting...");
-        execvp(argv[0], argv);
-    }
-
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         while (monitor->stack)
             client_unmanage(monitor->stack, 0);
@@ -3963,6 +3970,12 @@ main(int argc, char *argv[]) {
 
     while (monitors)
         monitor_cleanup_monitor(monitors);
+
+    if (dwm_restart) {
+        DWM_DEBUG("restarting...");
+        execvp(argv[0], argv);
+    }
+
     for (int i = 0; i < CursorLast; i += 1)
         drw_cur_free(drw, cursor[i]);
     for (int i = 0; i < LENGTH(colors); i += 1)
