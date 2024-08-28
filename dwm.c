@@ -1568,6 +1568,7 @@ client_configure(Client *client) {
 Monitor *
 create_monitor(void) {
     Monitor *monitor = ecalloc(1, sizeof(*monitor));
+    Pertag *pertag = ecalloc(1, sizeof(*pertag));
 
     monitor->tagset[0] = monitor->tagset[1] = 1;
     monitor->master_fact = master_fact;
@@ -1581,20 +1582,20 @@ create_monitor(void) {
             layouts[0].symbol,
             sizeof(monitor->layout_symbol));
 
-    monitor->pertag = ecalloc(1, sizeof(*(monitor->pertag)));
-    monitor->pertag->tag = monitor->pertag->old_tag = 1;
+    pertag->tag = pertag->old_tag = 1;
 
     for (int i = 0; i <= LENGTH(tags); i += 1) {
-        monitor->pertag->number_masters[i] = monitor->number_masters;
-        monitor->pertag->master_facts[i] = monitor->master_fact;
+        pertag->number_masters[i] = monitor->number_masters;
+        pertag->master_facts[i] = monitor->master_fact;
 
-        monitor->pertag->layouts[i][0] = monitor->layout[0];
-        monitor->pertag->layouts[i][1] = monitor->layout[1];
-        monitor->pertag->selected_layouts[i] = monitor->lay_i;
+        pertag->layouts[i][0] = monitor->layout[0];
+        pertag->layouts[i][1] = monitor->layout[1];
+        pertag->selected_layouts[i] = monitor->lay_i;
 
-        monitor->pertag->top_bars[i] = monitor->show_top_bar;
-        monitor->pertag->bottom_bars[i] = monitor->show_bottom_bar;
+        pertag->top_bars[i] = monitor->show_top_bar;
+        pertag->bottom_bars[i] = monitor->show_bottom_bar;
     }
+    monitor->pertag = pertag;
 
     return monitor;
 }
