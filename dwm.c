@@ -1895,8 +1895,8 @@ monitor_layout_columns(Monitor *monitor) {
 void
 monitor_layout_grid(Monitor *monitor) {
     int number_tiled = 0;
-    int ncolumns = 0;
-    int nrows;
+    int columns = 0;
+    int rows;
     int col_i;
     int row_i;
     int column_width;
@@ -1911,22 +1911,22 @@ monitor_layout_grid(Monitor *monitor) {
         return;
 
     /* grid dimensions */
-    while (ncolumns*ncolumns < number_tiled) {
-        if (ncolumns > (number_tiled / 2))
+    while (columns*columns < number_tiled) {
+        if (columns > (number_tiled / 2))
             break;
-        ncolumns += 1;
+        columns += 1;
     }
 
     if (number_tiled == 5) {
         /* set layout against the general calculation: not 1:2:2, but 2:3 */
-        ncolumns = 2;
+        columns = 2;
     }
-    nrows = number_tiled/ncolumns;
+    rows = number_tiled/columns;
 
-    if (ncolumns == 0)
+    if (columns == 0)
         column_width = monitor->win_w;
     else
-        column_width = monitor->win_w / ncolumns;
+        column_width = monitor->win_w / columns;
 
     col_i = 0;
     row_i = 0;
@@ -1939,10 +1939,10 @@ monitor_layout_grid(Monitor *monitor) {
         int new_w;
         int new_h;
 
-        if ((i/nrows + 1) > (ncolumns - number_tiled % ncolumns))
-            nrows = number_tiled/ncolumns + 1;
+        if ((i/rows + 1) > (columns - number_tiled % columns))
+            rows = number_tiled/columns + 1;
 
-        client_height = monitor->win_h / nrows;
+        client_height = monitor->win_h / rows;
 
         new_x = monitor->win_x + col_i*column_width;
         new_y = monitor->win_y + row_i*client_height;
@@ -1951,7 +1951,7 @@ monitor_layout_grid(Monitor *monitor) {
         client_resize(client, new_x, new_y, new_w, new_h, false);
 
         row_i += 1;
-        if (row_i >= nrows) {
+        if (row_i >= rows) {
             row_i = 0;
             col_i += 1;
         }
