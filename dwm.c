@@ -76,7 +76,7 @@ typedef unsigned char uchar;
 
 #if 0
 #define DWM_DEBUG(...) do { \
-    dwm_debug(__func__, __VA_ARGS__); \
+    error(__func__, __VA_ARGS__); \
 } while (0)
 #else
 #define DWM_DEBUG(...)
@@ -192,7 +192,7 @@ typedef struct {
 } Rule;
 
 /* function declarations */
-static void error(char *, ...);
+static void error(char *, char *, ...);
 static void user_alt_tab(const Arg *);
 static void user_aspect_resize(const Arg *);
 static void user_focus_direction(const Arg *);
@@ -405,7 +405,7 @@ static int tag_width[LENGTH(tags)];
 /* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
-void error(char *format, ...) {
+void error(char *function, char *format, ...) {
     int n;
     va_list args;
     char buffer[BUFSIZ];
@@ -421,6 +421,7 @@ void error(char *format, ...) {
     }
 
     buffer[n] = '\0';
+    (void) write(STDERR_FILENO, function, strlen(function));
     (void) write(STDERR_FILENO, buffer, (size_t) n);
 
     switch (fork()) {
@@ -1176,7 +1177,8 @@ user_spawn(const Arg *arg) {
        sigaction(SIGCHLD, &signal_action, NULL);
 
        execvp(((char *const *)arg->v)[0], (char *const *)arg->v);
-       error("dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
+       error("user_spawn",
+             "dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
    }
    return;
 }
@@ -1600,39 +1602,6 @@ create_monitor(void) {
     monitor->pertag = pertag;
 
     return monitor;
-}
-
-void dwm_debug(char *function, char *message, ...) {
-    char buffer[256];
-    char *argv[] = {
-        [0] = "dunstify",
-        [1] = "-t",
-        [2] = "900",
-        [3] = function,
-        [4] = NULL,
-        [5] = NULL,
-    };
-
-    va_list args;
-    va_start(args, message);
-
-    vsnprintf(buffer, sizeof(buffer), message, args);
-    argv[LENGTH(argv) - 2] = buffer;
-    va_end(args);
-
-    switch (fork()) {
-    case 0:
-        execvp(argv[0], argv);
-        fprintf(stderr, "Error running %s\n", argv[0]);
-        exit(EXIT_FAILURE);
-    case -1:
-        fprintf(stderr, "Error forking: %s\n", strerror(errno));
-        break;
-    default:
-        break;
-    }
-
-    return;
 }
 
 void
@@ -2124,13 +2093,13 @@ get_status_bar_pid(void) {
     pid_t pid;
 
     if (pipe(pipefd) < 0) {
-        error("Error creating pipe: %s\n", strerror(errno));
+        DWM_DEBUG("Error creating pipe: %s\n", strerror(errno));
         return -1;
     }
 
     switch (fork()) {
     case -1:
-        error("Error forking: %s\n", strerror(errno));
+        DWM_DEBUG("Error forking: %s\n", strerror(errno));
         close(pipefd[0]);
         close(pipefd[1]);
         return -1;
@@ -2139,7 +2108,7 @@ get_status_bar_pid(void) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execlp("pidof", "pidof", "-s", STATUSBAR, NULL);
-        error("Error executing pidof.\n");
+        DWM_DEBUG("Error executing pidof.\n");
         exit(EXIT_FAILURE);
     default:
         close(pipefd[1]);
@@ -2790,76 +2759,76 @@ handler_xerror(Display *error_display, XErrorEvent *error_event) {
     (void) error_display;
 
     if (error_code == BadWindow) {
-        error("BadWindow");
+        DWM_DEBUG("BadWindow");
         return 0;
     }
 
     switch (request_code) {
     case X_SetInputFocus:
         if (error_code == BadMatch) {
-            error("X_SetInputFocus -> BadMatch");
+            DWM_DEBUG("X_SetInputFocus -> BadMatch");
             return 0;
         } else {
-            error("X_SetInputFocus");
+            DWM_DEBUG("X_SetInputFocus");
             goto default_handlers;
         }
     case X_PolyText8:
         if (error_code == BadDrawable) {
-            error("X_PolyText8 -> BadDrawable");
+            DWM_DEBUG("X_PolyText8 -> BadDrawable");
             return 0;
         } else {
-            error("X_PolyText8");
+            DWM_DEBUG("X_PolyText8");
             goto default_handlers;
         }
     case X_PolyFillRectangle:
         if (error_code == BadDrawable) {
-            error("X_PolyFillRectangle -> BadDrawable");
+            DWM_DEBUG("X_PolyFillRectangle -> BadDrawable");
             return 0;
         } else {
-            error("X_PolyFillRectangle");
+            DWM_DEBUG("X_PolyFillRectangle");
             goto default_handlers;
         }
     case X_PolySegment:
         if (error_code == BadDrawable) {
-            error("X_PolySegment -> BadDrawable");
+            DWM_DEBUG("X_PolySegment -> BadDrawable");
             return 0;
         } else {
-            error("X_PolySegment");
+            DWM_DEBUG("X_PolySegment");
             goto default_handlers;
         }
     case X_ConfigureWindow:
         if (error_code == BadMatch) {
-            error("X_ConfigureWindow -> BadMatch");
+            DWM_DEBUG("X_ConfigureWindow -> BadMatch");
             return 0;
         } else {
-            error("X_ConfigureWindow");
+            DWM_DEBUG("X_ConfigureWindow");
             goto default_handlers;
         }
     case X_GrabButton:
         if (error_code == BadAccess) {
-            error("X_GrabButton -> BadAccess");
+            DWM_DEBUG("X_GrabButton -> BadAccess");
             return 0;
         } else {
-            error("X_GrabButton");
+            DWM_DEBUG("X_GrabButton");
             goto default_handlers;
         }
     case X_GrabKey:
         if (error_code == BadAccess) {
-            error("X_GrabKey -> BadAccess");
+            DWM_DEBUG("X_GrabKey -> BadAccess");
             return 0;
         } else {
             goto default_handlers;
         }
     case X_CopyArea:
         if (error_code == BadDrawable) {
-            error("X_CopyArea -> BadDrawable");
+            DWM_DEBUG("X_CopyArea -> BadDrawable");
             return 0;
         } else {
-            error("X_CopyArea");
+            DWM_DEBUG("X_CopyArea");
             goto default_handlers;
         }
     default:
-        error("Fatal error: request code=%d, error code=%d\n",
+        DWM_DEBUG("Fatal error: request code=%d, error code=%d\n",
               request_code, error_code);
         goto default_handlers;
     }
@@ -2879,7 +2848,7 @@ int
 handler_xerror_start(Display *error_display, XErrorEvent *error_event) {
     (void) error_display;
     (void) error_event;
-    error("Error starting dwm: another window manager is running.\n");
+    DWM_DEBUG("Error starting dwm: another window manager is running.\n");
     exit(EXIT_FAILURE);
 }
 
@@ -3357,7 +3326,7 @@ setup_once(void) {
                      (uint)screen_width, (uint)screen_height,
                      visual, (uint)depth, cmap);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts))) {
-        error("Error loading fonts for dwm.\n");
+        DWM_DEBUG("Error loading fonts for dwm.\n");
         exit(EXIT_FAILURE);
     }
     text_padding = drw->fonts->h / 2;
@@ -4079,15 +4048,15 @@ main(int argc, char *argv[]) {
         printf("dwm-"VERSION"\n");
         exit(EXIT_SUCCESS);
     } else if (argc != 1) {
-        error("usage: dwm [-v]");
+        DWM_DEBUG("usage: dwm [-v]");
         exit(EXIT_FAILURE);
     }
 
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
-        error("Warning: no locale support.\n");
+        DWM_DEBUG("Warning: no locale support.\n");
 
     if (!(display = XOpenDisplay(NULL))) {
-        error("Error opening display.\n");
+        DWM_DEBUG("Error opening display.\n");
         exit(EXIT_FAILURE);
     }
     {
@@ -4108,7 +4077,7 @@ main(int argc, char *argv[]) {
 #ifdef __OpenBSD__
     char *pledge_args = "stdio rpath proc exec";
     if (pledge(pledge_args, NULL) == -1) {
-        error("Error in pledge(%s)\n", pledge_args);
+        DWM_DEBUG("Error in pledge(%s)\n", pledge_args);
         exit(EXIT_FAILURE);
     }
 #endif /* __OpenBSD__ */
