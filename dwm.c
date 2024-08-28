@@ -446,6 +446,7 @@ user_alt_tab(const Arg *) {
     Monitor *old = current_monitor;
     bool grabbed = false;
     int grab_status = 1000;
+
     if (all_clients == NULL)
         return;
 
