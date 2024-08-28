@@ -267,7 +267,7 @@ static void monitor_arrange_monitor(Monitor *);
 static void monitor_cleanup_monitor(Monitor *);
 static void monitor_draw_bar(Monitor *);
 static void monitor_layout_columns(Monitor *);
-static void monitor_layout_gapless_grid(Monitor *);
+static void monitor_layout_grid(Monitor *);
 static void monitor_layout_monocle(Monitor *);
 static void monitor_layout_tile(Monitor *);
 static void monitor_restack(Monitor *);
@@ -1893,7 +1893,7 @@ monitor_layout_columns(Monitor *monitor) {
 }
 
 void
-monitor_layout_gapless_grid(Monitor *monitor) {
+monitor_layout_grid(Monitor *monitor) {
     int number_tiled = 0;
     int ncolumns = 0;
     int nrows;

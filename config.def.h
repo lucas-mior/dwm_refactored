@@ -72,7 +72,7 @@ static const Layout layouts[] = {
 	{ "[]=",      monitor_layout_tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monitor_layout_monocle },
-	{ "###",      monitor_layout_gapless_grid },
+	{ "###",      monitor_layout_grid },
 	{ "|||",      monitor_layout_columns },
 };
 
