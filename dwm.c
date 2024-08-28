@@ -3628,8 +3628,8 @@ scan_windows(void) {
     int success;
 
     success = XQueryTree(display, root,
-                        &root_return, &parent_return,
-                        &children_return, &nchildren_return);
+                         &root_return, &parent_return,
+                         &children_return, &nchildren_return);
     if (!success)
         return;
 
