@@ -1910,6 +1910,11 @@ monitor_layout_grid(Monitor *monitor) {
     if (number_tiled == 0)
         return;
 
+    if (number_tiled > 0) {
+        snprintf(monitor->layout_symbol, sizeof(monitor->layout_symbol),
+                 "#%d#", number_tiled);
+    }
+
     /* grid dimensions */
     while (columns*columns < number_tiled) {
         if (columns > (number_tiled / 2))
