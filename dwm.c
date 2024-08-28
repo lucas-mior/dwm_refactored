@@ -217,6 +217,7 @@ static void user_toggle_view(const Arg *);
 static void user_view_tag(const Arg *);
 static void user_window_view(const Arg *);
 
+static void handler_dummy(XEvent *);
 static void handler_button_press(XEvent *);
 static void handler_client_message(XEvent *);
 static void handler_configure_notify(XEvent *);
@@ -322,19 +323,39 @@ static uint numlock_mask = 0;
 
 static void (*handlers[LASTEvent]) (XEvent *) = {
     [ButtonPress] = handler_button_press,
+    [ButtonRelease] = handler_dummy,
+    [CirculateNotify] = handler_dummy,
+    [CirculateRequest] = handler_dummy,
     [ClientMessage] = handler_client_message,
-    [ConfigureRequest] = handler_configure_request,
+    [ColormapNotify] = handler_dummy,
     [ConfigureNotify] = handler_configure_notify,
+    [ConfigureRequest] = handler_configure_request,
+    [CreateNotify] = handler_dummy,
     [DestroyNotify] = handler_destroy_notify,
     [EnterNotify] = handler_enter_notify,
     [Expose] = handler_expose,
     [FocusIn] = handler_focus_in,
+    [FocusOut] = handler_dummy,
+    [GenericEvent] = handler_dummy,
+    [GraphicsExpose] = handler_dummy,
+    [GravityNotify] = handler_dummy,
     [KeyPress] = handler_key_press,
-    [MappingNotify] = handler_mapping_notify,
+    [KeyRelease] = handler_dummy,
+    [KeymapNotify] = handler_dummy,
+    [LeaveNotify] = handler_dummy,
+    [MapNotify] = handler_dummy,
     [MapRequest] = handler_map_request,
+    [MappingNotify] = handler_mapping_notify,
     [MotionNotify] = handler_motion_notify,
+    [NoExpose] = handler_dummy,
     [PropertyNotify] = handler_property_notify,
-    [UnmapNotify] = handler_unmap_notify
+    [ReparentNotify] = handler_dummy,
+    [ResizeRequest] = handler_dummy,
+    [SelectionClear] = handler_dummy,
+    [SelectionNotify] = handler_dummy,
+    [SelectionRequest] = handler_dummy,
+    [UnmapNotify] = handler_unmap_notify,
+    [VisibilityNotify] = handler_dummy,
 };
 
 static Atom wm_atoms[WMLast];
@@ -2247,6 +2268,12 @@ grab_keys(void) {
         }
     }
     XFree(key_sym);
+    return;
+}
+
+void
+handler_dummy(XEvent *event) {
+    DWM_DEBUG("event:%d\n", event->type);
     return;
 }
 
