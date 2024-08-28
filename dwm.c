@@ -1547,21 +1547,21 @@ monitor_cleanup_monitor(Monitor *monitor) {
 
 void
 client_configure(Client *client) {
-    XConfigureEvent conf_event;
+    XConfigureEvent configure_event;
 
-    conf_event.type = ConfigureNotify;
-    conf_event.display = display;
-    conf_event.event = client->window;
-    conf_event.window = client->window;
-    conf_event.x = client->x;
-    conf_event.y = client->y;
-    conf_event.width = client->w;
-    conf_event.height = client->h;
-    conf_event.border_width = client->border_pixels;
-    conf_event.above = None;
-    conf_event.override_redirect = False;
+    configure_event.type = ConfigureNotify;
+    configure_event.display = display;
+    configure_event.event = client->window;
+    configure_event.window = client->window;
+    configure_event.x = client->x;
+    configure_event.y = client->y;
+    configure_event.width = client->w;
+    configure_event.height = client->h;
+    configure_event.border_width = client->border_pixels;
+    configure_event.above = None;
+    configure_event.override_redirect = False;
     XSendEvent(display, client->window,
-               False, StructureNotifyMask, (XEvent *)&conf_event);
+               False, StructureNotifyMask, (XEvent *)&configure_event);
     return;
 }
 
