@@ -408,12 +408,14 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 void error(char *function, char *format, ...) {
     int n;
     va_list args;
-    char buffer[BUFSIZ];
+    char buffer[512];
+    char buffer2[128];
     char *notifiers[2] = { "dunstify", "notify-send" };
 
     va_start(args, format);
     n = vsnprintf(buffer, sizeof (buffer) - 1, format, args);
     va_end(args);
+    int m = snprintf(buffer2, sizeof (buffer2) - 1, "dwm: %s: ", function);
 
     if (n < 0) {
         fprintf(stderr, "Error in vsnprintf()\n");
@@ -421,7 +423,7 @@ void error(char *function, char *format, ...) {
     }
 
     buffer[n] = '\0';
-    (void) write(STDERR_FILENO, function, strlen(function));
+    (void) write(STDERR_FILENO, buffer2, m);
     (void) write(STDERR_FILENO, buffer, (size_t) n);
 
     switch (fork()) {
@@ -431,7 +433,7 @@ void error(char *function, char *format, ...) {
         case 0:
             for (uint i = 0; i < LENGTH(notifiers); i += 1) {
                 execlp(notifiers[i], notifiers[i], "-u", "critical",
-                                     "dwm", buffer, NULL);
+                                     buffer2, buffer, NULL);
             }
             fprintf(stderr, "Error trying to exec dunstify.\n");
             exit(EXIT_FAILURE);
