@@ -463,6 +463,11 @@ user_alt_tab(const Arg *) {
 
         XNextEvent(display, &event);
         switch (event.type) {
+        case ConfigureRequest:
+        case Expose:
+        case MapRequest:
+            handlers[event.type](&event);
+            break;
         case KeyPress:
             if (event.xkey.keycode == tabCycleKey)
                 user_focus_next(&(Arg){ .i = alt_tab_direction });
