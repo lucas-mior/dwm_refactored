@@ -324,10 +324,10 @@ handler_others(XEvent *event) {
         DWM_DEBUG("GenericEvent");
         break;
     case GraphicsExpose:
-        DWM_DEBUG("case ");
+        DWM_DEBUG("GraphicsExpose");
         break;
     case GravityNotify:
-        DWM_DEBUG("case ");
+        DWM_DEBUG("GravityNotify");
         break;
     case KeymapNotify:
         DWM_DEBUG("KeymapNotify");
