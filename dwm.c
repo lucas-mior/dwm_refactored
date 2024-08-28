@@ -194,7 +194,7 @@ typedef struct {
     int monitor;
 } Rule;
 
-static void error(char *, char *, ...);
+static void error(const char *, char *, ...);
 static void user_alt_tab(const Arg *);
 static void user_aspect_resize(const Arg *);
 static void user_focus_direction(const Arg *);
@@ -404,7 +404,7 @@ static int tag_width[LENGTH(tags)];
 /* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
-void error(char *function, char *format, ...) {
+void error(const char *function, char *format, ...) {
     int message_length;
     int header_length;
     va_list args;
@@ -777,13 +777,10 @@ user_increment_number_masters(const Arg *arg) {
 void
 user_kill_client(const Arg *) {
     Client *selected = current_monitor->selected_client;
-    if (!selected) {
-        DWM_DEBUG("no selected client to kill");
+    if (!selected)
         return;
-    }
 
     if (!client_send_event(selected, wm_atoms[WMDelete])) {
-        DWM_DEBUG("Cant send delete event to %s\n", selected->name);
         XGrabServer(display);
         XSetErrorHandler(handler_xerror_dummy);
         XSetCloseDownMode(display, DestroyAll);
@@ -2096,13 +2093,13 @@ get_status_bar_pid(void) {
     pid_t pid;
 
     if (pipe(pipefd) < 0) {
-        DWM_DEBUG("Error creating pipe: %s\n", strerror(errno));
+        error(__func__, "Error creating pipe: %s\n", strerror(errno));
         return -1;
     }
 
     switch (fork()) {
     case -1:
-        DWM_DEBUG("Error forking: %s\n", strerror(errno));
+        error(__func__, "Error forking: %s\n", strerror(errno));
         close(pipefd[0]);
         close(pipefd[1]);
         return -1;
@@ -2111,7 +2108,7 @@ get_status_bar_pid(void) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execlp("pidof", "pidof", "-s", STATUSBAR, NULL);
-        DWM_DEBUG("Error executing pidof.\n");
+        error(__func__, "Error executing pidof.\n");
         exit(EXIT_FAILURE);
     default:
         close(pipefd[1]);
@@ -2555,12 +2552,9 @@ void
 handler_destroy_notify(XEvent *event) {
     Client *client;
     XDestroyWindowEvent *destroy_window_event = &event->xdestroywindow;
-    DWM_DEBUG("");
 
-    if ((client = window_to_client(destroy_window_event->window))) {
-        DWM_DEBUG("%s", client->name);
+    if ((client = window_to_client(destroy_window_event->window)))
         client_unmanage(client, 1);
-    }
     return;
 }
 
@@ -2851,7 +2845,7 @@ int
 handler_xerror_start(Display *error_display, XErrorEvent *error_event) {
     (void) error_display;
     (void) error_event;
-    DWM_DEBUG("Error starting dwm: another window manager is running.\n");
+    error(__func__, "Error starting dwm: another window manager is running.\n");
     exit(EXIT_FAILURE);
 }
 
@@ -3329,7 +3323,7 @@ setup_once(void) {
                      (uint)screen_width, (uint)screen_height,
                      visual, (uint)depth, cmap);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts))) {
-        DWM_DEBUG("Error loading fonts for dwm.\n");
+        error(__func__, "Error loading fonts for dwm.\n");
         exit(EXIT_FAILURE);
     }
     text_padding = drw->fonts->h / 2;
@@ -4051,15 +4045,15 @@ main(int argc, char *argv[]) {
         printf("dwm-"VERSION"\n");
         exit(EXIT_SUCCESS);
     } else if (argc != 1) {
-        DWM_DEBUG("usage: dwm [-v]");
+        error(__func__, "usage: dwm [-v]");
         exit(EXIT_FAILURE);
     }
 
     if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
-        DWM_DEBUG("Warning: no locale support.\n");
+        error(__func__, "Warning: no locale support.\n");
 
     if (!(display = XOpenDisplay(NULL))) {
-        DWM_DEBUG("Error opening display.\n");
+        error(__func__, "Error opening display.\n");
         exit(EXIT_FAILURE);
     }
     {
@@ -4080,7 +4074,7 @@ main(int argc, char *argv[]) {
 #ifdef __OpenBSD__
     char *pledge_args = "stdio rpath proc exec";
     if (pledge(pledge_args, NULL) == -1) {
-        DWM_DEBUG("Error in pledge(%s)\n", pledge_args);
+        error(__func__, "Error in pledge(%s)\n", pledge_args);
         exit(EXIT_FAILURE);
     }
 #endif /* __OpenBSD__ */
@@ -4107,7 +4101,7 @@ main(int argc, char *argv[]) {
         monitor_cleanup_monitor(monitors);
 
     if (dwm_restart) {
-        DWM_DEBUG("restarting...");
+        error(__func__, "restarting...");
         execvp(argv[0], argv);
     }
 
