@@ -78,9 +78,9 @@ typedef unsigned char uchar;
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
 enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent };
 enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
-       NetWMFullscreen, NetActiveWindow, NetWMWindowType, /* EWMH atoms */
+       NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetClientInfo, NetLast };
-enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* atoms */
+enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast };
 enum { ClickBarTags, ClickBarLayoutSymbol, ClickBarStatus, ClickBarTitle,
        ClickBottomBar, ClickClientWin, ClickRootWin, ClickLast };
 
