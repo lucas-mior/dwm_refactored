@@ -284,7 +284,7 @@ static void monitor_update_bar_position(Monitor *);
 
 static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int);
-static void dwm_debug(char const *, char *, ...);
+static void dwm_debug(char *, char *, ...);
 static void draw_bars(void);
 static void draw_status_text(char *, int, int);
 static int get_root_pointer(int *, int *);
@@ -1599,7 +1599,7 @@ create_monitor(void) {
     return monitor;
 }
 
-void dwm_debug(char const *function, char *message, ...) {
+void dwm_debug(char *function, char *message, ...) {
     char buffer[256];
     char *argv[] = {
         [0] = "dunstify",
@@ -1786,7 +1786,8 @@ monitor_draw_bar(Monitor *monitor) {
             drw_setscheme(drw, scheme[SchemeNormal]);
 
         drw_text(drw, x, 0, (uint)w,
-                 bar_height, text_padding / 2, tags_display, (int)urgent & 1 << i);
+                 bar_height, text_padding/2,
+                 tags_display, (int)urgent & 1 << i);
         x += w;
         if (client_with_icon) {
             drw_text(drw, x, 0, client_with_icon->icon_width + text_padding/2,
@@ -2780,21 +2781,88 @@ handler_unmap_notify(XEvent *event) {
  * ignored (especially on UnmapNotify's). Other types of errors call Xlibs
  * default error handlers, which may call exit. */
 int
-handler_xerror(Display *d, XErrorEvent *ee) {
+handler_xerror(Display *d, XErrorEvent *error_event) {
+    uchar error_code = error_event->error_code;
+    uchar request_code = error_event->request_code;
     (void) d;
-    if (ee->error_code == BadWindow
-    || (ee->request_code == X_SetInputFocus && ee->error_code == BadMatch)
-    || (ee->request_code == X_PolyText8 && ee->error_code == BadDrawable)
-    || (ee->request_code == X_PolyFillRectangle && ee->error_code == BadDrawable)
-    || (ee->request_code == X_PolySegment && ee->error_code == BadDrawable)
-    || (ee->request_code == X_ConfigureWindow && ee->error_code == BadMatch)
-    || (ee->request_code == X_GrabButton && ee->error_code == BadAccess)
-    || (ee->request_code == X_GrabKey && ee->error_code == BadAccess)
-    || (ee->request_code == X_CopyArea && ee->error_code == BadDrawable))
+
+    if (error_code == BadWindow) {
+        error("BadWindow");
         return 0;
-    fprintf(stderr, "dwm: fatal error: request code=%d, error code=%d\n",
-            ee->request_code, ee->error_code);
-    return xerrorxlib(display, ee); /* may call exit */
+    }
+
+    switch (request_code) {
+    case X_SetInputFocus:
+        if (error_code == BadMatch) {
+            error("X_SetInputFocus -> BadMatch");
+            return 0;
+        } else {
+            error("X_SetInputFocus");
+            goto default_handlers;
+        }
+    case X_PolyText8:
+        if (error_code == BadDrawable) {
+            error("X_PolyText8 -> BadDrawable");
+            return 0;
+        } else {
+            error("X_PolyText8");
+            goto default_handlers;
+        }
+    case X_PolyFillRectangle:
+        if (error_code == BadDrawable) {
+            error("X_PolyFillRectangle -> BadDrawable");
+            return 0;
+        } else {
+            error("X_PolyFillRectangle");
+            goto default_handlers;
+        }
+    case X_PolySegment:
+        if (error_code == BadDrawable) {
+            error("X_PolySegment -> BadDrawable");
+            return 0;
+        } else {
+            error("X_PolySegment");
+            goto default_handlers;
+        }
+    case X_ConfigureWindow:
+        if (error_code == BadMatch) {
+            error("X_ConfigureWindow -> BadMatch");
+            return 0;
+        } else {
+            error("X_ConfigureWindow");
+            goto default_handlers;
+        }
+    case X_GrabButton:
+        if (error_code == BadAccess) {
+            error("X_GrabButton -> BadAccess");
+            return 0;
+        } else {
+            error("X_GrabButton");
+            goto default_handlers;
+        }
+    case X_GrabKey:
+        if (error_code == BadAccess) {
+            error("X_GrabKey -> BadAccess");
+            return 0;
+        } else {
+            goto default_handlers;
+        }
+    case X_CopyArea:
+        if (error_code == BadDrawable) {
+            error("X_CopyArea -> BadDrawable");
+            return 0;
+        } else {
+            error("X_CopyArea");
+            goto default_handlers;
+        }
+    default:
+        error("Fatal error: request code=%d, error code=%d\n",
+              request_code, error_code);
+        goto default_handlers;
+    }
+
+default_handlers:
+    return xerrorxlib(display, error_event); /* may call exit */
 }
 
 int
