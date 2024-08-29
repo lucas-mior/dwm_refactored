@@ -3478,6 +3478,7 @@ handler_property_notify(XEvent *event) {
     if ((property_event->window == root)
         && (property_event->atom == XA_WM_NAME)) {
         update_status();
+        monitor_draw_bar(live_monitor);
         return;
     }
     if (property_event->state == PropertyDelete)
@@ -3879,6 +3880,7 @@ setup_once(void) {
     /* init bars */
     update_bars();
     update_status();
+    monitor_draw_bar(live_monitor);
 
     /* supporting window for NetWMCheck */
     wm_check_window = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
@@ -4091,7 +4093,6 @@ update_status(void) {
         strcpy(status_top.text, "dwm-"VERSION);
         status_top.pixels = get_text_pixels(status_top.text) - text_padding + 2;
         status_bottom.text[0] = '\0';
-        monitor_draw_bar(live_monitor);
         return;
     }
 
@@ -4107,7 +4108,6 @@ update_status(void) {
     strncpy(status_top.text, text, sizeof(status_top.text) - 1);
     status_count_pixels(&status_top);
     status_count_pixels(&status_bottom);
-    monitor_draw_bar(live_monitor);
     return;
 }
 
