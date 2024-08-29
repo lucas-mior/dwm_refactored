@@ -2300,10 +2300,11 @@ monitor_draw_bar(Monitor *monitor) {
             drw_text(drw,
                      x, 0, (uint)w, bar_height,
                      (uint)text_padding/2, monitor->selected_client->name, 0);
-            if (monitor->selected_client->is_floating)
+            if (monitor->selected_client->is_floating) {
                 drw_rect(drw, x + boxs, boxs,
                          (uint)boxw, (uint)boxw,
                          monitor->selected_client->is_fixed, 0);
+            }
         } else {
             drw_setscheme(drw, scheme[SchemeNormal]);
             drw_rect(drw, x, 0, (uint)w, bar_height, 1, 1);
