@@ -3107,7 +3107,7 @@ handler_button_press(XEvent *event) {
 
 void draw_status_text(char *status, int status_pixels, int mon_win_w) {
     char *text;
-    int x = 0;
+    int pixels = 0;
     int text_pixels = 0;
 
     for (text = status; *status; status += 1) {
@@ -3119,9 +3119,9 @@ void draw_status_text(char *status, int status_pixels, int mon_win_w) {
 
             text_pixels = (int)(get_text_pixels(text) - text_padding);
             drw_text(drw,
-                     mon_win_w - status_pixels + x, 0,
+                     mon_win_w - status_pixels + pixels, 0,
                      (uint)text_pixels, bar_height, 0, text, 0);
-            x += text_pixels;
+            pixels += text_pixels;
 
             *status = temp;
             text = status + 1;
@@ -3129,7 +3129,7 @@ void draw_status_text(char *status, int status_pixels, int mon_win_w) {
     }
     text_pixels = (int)(get_text_pixels(text) - text_padding + 2);
     drw_text(drw,
-             mon_win_w - status_pixels + x, 0,
+             mon_win_w - status_pixels + pixels, 0,
              (uint)text_pixels, bar_height, 0, text, 0);
     return;
 }
