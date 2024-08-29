@@ -1374,8 +1374,10 @@ client_apply_rules(Client *client) {
 
             if (rule->is_floating) {
                 Monitor *mon = client->monitor;
-                client->x = mon->win_x + mon->win_w / 2 - client_pixels_width(client) / 2;
-                client->y = mon->win_y + mon->win_h / 2 - client_pixels_height(client) / 2;
+                int client_width = client_pixels_width(client);
+                int client_height = client_pixels_height(client);
+                client->x = mon->win_x + mon->win_w / 2 - client_width / 2;
+                client->y = mon->win_y + mon->win_h / 2 - client_height / 2;
             }
 
             for (monitor_aux = monitors;
