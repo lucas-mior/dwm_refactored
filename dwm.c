@@ -208,11 +208,10 @@ static void user_signal_status_bar(const Arg *);
 static void user_spawn(const Arg *);
 static void user_tag(const Arg *);
 static void user_tag_monitor(const Arg *);
-static void user_toggle_bottom_bar(const Arg *);
 static void user_toggle_floating(const Arg *);
 static void user_toggle_fullscreen(const Arg *);
 static void user_toggle_tag(const Arg *);
-static void user_toggle_top_bar(const Arg *);
+static void user_toggle_bar(const Arg *);
 static void user_toggle_view(const Arg *);
 static void user_view_tag(const Arg *);
 static void user_window_view(const Arg *);
@@ -1135,33 +1134,23 @@ user_tag_monitor(const Arg *arg) {
 }
 
 void
-user_toggle_top_bar(const Arg *) {
+user_toggle_bar(const Arg *arg) {
     Monitor *monitor = live_monitor;
+    Pertag *pertag = monitor->pertag;
 
-    monitor->show_top_bar
-        = monitor->pertag->top_bars[monitor->pertag->tag]
-        = !monitor->show_top_bar;
+    if (arg->i) {
+        monitor->show_top_bar = !monitor->show_top_bar;
+        pertag->top_bars[pertag->tag] = monitor->show_top_bar;
+    } else {
+        monitor->show_bottom_bar = !monitor->show_bottom_bar;
+        pertag->bottom_bars[pertag->tag] = monitor->show_bottom_bar;
+    }
 
     monitor_update_bar_position(monitor);
     XMoveResizeWindow(display, monitor->top_bar_window,
                       monitor->win_x, monitor->top_bar_y,
                       (uint)monitor->win_w, bar_height);
 
-    monitor_arrange(monitor);
-    return;
-}
-
-void
-user_toggle_bottom_bar(const Arg *) {
-    Monitor *monitor = live_monitor;
-
-    monitor->show_bottom_bar
-        = monitor->pertag->bottom_bars[monitor->pertag->tag]
-        = !monitor->show_bottom_bar;
-    monitor_update_bar_position(monitor);
-    XMoveResizeWindow(display, monitor->bottom_bar_window,
-                      monitor->win_x, monitor->bottom_bar_y,
-                      (uint)monitor->win_w, bar_height);
     monitor_arrange(monitor);
     return;
 }
@@ -1278,9 +1267,9 @@ user_toggle_view(const Arg *arg) {
         = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-        user_toggle_top_bar(NULL);
+        user_toggle_bar(&(Arg){ .i = 1 });
     if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-        user_toggle_bottom_bar(NULL);
+        user_toggle_bar(&(Arg){ .i = 0 });
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -1326,9 +1315,9 @@ view_tag(uint arg_tags) {
         = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-        user_toggle_top_bar(NULL);
+        user_toggle_bar(&(Arg){ .i = 1 });
     if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-        user_toggle_bottom_bar(NULL);
+        user_toggle_bar(&(Arg){ .i = 0 });
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -4145,8 +4134,8 @@ main(int argc, char *argv[]) {
         view_tag(1 << 5);
         user_set_layout(&(Arg){.v = &layouts[2]});
 
-        user_toggle_top_bar(NULL);
-        user_toggle_bottom_bar(NULL);
+        user_toggle_bar(&(Arg){ .i = 1 });
+        user_toggle_bar(&(Arg){ .i = 0 });
 
         view_tag(1 << 1);
     }
