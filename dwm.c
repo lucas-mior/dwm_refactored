@@ -658,38 +658,6 @@ user_focus_monitor(const Arg *arg) {
 }
 
 void
-focus_next(bool direction) {
-    Monitor *monitor;
-    Client *client;
-
-    monitor = live_monitor;
-    client = monitor->selected_client;
-    while (client == NULL && monitor->next) {
-        monitor = monitor->next;
-        monitor_focus(monitor, true);
-        client = monitor->selected_client;
-    }
-    if (client == NULL)
-        return;
-
-    if (direction) {
-        if (client->all_next)
-            client = client->all_next;
-        else
-            client = all_clients;
-    } else {
-        Client *last = client;
-        if (last == all_clients)
-            last = NULL;
-        for (client = all_clients;
-             client->all_next != last;
-             client = client->all_next);
-    }
-    client_focus(client);
-    return;
-}
-
-void
 user_focus_stack(const Arg *arg) {
     Client *client = NULL;
 
@@ -949,8 +917,8 @@ user_mouse_resize(const Arg *) {
                 bool over_snap_x = abs(new_w - client->w) > SNAP_PIXELS;
                 bool over_snap_y = abs(new_h - client->h) > SNAP_PIXELS;
 
-                new_x = client->monitor->win_x + new_w; 
-                new_y = client->monitor->win_y + new_h; 
+                new_x = client->monitor->win_x + new_w;
+                new_y = client->monitor->win_y + new_h;
                 over_x = new_x >= live_monitor->win_x;
                 under_x = new_x <= live_monitor->win_x + live_monitor->win_w;
                 over_y = new_y >= live_monitor->win_y;
@@ -991,32 +959,6 @@ user_quit_dwm(const Arg *arg) {
     if (arg->i)
         dwm_restart = true;
     dwm_running = false;
-    return;
-}
-
-void
-set_layout(const Layout *layout) {
-    Monitor *monitor = live_monitor;
-    Pertag *pertag = monitor->pertag;
-
-    if (!layout || layout != monitor->layout[monitor->lay_i]) {
-        pertag->selected_layouts[pertag->tag] ^= 1;
-        monitor->lay_i = pertag->selected_layouts[monitor->pertag->tag];
-    }
-
-    if (layout) {
-        monitor->layout[monitor->lay_i] = layout;
-        pertag->layouts[pertag->tag][monitor->lay_i] = layout;
-    }
-
-    strncpy(monitor->layout_symbol,
-            monitor->layout[monitor->lay_i]->symbol,
-            sizeof(monitor->layout_symbol));
-
-    if (monitor->selected_client)
-        monitor_arrange(monitor);
-    else
-        monitor_draw_bar(monitor);
     return;
 }
 
@@ -1129,37 +1071,6 @@ user_tag_monitor(const Arg *arg) {
     monitor_focus(monitor, false);
     user_toggle_floating(NULL);
     user_toggle_floating(NULL);
-    return;
-}
-
-void
-toggle_bar(int which) {
-    Monitor *monitor = live_monitor;
-    Pertag *pertag = monitor->pertag;
-    Window bar_window;
-    int bar_y;
-
-    if (which == BarTop) {
-        monitor->show_top_bar = !monitor->show_top_bar;
-        pertag->top_bars[pertag->tag] = monitor->show_top_bar;
-
-        monitor_update_bar_position(monitor);
-        bar_window = monitor->top_bar_window;
-        bar_y = monitor->top_bar_y;
-    } else {
-        monitor->show_bottom_bar = !monitor->show_bottom_bar;
-        pertag->bottom_bars[pertag->tag] = monitor->show_bottom_bar;
-
-        monitor_update_bar_position(monitor);
-        bar_window = monitor->bottom_bar_window;
-        bar_y = monitor->bottom_bar_y;
-    }
-
-    XMoveResizeWindow(display, bar_window,
-                      monitor->win_x, bar_y,
-                      (uint)monitor->win_w, bar_height);
-
-    monitor_arrange(monitor);
     return;
 }
 
@@ -1289,6 +1200,37 @@ user_toggle_view(const Arg *arg) {
 }
 
 void
+user_view_tag(const Arg *arg) {
+    view_tag(arg->ui);
+    return;
+}
+
+void
+user_window_view(const Arg *) {
+    Client *client = live_monitor->selected_client;
+    view_tag(client->tags);
+    return;
+}
+
+void
+user_promote_to_master(const Arg *) {
+    Client *client = live_monitor->selected_client;
+    Monitor *monitor = live_monitor;
+    bool monitor_floating = !monitor->layout[monitor->lay_i]->function;
+    bool is_next_tiled = client == client_next_tiled(monitor->clients);
+
+    if (client == NULL)
+        return;
+    if (monitor_floating || client->is_floating)
+        return;
+    if (is_next_tiled && !(client = client_next_tiled(client->next)))
+        return;
+
+    client_pop(client);
+    return;
+}
+
+void
 view_tag(uint arg_tags) {
     uint tmptag;
     uint tag;
@@ -1337,33 +1279,91 @@ view_tag(uint arg_tags) {
 }
 
 void
-user_view_tag(const Arg *arg) {
-    view_tag(arg->ui);
-    return;
-}
-
-void
-user_window_view(const Arg *) {
-    Client *client = live_monitor->selected_client;
-    view_tag(client->tags);
-    return;
-}
-
-void
-user_promote_to_master(const Arg *) {
-    Client *client = live_monitor->selected_client;
+toggle_bar(int which) {
     Monitor *monitor = live_monitor;
-    bool monitor_floating = !monitor->layout[monitor->lay_i]->function;
-    bool is_next_tiled = client == client_next_tiled(monitor->clients);
+    Pertag *pertag = monitor->pertag;
+    Window bar_window;
+    int bar_y;
 
+    if (which == BarTop) {
+        monitor->show_top_bar = !monitor->show_top_bar;
+        pertag->top_bars[pertag->tag] = monitor->show_top_bar;
+
+        monitor_update_bar_position(monitor);
+        bar_window = monitor->top_bar_window;
+        bar_y = monitor->top_bar_y;
+    } else {
+        monitor->show_bottom_bar = !monitor->show_bottom_bar;
+        pertag->bottom_bars[pertag->tag] = monitor->show_bottom_bar;
+
+        monitor_update_bar_position(monitor);
+        bar_window = monitor->bottom_bar_window;
+        bar_y = monitor->bottom_bar_y;
+    }
+
+    XMoveResizeWindow(display, bar_window,
+                      monitor->win_x, bar_y,
+                      (uint)monitor->win_w, bar_height);
+
+    monitor_arrange(monitor);
+    return;
+}
+
+void
+set_layout(const Layout *layout) {
+    Monitor *monitor = live_monitor;
+    Pertag *pertag = monitor->pertag;
+
+    if (!layout || layout != monitor->layout[monitor->lay_i]) {
+        pertag->selected_layouts[pertag->tag] ^= 1;
+        monitor->lay_i = pertag->selected_layouts[monitor->pertag->tag];
+    }
+
+    if (layout) {
+        monitor->layout[monitor->lay_i] = layout;
+        pertag->layouts[pertag->tag][monitor->lay_i] = layout;
+    }
+
+    strncpy(monitor->layout_symbol,
+            monitor->layout[monitor->lay_i]->symbol,
+            sizeof(monitor->layout_symbol));
+
+    if (monitor->selected_client)
+        monitor_arrange(monitor);
+    else
+        monitor_draw_bar(monitor);
+    return;
+}
+
+void
+focus_next(bool direction) {
+    Monitor *monitor;
+    Client *client;
+
+    monitor = live_monitor;
+    client = monitor->selected_client;
+    while (client == NULL && monitor->next) {
+        monitor = monitor->next;
+        monitor_focus(monitor, true);
+        client = monitor->selected_client;
+    }
     if (client == NULL)
         return;
-    if (monitor_floating || client->is_floating)
-        return;
-    if (is_next_tiled && !(client = client_next_tiled(client->next)))
-        return;
 
-    client_pop(client);
+    if (direction) {
+        if (client->all_next)
+            client = client->all_next;
+        else
+            client = all_clients;
+    } else {
+        Client *last = client;
+        if (last == all_clients)
+            last = NULL;
+        for (client = all_clients;
+             client->all_next != last;
+             client = client->all_next);
+    }
+    client_focus(client);
     return;
 }
 
