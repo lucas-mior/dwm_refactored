@@ -289,6 +289,7 @@ static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 static Client *window_to_client(Window);
 
+static void focus_direction(int);
 static void focus_next(bool);
 static void view_tag(uint);
 static int get_text_pixels(char *);
@@ -500,13 +501,13 @@ user_alt_tab(const Arg *) {
             if (event.xkey.keycode == tabCycleKey)
                 focus_next(alt_tab_direction);
             else if (event.xkey.keycode == key_j)
-                user_focus_direction(&(Arg){ .i = 0 });
+                focus_direction(0);
             else if (event.xkey.keycode == key_semicolon)
-                user_focus_direction(&(Arg){ .i = 1 });
+                focus_direction(1);
             else if (event.xkey.keycode == key_l)
-                user_focus_direction(&(Arg){ .i = 2 });
+                focus_direction(2);
             else if (event.xkey.keycode == key_k)
-                user_focus_direction(&(Arg){ .i = 3 });
+                focus_direction(3);
             break;
         case KeyRelease:
             if (event.xkey.keycode == tabModKey) {
@@ -572,7 +573,7 @@ user_aspect_resize(const Arg *arg) {
 }
 
 void
-user_focus_direction(const Arg *arg) {
+focus_direction(int direction) {
     Client *selected = live_monitor->selected_client;
     Client *client = NULL;
     Client *client_aux;
@@ -596,7 +597,7 @@ user_focus_direction(const Arg *arg) {
         if (!client_is_visible(client_aux) || client_aux->is_floating)
             continue;
 
-        switch (arg->i) {
+        switch (direction) {
         case 0: // left (has preference -1)
             dist = selected->x - client_aux->x - client_aux->w;
             client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
@@ -630,6 +631,12 @@ user_focus_direction(const Arg *arg) {
         client_focus(client);
         monitor_restack(client->monitor);
     }
+    return;
+}
+
+void
+user_focus_direction(const Arg *arg) {
+    focus_direction(arg->i);
     return;
 }
 
