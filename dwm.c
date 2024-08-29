@@ -923,7 +923,8 @@ user_mouse_resize(const Arg *) {
             break;
         case MotionNotify: {
             bool monitor_floating;
-            int new_w, new_h;
+            int new_w, new_h, new_x, new_y;
+            bool over_x, under_x, over_y, under_y;
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
                 continue;
@@ -937,14 +938,16 @@ user_mouse_resize(const Arg *) {
 
             monitor_floating = !(live_monitor->layout[live_monitor->lay_i]->function);
             if (!client->is_floating && !monitor_floating) {
-                int new_x = client->monitor->win_x + new_w; 
-                int new_y = client->monitor->win_y + new_h; 
-                bool over_x = new_x >= live_monitor->win_x;
-                bool under_x = new_x <= live_monitor->win_x + live_monitor->win_w;
-                bool over_y = new_y >= live_monitor->win_y;
-                bool under_y = new_y <= live_monitor->win_y + live_monitor->win_h;
                 bool over_snap_x = abs(new_w - client->w) > SNAP_PIXELS;
                 bool over_snap_y = abs(new_h - client->h) > SNAP_PIXELS;
+
+                new_x = client->monitor->win_x + new_w; 
+                new_y = client->monitor->win_y + new_h; 
+                over_x = new_x >= live_monitor->win_x;
+                under_x = new_x <= live_monitor->win_x + live_monitor->win_w;
+                over_y = new_y >= live_monitor->win_y;
+                under_y = new_y <= live_monitor->win_y + live_monitor->win_h;
+
                 if (over_x && under_x && over_y && under_y
                     && (over_snap_x || over_snap_y)) {
                     user_toggle_floating(NULL);
