@@ -66,7 +66,6 @@ typedef unsigned char uchar;
 #define X_INTERN_ATOM(X) XInternAtom(display, X, False)
 #define LENGTH(X) (int)(sizeof(X) / sizeof(*X))
 #define TAGMASK   ((1 << (LENGTH(tags))) - 1)
-#define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + text_padding)
 #define PAUSE_MILIS_AS_NANOS(X) ((X)*1000*1000)
 
 #define TAG_DISPLAY_SIZE 32
@@ -290,6 +289,7 @@ static Monitor *direction_to_monitor(int);
 static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 
+static int get_text_pixels(char *);
 static int get_root_pointer(int *, int *);
 static int get_text_property(Window, Atom, char *, uint);
 static int status_count_pixels(char *);
@@ -2432,7 +2432,7 @@ monitor_draw_bar(Monitor *monitor) {
             snprintf(tags_display, sizeof(tags_display),
                      tag_empty_format, tags[i]);
         }
-        tag_width[i] = w = (int)TEXT_PIXELS(tags_display);
+        tag_width[i] = w = (int)get_text_pixels(tags_display);
 
         if (monitor->tagset[monitor->selected_tags] & 1 << i)
             drw_setscheme(drw, scheme[SchemeSelected]);
@@ -2454,7 +2454,7 @@ monitor_draw_bar(Monitor *monitor) {
             tag_width[i] += client_with_icon->icon_width + text_padding/2;
         }
     }
-    w = (int)TEXT_PIXELS(monitor->layout_symbol);
+    w = (int)get_text_pixels(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
     x = drw_text(drw,
                  x, 0, (uint)w, bar_height, text_padding / 2,
@@ -2851,7 +2851,7 @@ void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
             temp = *s;
             *s = '\0';
 
-            text_pixels = (int)(TEXT_PIXELS(text) - text_padding);
+            text_pixels = (int)(get_text_pixels(text) - text_padding);
             drw_text(drw,
                      mon_win_w - status_pixels + x, 0,
                      (uint)text_pixels, bar_height, 0, text, 0);
@@ -2861,7 +2861,7 @@ void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
             text = s + 1;
         }
     }
-    text_pixels = (int)(TEXT_PIXELS(text) - text_padding + 2);
+    text_pixels = (int)(get_text_pixels(text) - text_padding + 2);
     drw_text(drw,
              mon_win_w - status_pixels + x, 0,
              (uint)text_pixels, bar_height, 0, text, 0);
@@ -2873,6 +2873,12 @@ draw_bars(void) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
         monitor_draw_bar(monitor);
     return;
+}
+
+int
+get_text_pixels(char *text) {
+    int width = drw_fontset_getwidth(drw, text) + text_padding;
+    return width;
 }
 
 pid_t
@@ -3105,7 +3111,7 @@ handler_button_press(XEvent *event) {
         if (i < LENGTH(tags)) {
             click = ClickBarTags;
             arg.ui = 1 << i;
-        } else if (button_x < x + (int)(TEXT_PIXELS(monitor->layout_symbol))) {
+        } else if (button_x < x + (int)(get_text_pixels(monitor->layout_symbol))) {
             click = ClickBarLayoutSymbol;
         } else if (button_x > monitor->win_w - top_status_pixels) {
             int x0 = monitor->win_w - top_status_pixels;
@@ -3152,7 +3158,7 @@ get_signal_number(char *status, int x, int max_x) {
             char byte = *s;
             *s = '\0';
 
-            x += TEXT_PIXELS(text) - text_padding;
+            x += get_text_pixels(text) - text_padding;
 
             *s = byte;
             text = s + 1;
@@ -4008,12 +4014,12 @@ status_count_pixels(char *text) {
         if ((uchar)(*s) < ' ') {
             byte = *s;
             *s = '\0';
-            pixels += TEXT_PIXELS(text2) - text_padding;
+            pixels += get_text_pixels(text2) - text_padding;
             *s = byte;
             text2 = s + 1;
         }
     }
-    pixels += TEXT_PIXELS(text2) - text_padding + 2;
+    pixels += get_text_pixels(text2) - text_padding + 2;
     return pixels;
 }
 
@@ -4024,7 +4030,7 @@ update_status(void) {
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(top_status, "dwm-"VERSION);
-        top_status_pixels = (int)(TEXT_PIXELS(top_status) - text_padding + 2);
+        top_status_pixels = (int)(get_text_pixels(top_status) - text_padding + 2);
         bottom_status[0] = '\0';
         monitor_draw_bar(live_monitor);
         return;
