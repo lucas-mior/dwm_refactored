@@ -289,6 +289,7 @@ static Monitor *direction_to_monitor(int);
 static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 
+static void view_tag(uint);
 static int get_text_pixels(char *);
 static int get_root_pointer(int *, int *);
 static int get_text_property(Window, Atom, char *, uint);
@@ -1243,8 +1244,7 @@ user_toggle_view(const Arg *arg) {
 }
 
 void
-user_view_tag(const Arg *arg) {
-    uint arg_tags = arg->ui;
+view_tag(uint arg_tags) {
     uint tmptag;
     uint tag;
     Monitor *monitor = live_monitor;
@@ -1288,6 +1288,12 @@ user_view_tag(const Arg *arg) {
 
     client_focus(NULL);
     monitor_arrange(monitor);
+    return;
+}
+
+void
+user_view_tag(const Arg *arg) {
+    view_tag(arg->ui);
     return;
 }
 
