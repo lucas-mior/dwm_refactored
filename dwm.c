@@ -3172,11 +3172,11 @@ status_count_pixels(char *status) {
 }
 
 void
-status_get_signal_number(BlockSignal *blocks, int x, int max_x) {
+status_get_signal_number(BlockSignal *blocks, int x, int button_x) {
     status_signal = 0;
 
     for (int i = 0; i < STATUS_MAX_BLOCKS; i += 1) {
-        if (blocks[i].min_x > x && blocks[i].max_x < max_x)
+        if (blocks[i].min_x > x && blocks[i].max_x < button_x)
             status_signal = blocks[i].signal;
     }
     return;
