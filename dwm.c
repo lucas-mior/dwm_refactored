@@ -1169,205 +1169,6 @@ user_promote_to_master(const Arg *) {
 }
 
 void
-focus_direction(int direction) {
-    Client *selected = live_monitor->selected_client;
-    Client *client = NULL;
-    Client *client_aux;
-    Client *next;
-    uint best_score = UINT_MAX;
-
-    if (!selected)
-        return;
-
-    next = selected->next;
-    if (!next)
-        next = selected->monitor->clients;
-    for (client_aux = next; client_aux != selected; client_aux = next) {
-        int client_score;
-        int dist;
-
-        next = client_aux->next;
-        if (!next)
-            next = selected->monitor->clients;
-
-        if (!client_is_visible(client_aux) || client_aux->is_floating)
-            continue;
-
-        switch (direction) {
-        case 0: // left (has preference -1)
-            dist = selected->x - client_aux->x - client_aux->w;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
-            client_score += abs(selected->y - client_aux->y) - 1;
-            break;
-        case 1: // right
-            dist = client_aux->x - selected->x - selected->w;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
-            client_score += abs(client_aux->y - selected->y);
-            break;
-        case 2: // up (has preference -1)
-            dist = selected->y - client_aux->y - client_aux->h;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
-            client_score += abs(selected->x - client_aux->x) - 1;
-            break;
-        default:
-        case 3: // down
-            dist = client_aux->y - selected->y - selected->h;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
-            client_score += abs(client_aux->x - selected->x);
-            break;
-        }
-
-        if ((uint)client_score < best_score) {
-            best_score = (uint)client_score;
-            client = client_aux;
-        }
-    }
-
-    if (client && client != selected) {
-        client_focus(client);
-        monitor_restack(client->monitor);
-    }
-    return;
-}
-
-void
-view_tag(uint arg_tags) {
-    uint tmptag;
-    uint tag;
-    Monitor *monitor = live_monitor;
-
-    if ((arg_tags & TAGMASK) == monitor->tagset[monitor->selected_tags])
-        return;
-
-    monitor->selected_tags ^= 1; /* toggle selected_client tagset */
-
-    if (arg_tags & TAGMASK) {
-        monitor->tagset[monitor->selected_tags] = arg_tags & TAGMASK;
-        monitor->pertag->old_tag = monitor->pertag->tag;
-
-        if (arg_tags == (uint)~0) {
-            monitor->pertag->tag = 0;
-        } else {
-            uint i = 0;
-            while (!(arg_tags & 1 << i))
-                i += 1;
-            monitor->pertag->tag = i + 1;
-        }
-    } else {
-        tmptag = monitor->pertag->old_tag;
-        monitor->pertag->old_tag = monitor->pertag->tag;
-        monitor->pertag->tag = tmptag;
-    }
-
-    tag = monitor->pertag->tag;
-    monitor->number_masters = monitor->pertag->number_masters[tag];
-    monitor->master_fact = monitor->pertag->master_facts[tag];
-    monitor->lay_i = monitor->pertag->selected_layouts[tag];
-    monitor->layout[monitor->lay_i]
-        = monitor->pertag->layouts[tag][monitor->lay_i];
-    monitor->layout[monitor->lay_i^1]
-        = monitor->pertag->layouts[tag][monitor->lay_i^1];
-
-    if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-        toggle_bar(BarTop);
-    if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-        toggle_bar(BarBottom);
-
-    client_focus(NULL);
-    monitor_arrange(monitor);
-    return;
-}
-
-void
-toggle_bar(int which) {
-    Monitor *monitor = live_monitor;
-    Pertag *pertag = monitor->pertag;
-    Window bar_window;
-    int bar_y;
-
-    if (which == BarTop) {
-        monitor->show_top_bar = !monitor->show_top_bar;
-        pertag->top_bars[pertag->tag] = monitor->show_top_bar;
-
-        monitor_update_bar_position(monitor);
-        bar_window = monitor->top_bar_window;
-        bar_y = monitor->top_bar_y;
-    } else {
-        monitor->show_bottom_bar = !monitor->show_bottom_bar;
-        pertag->bottom_bars[pertag->tag] = monitor->show_bottom_bar;
-
-        monitor_update_bar_position(monitor);
-        bar_window = monitor->bottom_bar_window;
-        bar_y = monitor->bottom_bar_y;
-    }
-
-    XMoveResizeWindow(display, bar_window,
-                      monitor->win_x, bar_y,
-                      (uint)monitor->win_w, bar_height);
-
-    monitor_arrange(monitor);
-    return;
-}
-
-void
-set_layout(const Layout *layout) {
-    Monitor *monitor = live_monitor;
-    Pertag *pertag = monitor->pertag;
-
-    if (!layout || layout != monitor->layout[monitor->lay_i]) {
-        pertag->selected_layouts[pertag->tag] ^= 1;
-        monitor->lay_i = pertag->selected_layouts[monitor->pertag->tag];
-    }
-
-    if (layout) {
-        monitor->layout[monitor->lay_i] = layout;
-        pertag->layouts[pertag->tag][monitor->lay_i] = layout;
-    }
-
-    strncpy(monitor->layout_symbol,
-            monitor->layout[monitor->lay_i]->symbol,
-            sizeof(monitor->layout_symbol));
-
-    if (monitor->selected_client)
-        monitor_arrange(monitor);
-    else
-        monitor_draw_bar(monitor);
-    return;
-}
-
-void
-focus_next(bool direction) {
-    Monitor *monitor;
-    Client *client;
-
-    monitor = live_monitor;
-    client = monitor->selected_client;
-    while (client == NULL && monitor->next) {
-        monitor = monitor->next;
-        monitor_focus(monitor, true);
-        client = monitor->selected_client;
-    }
-    if (client == NULL)
-        return;
-
-    if (direction) {
-        if (client->all_next)
-            client = client->all_next;
-        else
-            client = all_clients;
-    } else {
-        Client *last = client;
-        if (last == all_clients)
-            last = NULL;
-        for (client = all_clients;
-             client->all_next != last;
-             client = client->all_next);
-    }
-    client_focus(client);
-    return;
-}
-
-void
 client_apply_rules(Client *client) {
     const char *class;
     const char *instance;
@@ -2845,13 +2646,6 @@ create_monitor(void) {
     return monitor;
 }
 
-void
-draw_bars(void) {
-    for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        monitor_draw_bar(monitor);
-    return;
-}
-
 int
 get_text_pixels(char *text) {
     int width = (int)(drw_fontset_getwidth(drw, text) + (uint)text_padding);
@@ -3697,6 +3491,212 @@ window_to_monitor(Window window) {
         return client->monitor;
 
     return live_monitor;
+}
+
+void
+focus_direction(int direction) {
+    Client *selected = live_monitor->selected_client;
+    Client *client = NULL;
+    Client *client_aux;
+    Client *next;
+    uint best_score = UINT_MAX;
+
+    if (!selected)
+        return;
+
+    next = selected->next;
+    if (!next)
+        next = selected->monitor->clients;
+    for (client_aux = next; client_aux != selected; client_aux = next) {
+        int client_score;
+        int dist;
+
+        next = client_aux->next;
+        if (!next)
+            next = selected->monitor->clients;
+
+        if (!client_is_visible(client_aux) || client_aux->is_floating)
+            continue;
+
+        switch (direction) {
+        case 0: // left (has preference -1)
+            dist = selected->x - client_aux->x - client_aux->w;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
+            client_score += abs(selected->y - client_aux->y) - 1;
+            break;
+        case 1: // right
+            dist = client_aux->x - selected->x - selected->w;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
+            client_score += abs(client_aux->y - selected->y);
+            break;
+        case 2: // up (has preference -1)
+            dist = selected->y - client_aux->y - client_aux->h;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
+            client_score += abs(selected->x - client_aux->x) - 1;
+            break;
+        default:
+        case 3: // down
+            dist = client_aux->y - selected->y - selected->h;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
+            client_score += abs(client_aux->x - selected->x);
+            break;
+        }
+
+        if ((uint)client_score < best_score) {
+            best_score = (uint)client_score;
+            client = client_aux;
+        }
+    }
+
+    if (client && client != selected) {
+        client_focus(client);
+        monitor_restack(client->monitor);
+    }
+    return;
+}
+
+void
+view_tag(uint arg_tags) {
+    uint tmptag;
+    uint tag;
+    Monitor *monitor = live_monitor;
+
+    if ((arg_tags & TAGMASK) == monitor->tagset[monitor->selected_tags])
+        return;
+
+    monitor->selected_tags ^= 1; /* toggle selected_client tagset */
+
+    if (arg_tags & TAGMASK) {
+        monitor->tagset[monitor->selected_tags] = arg_tags & TAGMASK;
+        monitor->pertag->old_tag = monitor->pertag->tag;
+
+        if (arg_tags == (uint)~0) {
+            monitor->pertag->tag = 0;
+        } else {
+            uint i = 0;
+            while (!(arg_tags & 1 << i))
+                i += 1;
+            monitor->pertag->tag = i + 1;
+        }
+    } else {
+        tmptag = monitor->pertag->old_tag;
+        monitor->pertag->old_tag = monitor->pertag->tag;
+        monitor->pertag->tag = tmptag;
+    }
+
+    tag = monitor->pertag->tag;
+    monitor->number_masters = monitor->pertag->number_masters[tag];
+    monitor->master_fact = monitor->pertag->master_facts[tag];
+    monitor->lay_i = monitor->pertag->selected_layouts[tag];
+    monitor->layout[monitor->lay_i]
+        = monitor->pertag->layouts[tag][monitor->lay_i];
+    monitor->layout[monitor->lay_i^1]
+        = monitor->pertag->layouts[tag][monitor->lay_i^1];
+
+    if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
+        toggle_bar(BarTop);
+    if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
+        toggle_bar(BarBottom);
+
+    client_focus(NULL);
+    monitor_arrange(monitor);
+    return;
+}
+
+void
+toggle_bar(int which) {
+    Monitor *monitor = live_monitor;
+    Pertag *pertag = monitor->pertag;
+    Window bar_window;
+    int bar_y;
+
+    if (which == BarTop) {
+        monitor->show_top_bar = !monitor->show_top_bar;
+        pertag->top_bars[pertag->tag] = monitor->show_top_bar;
+
+        monitor_update_bar_position(monitor);
+        bar_window = monitor->top_bar_window;
+        bar_y = monitor->top_bar_y;
+    } else {
+        monitor->show_bottom_bar = !monitor->show_bottom_bar;
+        pertag->bottom_bars[pertag->tag] = monitor->show_bottom_bar;
+
+        monitor_update_bar_position(monitor);
+        bar_window = monitor->bottom_bar_window;
+        bar_y = monitor->bottom_bar_y;
+    }
+
+    XMoveResizeWindow(display, bar_window,
+                      monitor->win_x, bar_y,
+                      (uint)monitor->win_w, bar_height);
+
+    monitor_arrange(monitor);
+    return;
+}
+
+void
+set_layout(const Layout *layout) {
+    Monitor *monitor = live_monitor;
+    Pertag *pertag = monitor->pertag;
+
+    if (!layout || layout != monitor->layout[monitor->lay_i]) {
+        pertag->selected_layouts[pertag->tag] ^= 1;
+        monitor->lay_i = pertag->selected_layouts[monitor->pertag->tag];
+    }
+
+    if (layout) {
+        monitor->layout[monitor->lay_i] = layout;
+        pertag->layouts[pertag->tag][monitor->lay_i] = layout;
+    }
+
+    strncpy(monitor->layout_symbol,
+            monitor->layout[monitor->lay_i]->symbol,
+            sizeof(monitor->layout_symbol));
+
+    if (monitor->selected_client)
+        monitor_arrange(monitor);
+    else
+        monitor_draw_bar(monitor);
+    return;
+}
+
+void
+focus_next(bool direction) {
+    Monitor *monitor;
+    Client *client;
+
+    monitor = live_monitor;
+    client = monitor->selected_client;
+    while (client == NULL && monitor->next) {
+        monitor = monitor->next;
+        monitor_focus(monitor, true);
+        client = monitor->selected_client;
+    }
+    if (client == NULL)
+        return;
+
+    if (direction) {
+        if (client->all_next)
+            client = client->all_next;
+        else
+            client = all_clients;
+    } else {
+        Client *last = client;
+        if (last == all_clients)
+            last = NULL;
+        for (client = all_clients;
+             client->all_next != last;
+             client = client->all_next);
+    }
+    client_focus(client);
+    return;
+}
+
+void
+draw_bars(void) {
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
+        monitor_draw_bar(monitor);
+    return;
 }
 
 void
