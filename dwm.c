@@ -65,8 +65,6 @@ typedef unsigned char uchar;
 #define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->selected_tags]))
 #define LENGTH(X) (int)(sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
-#define WIDTH(X)  ((X)->w + 2*(X)->border_pixels)
-#define HEIGHT(X) ((X)->h + 2*(X)->border_pixels)
 #define TAGMASK   ((1 << (LENGTH(tags))) - 1)
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + text_padding)
 #define PAUSE_MILIS_AS_NANOS(X) ((X)*1000*1000)
@@ -272,6 +270,8 @@ static void client_update_size_hints(Client *);
 static void client_update_title(Client *);
 static void client_update_window_type(Client *);
 static void client_update_wm_hints(Client *);
+static int client_pixels_width(Client *);
+static int client_pixels_height(Client *);
 
 static void monitor_arrange(Monitor *);
 static void monitor_arrange_monitor(Monitor *);
@@ -834,11 +834,11 @@ user_mouse_move(const Arg *) {
             int new_y = ocy + (event.xmotion.y - y);
             int over_x[2] = {
                 abs(monitor->win_x - new_x),
-                abs(monitor->win_x + monitor->win_w - (new_x + WIDTH(client))),
+                abs(monitor->win_x + monitor->win_w - (new_x + client_pixels_width(client))),
             };
             int over_y[2] = {
                 abs(monitor->win_y - new_y),
-                abs(monitor->win_y + monitor->win_h - (new_y + HEIGHT(client))),
+                abs(monitor->win_y + monitor->win_h - (new_y + client_pixels_height(client))),
             };
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
@@ -848,12 +848,12 @@ user_mouse_move(const Arg *) {
             if (over_x[0] < SNAP_PIXELS)
                 new_x = monitor->win_x;
             else if (over_x[1] < SNAP_PIXELS)
-                new_x = monitor->win_x + monitor->win_w - WIDTH(client);
+                new_x = monitor->win_x + monitor->win_w - client_pixels_width(client);
 
             if (over_y[0] < SNAP_PIXELS)
                 new_y = monitor->win_y;
             else if (over_y[1] < SNAP_PIXELS)
-                new_y = monitor->win_y + monitor->win_h - HEIGHT(client);
+                new_y = monitor->win_y + monitor->win_h - client_pixels_height(client);
 
             if (!is_floating && monitor->layout[monitor->lay_i]->function) {
                 bool moving_x = abs(new_x - client->x) > SNAP_PIXELS;
@@ -1143,8 +1143,8 @@ user_toggle_floating(const Arg *) {
     }
 
     monitor = client->monitor;
-    client->x = monitor->mon_x + (monitor->mon_w - WIDTH(client)) / 2;
-    client->y = monitor->mon_y + (monitor->mon_h - HEIGHT(client)) / 2;
+    client->x = monitor->mon_x + (monitor->mon_w - client_pixels_width(client)) / 2;
+    client->y = monitor->mon_y + (monitor->mon_h - client_pixels_height(client)) / 2;
 
     monitor_arrange(live_monitor);
     return;
@@ -1366,8 +1366,8 @@ client_apply_rules(Client *client) {
 
             if (rule->is_floating) {
                 Monitor *mon = client->monitor;
-                client->x = mon->win_x + mon->win_w / 2 - WIDTH(client) / 2;
-                client->y = mon->win_y + mon->win_h / 2 - HEIGHT(client) / 2;
+                client->x = mon->win_x + mon->win_w / 2 - client_pixels_width(client) / 2;
+                client->y = mon->win_y + mon->win_h / 2 - client_pixels_height(client) / 2;
             }
 
             for (monitor_aux = monitors;
@@ -1407,18 +1407,18 @@ client_apply_size_hints(Client *client,
 
     if (interact) {
         if (*x > screen_width)
-            *x = screen_width - WIDTH(client);
+            *x = screen_width - client_pixels_width(client);
         if (*y > screen_height)
-            *y = screen_height - HEIGHT(client);
+            *y = screen_height - client_pixels_height(client);
         if (*x + *w + 2*client->border_pixels < 0)
             *x = 0;
         if (*y + *h + 2*client->border_pixels < 0)
             *y = 0;
     } else {
         if (*x >= monitor->win_x + monitor->win_w)
-            *x = monitor->win_x + monitor->win_w - WIDTH(client);
+            *x = monitor->win_x + monitor->win_w - client_pixels_width(client);
         if (*y >= monitor->win_y + monitor->win_h)
-            *y = monitor->win_y + monitor->win_h - HEIGHT(client);
+            *y = monitor->win_y + monitor->win_h - client_pixels_height(client);
         if (*x + *w + 2*client->border_pixels <= monitor->win_x)
             *x = monitor->win_x;
         if (*y + *h + 2*client->border_pixels <= monitor->win_y)
@@ -1660,10 +1660,10 @@ client_new(Window window, XWindowAttributes *window_attributes) {
 
     {
         Monitor *monitor = client->monitor;
-        if (client->x + WIDTH(client) > monitor->win_x + monitor->win_w)
-            client->x = monitor->win_x + monitor->win_w - WIDTH(client);
-        if (client->y + HEIGHT(client) > monitor->win_y + monitor->win_h)
-            client->y = monitor->win_y + monitor->win_h - HEIGHT(client);
+        if (client->x + client_pixels_width(client) > monitor->win_x + monitor->win_w)
+            client->x = monitor->win_x + monitor->win_w - client_pixels_width(client);
+        if (client->y + client_pixels_height(client) > monitor->win_y + monitor->win_h)
+            client->y = monitor->win_y + monitor->win_h - client_pixels_height(client);
     }
     client->x = MAX(client->x, client->monitor->win_x);
     client->y = MAX(client->y, client->monitor->win_y);
@@ -1711,8 +1711,8 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     client->stored_fh = client->h;
     {
         Monitor *monitor = client->monitor;
-        client->x = monitor->mon_x + (monitor->mon_w - WIDTH(client))/2;
-        client->y = monitor->mon_y + (monitor->mon_h - HEIGHT(client))/2;
+        client->x = monitor->mon_x + (monitor->mon_w - client_pixels_width(client))/2;
+        client->y = monitor->mon_y + (monitor->mon_h - client_pixels_height(client))/2;
     }
 
     XSelectInput(display, window,
@@ -1979,6 +1979,18 @@ client_update_wm_hints(Client *client) {
     return;
 }
 
+int
+client_pixels_width(Client *client) {
+    int width = client->w + 2*client->border_pixels;
+    return width;
+}
+
+int
+client_pixels_height(Client *client) {
+    int height = client->h + 2*client->border_pixels;
+    return height;
+}
+
 void
 client_set_urgent(Client *client, bool urgent) {
     XWMHints *wm_hints;
@@ -2009,8 +2021,8 @@ client_show_hide(Client *client) {
         bool monitor_floating;
 
         if ((client->tags) && client->is_floating) {
-            client->x = mon->win_x + (mon->win_w / 2 - WIDTH(client) / 2);
-            client->y = mon->win_y + (mon->win_h / 2 - HEIGHT(client) / 2);
+            client->x = mon->win_x + (mon->win_w / 2 - client_pixels_width(client) / 2);
+            client->y = mon->win_y + (mon->win_h / 2 - client_pixels_height(client) / 2);
         }
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
@@ -2026,7 +2038,7 @@ client_show_hide(Client *client) {
     } else {
         /* hide clients bottom up */
         client_show_hide(client->stack_next);
-        XMoveWindow(display, client->window, -2*WIDTH(client), client->y);
+        XMoveWindow(display, client->window, -2*client_pixels_width(client), client->y);
     }
     return;
 }
@@ -2512,14 +2524,14 @@ monitor_layout_columns(Monitor *monitor) {
                           x + monitor->win_x, monitor->win_y,
                           w - (2*client->border_pixels),
                           monitor->win_h - (2*client->border_pixels), false);
-            x += WIDTH(client);
+            x += client_pixels_width(client);
         } else {
             h = (monitor->win_h - y) / (number_tiled - i);
             client_resize(client,
                           x + monitor->win_x, monitor->win_y + y,
                           monitor->win_w - x - (2*client->border_pixels),
                           h - (2*client->border_pixels), false);
-            y += HEIGHT(client);
+            y += client_pixels_height(client);
         }
         i += 1;
     }
@@ -2667,16 +2679,16 @@ monitor_layout_tile(Monitor *monitor) {
                           monitor->win_x, monitor->win_y + mon_y,
                           mon_w - borders, h - borders,
                           false);
-            if (mon_y + HEIGHT(client) < monitor->win_h)
-                mon_y += HEIGHT(client);
+            if (mon_y + client_pixels_height(client) < monitor->win_h)
+                mon_y += client_pixels_height(client);
         } else {
             h = (monitor->win_h - tile_y) / (number_tiled - i);
             client_resize(client,
                           monitor->win_x + mon_w, monitor->win_y + tile_y,
                           monitor->win_w - mon_w - borders, h - borders,
                           false);
-            if (tile_y + HEIGHT(client) < monitor->win_h)
-                tile_y += HEIGHT(client);
+            if (tile_y + client_pixels_height(client) < monitor->win_h)
+                tile_y += client_pixels_height(client);
         }
         i += 1;
     }
@@ -3213,9 +3225,9 @@ handler_configure_request(XEvent *event) {
             if (client->is_floating) {
                 Monitor *m = monitor;
                 if ((client->x + client->w) > (m->mon_x + m->mon_w))
-                    client->x = m->mon_x + (m->mon_w / 2 - WIDTH(client) / 2);
+                    client->x = m->mon_x + (m->mon_w / 2 - client_pixels_width(client) / 2);
                 if ((client->y + client->h) > (monitor->mon_y + monitor->mon_h))
-                    client->y = m->mon_y + (m->mon_h / 2 - HEIGHT(client) / 2);
+                    client->y = m->mon_y + (m->mon_h / 2 - client_pixels_height(client) / 2);
             }
 
             mask_xy = conf_request_event->value_mask & (CWX|CWY);
