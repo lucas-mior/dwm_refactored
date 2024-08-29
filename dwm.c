@@ -62,7 +62,6 @@ typedef unsigned char uchar;
 #define CLEANMASK(mask)         \
     (mask & ~(numlock_mask|LockMask) \
     & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
-#define ISVISIBLE(C) ((C->tags & C->monitor->tagset[C->monitor->selected_tags]))
 #define LENGTH(X) (int)(sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
 #define TAGMASK   ((1 << (LENGTH(tags))) - 1)
@@ -273,6 +272,7 @@ static void client_update_window_type(Client *);
 static void client_update_wm_hints(Client *);
 static int client_pixels_width(Client *);
 static int client_pixels_height(Client *);
+static bool client_is_visible(Client *);
 
 static void monitor_arrange(Monitor *);
 static void monitor_arrange_monitor(Monitor *);
@@ -595,7 +595,7 @@ user_focus_direction(const Arg *arg) {
         if (!next)
             next = selected->monitor->clients;
 
-        if (!ISVISIBLE(client_aux) || client_aux->is_floating)
+        if (!client_is_visible(client_aux) || client_aux->is_floating)
             continue;
 
         switch (arg->i) {
@@ -691,11 +691,11 @@ user_focus_stack(const Arg *arg) {
 
     if (arg->i > 0) {
         for (client = live_monitor->selected_client->next;
-             client && !ISVISIBLE(client);
+             client && !client_is_visible(client);
              client = client->next);
         if (client == NULL) {
             for (client = live_monitor->clients;
-                 client && !ISVISIBLE(client);
+                 client && !client_is_visible(client);
                  client = client->next);
         }
     } else {
@@ -703,12 +703,12 @@ user_focus_stack(const Arg *arg) {
         for (client_aux = live_monitor->clients;
              client_aux != live_monitor->selected_client;
              client_aux = client_aux->next) {
-            if (ISVISIBLE(client_aux))
+            if (client_is_visible(client_aux))
                 client = client_aux;
         }
         if (client == NULL) {
             for (; client_aux; client_aux = client_aux->next) {
-                if (ISVISIBLE(client_aux))
+                if (client_is_visible(client_aux))
                     client = client_aux;
             }
         }
@@ -1541,7 +1541,7 @@ client_detach_stack(Client *client) {
     if (client == client->monitor->selected_client) {
         Client *t;
         for (t = client->monitor->stack;
-             t && !ISVISIBLE(t);
+             t && !client_is_visible(t);
              t = t->stack_next);
         client->monitor->selected_client = t;
     }
@@ -1551,9 +1551,9 @@ client_detach_stack(Client *client) {
 void
 client_focus(Client *client) {
     Client *selected = live_monitor->selected_client;
-    if (!client || !ISVISIBLE(client)) {
+    if (!client || !client_is_visible(client)) {
         for (client = live_monitor->stack;
-             client && !ISVISIBLE(client);
+             client && !client_is_visible(client);
              client = client->stack_next);
     }
 
@@ -1766,7 +1766,7 @@ client_next_tiled(Client *client) {
     while (true) {
         if (client == NULL)
             break;
-        if (!client->is_floating && ISVISIBLE(client))
+        if (!client->is_floating && client_is_visible(client))
             break;
 
         client = client->next;
@@ -2000,6 +2000,12 @@ client_pixels_height(Client *client) {
     return height;
 }
 
+static bool client_is_visible(Client *client) {
+    Monitor *monitor = client->monitor;
+    uint monitor_tags = monitor->tagset[monitor->selected_tags];
+    return client->tags & monitor_tags;
+}
+
 void
 client_set_urgent(Client *client, bool urgent) {
     XWMHints *wm_hints;
@@ -2026,7 +2032,7 @@ client_show_hide(Client *client) {
 
     mon = client->monitor;
 
-    if (ISVISIBLE(client)) {
+    if (client_is_visible(client)) {
         bool monitor_floating;
 
         if ((client->tags) && client->is_floating)
@@ -2624,7 +2630,7 @@ monitor_layout_monocle(Monitor *monitor) {
     uint number_clients = 0;
 
     for (Client *client = monitor->clients; client; client = client->next) {
-        if (ISVISIBLE(client))
+        if (client_is_visible(client))
             number_clients += 1;
     }
 
@@ -2720,7 +2726,7 @@ monitor_restack(Monitor *m) {
         window_changes.sibling = m->top_bar_window;
 
         for (Client *client = m->stack; client; client = client->stack_next) {
-            if (!client->is_floating && ISVISIBLE(client)) {
+            if (!client->is_floating && client_is_visible(client)) {
                 XConfigureWindow(display, client->window,
                                  CWSibling|CWStackMode, &window_changes);
                 window_changes.sibling = client->window;
@@ -3243,7 +3249,7 @@ handler_configure_request(XEvent *event) {
             if (mask_xy && !mask_hw)
                 client_configure(client);
 
-            if (ISVISIBLE(client)) {
+            if (client_is_visible(client)) {
                 XMoveResizeWindow(display, client->window,
                                   client->x, client->y,
                                   (uint)client->w, (uint)client->h);
