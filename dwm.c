@@ -999,8 +999,8 @@ user_set_layout(const Arg *arg) {
 
     if (arg && arg->v) {
         layout = arg->v;
-        monitor->layout[monitor->lay_i]
-            = pertag->layouts[pertag->tag][monitor->lay_i] = layout;
+        monitor->layout[monitor->lay_i] = layout;
+        pertag->layouts[pertag->tag][monitor->lay_i] = layout;
     }
 
     strncpy(monitor->layout_symbol,
