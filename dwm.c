@@ -457,12 +457,10 @@ user_alt_tab(const Arg *) {
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         monitor_focus(monitor, false);
-
         view_tag((uint)~0);
         user_set_layout(&(Arg){.v = &layouts[3]});
     }
-    client_unfocus(live_monitor->selected_client, false);
-    live_monitor = old;
+    monitor_focus(old, false);
     client_focus(live_monitor->selected_client);
     focus_next(alt_tab_direction);
 
