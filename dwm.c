@@ -2547,7 +2547,7 @@ monitor_draw_bar(Monitor *monitor) {
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
     if (monitor == live_monitor) {
-        draw_status_text(&bottom_status[2],
+        draw_status_text(bottom_status,
                          bottom_blocks_signal,
                          monitor->win_w - bottom_status_pixels);
     }
@@ -3185,8 +3185,10 @@ status_get_signal_number(BlockSignal *blocks, int button_x) {
     status_signal = 0;
 
     for (int i = 0; i < STATUS_MAX_BLOCKS; i += 1) {
-        if (blocks[i].min_x <= button_x && button_x <= blocks[i].max_x)
+        if (blocks[i].min_x <= button_x && button_x <= blocks[i].max_x) {
             status_signal = blocks[i].signal;
+            break;
+        }
     }
     return;
 }
