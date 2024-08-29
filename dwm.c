@@ -324,7 +324,7 @@ static void status_get_signal_number(BlockSignal *, int);
 static void status_parse_text(StatusBar *);
 static void toggle_bar(int);
 static void update_numlock_mask(void);
-static void update_status(void);
+static void status_update(void);
 static void view_tag(uint);
 
 static const char broken[] = "broken";
@@ -3441,7 +3441,7 @@ handler_property_notify(XEvent *event) {
 
     if ((property_event->window == root)
         && (property_event->atom == XA_WM_NAME)) {
-        update_status();
+        status_update();
         monitor_draw_bar(live_monitor);
         return;
     }
@@ -3843,7 +3843,7 @@ setup_once(void) {
 
     /* init bars */
     configure_bars_windows();
-    update_status();
+    status_update();
     monitor_draw_bar(live_monitor);
 
     /* supporting window for NetWMCheck */
@@ -4049,7 +4049,7 @@ update_numlock_mask(void) {
 }
 
 void
-update_status(void) {
+status_update(void) {
     char text[STATUS_BUFFER_SIZE*3];
     char *separator;
 
