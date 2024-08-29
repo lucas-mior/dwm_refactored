@@ -3135,6 +3135,25 @@ handler_button_press(XEvent *event) {
     return;
 }
 
+int
+status_count_pixels(char *status) {
+    char *text;
+    int pixels = 0;
+
+    for (text = status; *status; status += 1) {
+        char byte;
+        if ((uchar)(*status) < ' ') {
+            byte = *status;
+            *status = '\0';
+            pixels += get_text_pixels(text) - text_padding;
+            *status = byte;
+            text = status + 1;
+        }
+    }
+    pixels += get_text_pixels(text) - text_padding + 2;
+    return pixels;
+}
+
 void
 status_get_signal_number(char *status, int x, int max_x) {
     status_signal = 0;
@@ -4044,25 +4063,6 @@ update_numlock_mask(void) {
         }
     }
     XFreeModifiermap(modmap);
-}
-
-int
-status_count_pixels(char *status) {
-    char *text;
-    int pixels = 0;
-
-    for (text = status; *status; status += 1) {
-        char byte;
-        if ((uchar)(*status) < ' ') {
-            byte = *status;
-            *status = '\0';
-            pixels += get_text_pixels(text) - text_padding;
-            *status = byte;
-            text = status + 1;
-        }
-    }
-    pixels += get_text_pixels(text) - text_padding + 2;
-    return pixels;
 }
 
 void
