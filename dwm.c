@@ -515,7 +515,7 @@ user_alt_tab(const Arg *) {
                 XUngrabButton(display, AnyButton, AnyModifier, None);
                 grabbed = false;
                 alt_tab_direction = !alt_tab_direction;
-                user_window_view(0);
+                user_window_view(NULL);
             }
             break;
         case ButtonPress: {
@@ -534,7 +534,7 @@ user_alt_tab(const Arg *) {
             XUngrabButton(display, AnyButton, AnyModifier, None);
             grabbed = false;
             alt_tab_direction = !alt_tab_direction;
-            user_window_view(0);
+            user_window_view(NULL);
             break;
         default:
             break;
@@ -4153,8 +4153,8 @@ main(int argc, char *argv[]) {
         view_tag(1 << 5);
         user_set_layout(&(Arg){.v = &layouts[2]});
 
-        user_toggle_top_bar(0);
-        user_toggle_bottom_bar(0);
+        user_toggle_top_bar(NULL);
+        user_toggle_bottom_bar(NULL);
 
         view_tag(1 << 1);
     }
