@@ -3120,13 +3120,16 @@ void draw_status_text(BlockSignal *blocks, int x0, int number_blocks) {
     int pixels = 0;
 
     for (int i = 0; i < number_blocks; i += 1) {
-        BlockSignal block = blocks[i];
-        int text_pixels = block.max_x - block.min_x;
+        BlockSignal *block = &blocks[i];
+        int text_pixels = block->max_x - block->min_x;
+
+        block->max_x += x0;
+        block->min_x += x0;
 
         if (text_pixels) {
             drw_text(drw,
                      x0 + pixels, 0, (uint)text_pixels, bar_height,
-                     0, block.text, 0);
+                     0, block->text, 0);
             pixels += text_pixels;
         }
     }
@@ -3169,7 +3172,7 @@ status_count_pixels(char *status, BlockSignal *blocks, int *number_blocks) {
     blocks[i].text = text;
 
     total_pixels += text_pixels;
-    *number_blocks = i;
+    *number_blocks = i + 1;
     return total_pixels;
 }
 
