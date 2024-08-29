@@ -247,6 +247,7 @@ static int client_apply_size_hints(Client *, int *, int *, int *, int *, bool);
 static void client_apply_rules(Client *);
 static void client_attach(Client *);
 static void client_attach_stack(Client *);
+static void client_center(Client *);
 static void client_configure(Client *);
 static void client_detach(Client *);
 static void client_detach_stack(Client *);
@@ -1125,8 +1126,6 @@ user_toggle_bottom_bar(const Arg *) {
 void
 user_toggle_floating(const Arg *) {
     Client *client = live_monitor->selected_client;
-    Monitor *monitor;
-    int client_width, client_height;
 
     if (client == NULL)
         return;
@@ -1147,13 +1146,7 @@ user_toggle_floating(const Arg *) {
         client->stored_fw = client->w;
         client->stored_fh = client->h;
     }
-
-    monitor = client->monitor;
-    client_width = client_pixels_width(client);
-    client_height = client_pixels_height(client);
-    client->x = monitor->mon_x + (monitor->mon_w - client_width) / 2;
-    client->y = monitor->mon_y + (monitor->mon_h - client_height) / 2;
-
+    client_center(client);
     monitor_arrange(live_monitor);
     return;
 }
@@ -1372,13 +1365,8 @@ client_apply_rules(Client *client) {
             client->is_fake_fullscreen = rule->is_fake_fullscreen;
             client->tags |= rule->tags;
 
-            if (rule->is_floating) {
-                Monitor *mon = client->monitor;
-                int client_width = client_pixels_width(client);
-                int client_height = client_pixels_height(client);
-                client->x = mon->win_x + mon->win_w / 2 - client_width / 2;
-                client->y = mon->win_y + mon->win_h / 2 - client_height / 2;
-            }
+            if (rule->is_floating)
+                client_center(client);
 
             for (monitor_aux = monitors;
                  monitor_aux && monitor_aux->num != rule->monitor;
@@ -1640,6 +1628,17 @@ client_grab_buttons(Client *client, bool focused) {
 }
 
 void
+client_center(Client *client) {
+    Monitor *monitor = client->monitor;
+    int client_width = client_pixels_width(client);
+    int client_height = client_pixels_height(client);
+
+    client->x = monitor->mon_x + (monitor->mon_w - client_width)/2;
+    client->y = monitor->mon_y + (monitor->mon_h - client_height)/2;
+    return;
+}
+
+void
 client_new(Window window, XWindowAttributes *window_attributes) {
     Client *client;
     Client *trans_client = NULL;
@@ -1722,14 +1721,8 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     client->stored_fy = client->y;
     client->stored_fw = client->w;
     client->stored_fh = client->h;
-    {
-        Monitor *monitor = client->monitor;
-        int client_width = client_pixels_width(client);
-        int client_height = client_pixels_height(client);
 
-        client->x = monitor->mon_x + (monitor->mon_w - client_width)/2;
-        client->y = monitor->mon_y + (monitor->mon_h - client_height)/2;
-    }
+    client_center(client);
 
     XSelectInput(display, window,
                  EnterWindowMask
@@ -2036,10 +2029,9 @@ client_show_hide(Client *client) {
     if (ISVISIBLE(client)) {
         bool monitor_floating;
 
-        if ((client->tags) && client->is_floating) {
-            client->x = mon->win_x + (mon->win_w / 2 - client_pixels_width(client) / 2);
-            client->y = mon->win_y + (mon->win_h / 2 - client_pixels_height(client) / 2);
-        }
+        if ((client->tags) && client->is_floating)
+            client_center(client);
+
         /* show clients top down */
         XMoveWindow(display, client->window, client->x, client->y);
 
