@@ -13,12 +13,12 @@ static const int SNAP_PIXELS       = 32;
 static const bool show_top_bar      = 1;   /* 0 means no top bar */
 static const bool show_bottom_bar   = 1;   /* 0 means no bottom bar */
 static const char status_separator = -1;  /* separator between statuses */
-#define ICONSIZE 18   /* icon size */
+#define ICONSIZE 22   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
-	"LiberationSans:size=14",
+	"LiberationSans:size=16",
 	"Noto Color Emoji:size=11:antialias=true:autohint=true",
-	"LiterationMono Nerd Font:size=11:style=Regular",
+	"LiterationMono Nerd Font:size=12:style=Regular",
 };
 static const char *colors[][3]      = {
 	/*               fg         bg         border  */
