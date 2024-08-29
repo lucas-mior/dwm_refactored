@@ -264,13 +264,18 @@ drw_picture_create_resized(Drw *drw, char *src, unsigned int srcw, unsigned int 
 		xf.matrix[2][0] = 0; xf.matrix[2][1] = 0; xf.matrix[2][2] = 65536;
 		XRenderSetPictureTransform(drw->dpy, pic, &xf);
 	} else {
-		Imlib_Image origin = imlib_create_image_using_data((int)srcw, (int)srch, (DATA32 *)src);
-		if (!origin) return None;
+		Imlib_Image origin;
+        Imlib_Image scaled;
+        origin = imlib_create_image_using_data((int)srcw, (int)srch, (DATA32 *)src);
+		if (!origin)
+            return None;
+
 		imlib_context_set_image(origin);
 		imlib_image_set_has_alpha(1);
-		Imlib_Image scaled = imlib_create_cropped_scaled_image(0, 0, (int)srcw, (int)srch, (int)dstw, (int)dsth);
+		scaled = imlib_create_cropped_scaled_image(0, 0, (int)srcw, (int)srch, (int)dstw, (int)dsth);
 		imlib_free_image_and_decache();
-		if (!scaled) return None;
+		if (!scaled)
+            return None;
 		imlib_context_set_image(scaled);
 		imlib_image_set_has_alpha(1);
 
@@ -356,7 +361,7 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lp
 					drw_font_getexts(curfont, text, (uint)utf8charlen, &tmpw, NULL);
 					if (ew + ellipsis_width <= w) {
 						/* keep track where the ellipsis still fits */
-						ellipsis_x = x + ew;
+						ellipsis_x = x + (int)ew;
 						ellipsis_w = w - ew;
 						ellipsis_len = (uint)utf8strlen;
 					}
@@ -389,7 +394,7 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lp
 
 		if (utf8strlen) {
 			if (render) {
-				ty = (int)y + (h - usedfont->h) / 2 + (uint)usedfont->xfont->ascent;
+				ty = y + (int)((h - usedfont->h) / 2) + usedfont->xfont->ascent;
 				XftDrawStringUtf8(d, &drw->scheme[invert ? ColBg : ColFg],
 				                  usedfont->xfont, x, ty, (XftChar8 *)utf8str, utf8strlen);
 			}
@@ -452,7 +457,7 @@ no_match:
 	if (d)
 		XftDrawDestroy(d);
 
-	return (int)(x + (render ? w : 0));
+	return (int)((uint)x + (render ? w : 0));
 }
 
 void
