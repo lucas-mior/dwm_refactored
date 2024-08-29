@@ -120,8 +120,8 @@ typedef struct StatusBar {
     BlockSignal blocks_signal[STATUS_MAX_BLOCKS];
 } StatusBar;
 
-static StatusBar status_top;
-static StatusBar status_bottom;
+static StatusBar status_top = {0};
+static StatusBar status_bottom = {0};
 static int status_signal;
 
 typedef struct Monitor Monitor;
@@ -4084,7 +4084,7 @@ update_numlock_mask(void) {
 
 void
 update_status(void) {
-    char text[STATUS_BUFFER_SIZE*2];
+    char text[STATUS_BUFFER_SIZE*3];
     char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
@@ -4099,7 +4099,7 @@ update_status(void) {
     if (separator) {
         *separator = '\0';
         separator += 2;
-        strncpy(status_bottom.text, separator, sizeof(status_bottom.text) - 1);
+        memcpy(status_bottom.text, separator, sizeof (status_bottom.text) - 1);
     } else {
         status_bottom.text[0] = '\0';
     }
