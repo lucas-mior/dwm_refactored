@@ -325,7 +325,7 @@ static void status_get_signal_number(BlockSignal *, int);
 static void grab_keys(void);
 static void scan_windows_once(void);
 static void setup_once(void);
-static void update_bars(void);
+static void configure_bars_windows(void);
 static void update_numlock_mask(void);
 static void update_status(void);
 
@@ -3320,7 +3320,7 @@ handler_configure_notify(XEvent *event) {
 
     if (update_geometry() || dirty) {
         drw_resize(drw, (uint)screen_width, bar_height);
-        update_bars();
+        configure_bars_windows();
         for (Monitor *mon = monitors; mon; mon = mon->next) {
             for (Client *client = mon->clients; client; client = client->next) {
                 if (client->is_fullscreen && !client->is_fake_fullscreen) {
@@ -3878,7 +3878,7 @@ setup_once(void) {
         scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
 
     /* init bars */
-    update_bars();
+    configure_bars_windows();
     update_status();
     monitor_draw_bar(live_monitor);
 
@@ -3916,7 +3916,7 @@ setup_once(void) {
 }
 
 void
-update_bars(void) {
+configure_bars_windows(void) {
     XSetWindowAttributes window_attributes = {
         .override_redirect = True,
         .background_pixel = 0,
@@ -3925,12 +3925,12 @@ update_bars(void) {
         .event_mask = ButtonPressMask|ExposureMask
     };
     XClassHint class_hint = {"dwm", "dwm"};
+    ulong value_mask = CWOverrideRedirect
+                       | CWBackPixel | CWBorderPixel
+                       | CWColormap |CWEventMask;
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         Window window;
-        ulong value_mask = CWOverrideRedirect
-                           | CWBackPixel | CWBorderPixel
-                           | CWColormap |CWEventMask;
 
         if (!monitor->top_bar_window) {
             window = XCreateWindow(display, root,
