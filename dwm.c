@@ -71,11 +71,6 @@ typedef unsigned char uchar;
 #define ALT_TAB_GRAB_TRIES 10
 #define STATUS_BUFFER_SIZE 256
 
-enum {
-    BarBottom,
-    BarTop,
-};
-
 #if 0
 #define DWM_DEBUG(...) do { \
     error(__func__, __VA_ARGS__); \
@@ -83,6 +78,8 @@ enum {
 #else
 #define DWM_DEBUG(...)
 #endif
+
+enum { BarBottom, BarTop };
 
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
 enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent };
