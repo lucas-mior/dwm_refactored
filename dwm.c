@@ -298,7 +298,6 @@ static int get_text_property(Window, Atom, char *, uint);
 static int status_count_pixels(char *);
 static int update_geometry(void);
 static long get_window_state(Window);
-static pid_t get_status_bar_pid(void);
 static void client_new(Window, XWindowAttributes *);
 static void draw_bars(void);
 static void draw_status_text(char *, int, int);
@@ -1054,14 +1053,46 @@ void
 user_signal_status_bar(const Arg *arg) {
     pid_t status_program_pid;
     union sigval signal_value;
+    int pipefd[2];
+    char buffer[32] = {0};
 
     if (!status_signal)
         return;
     signal_value.sival_int = arg->i | ((SIGRTMIN + status_signal) << 3);
 
-    if ((status_program_pid = get_status_bar_pid()) <= 0)
+    if (pipe(pipefd) < 0) {
+        error(__func__, "Error creating pipe: %s\n", strerror(errno));
+        status_program_pid = -1;
         return;
+    }
 
+    switch (fork()) {
+    case -1:
+        error(__func__, "Error forking: %s\n", strerror(errno));
+        close(pipefd[0]);
+        close(pipefd[1]);
+        status_program_pid = -1;
+        return;
+    case 0:
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+        execlp("pidof", "pidof", "-s", STATUSBAR, NULL);
+        error(__func__, "Error executing pidof.\n");
+        exit(EXIT_FAILURE);
+    default:
+        close(pipefd[1]);
+        break;
+    }
+
+    if (read(pipefd[0], buffer, sizeof (buffer) - 1) <= 0) {
+        close(pipefd[0]);
+        status_program_pid = -1;
+        return;
+    }
+    close(pipefd[0]);
+
+    status_program_pid = atoi(buffer);
     sigqueue(status_program_pid, SIGUSR1, signal_value);
     return;
 }
@@ -2876,45 +2907,6 @@ int
 get_text_pixels(char *text) {
     int width = (int)(drw_fontset_getwidth(drw, text) + (uint)text_padding);
     return width;
-}
-
-pid_t
-get_status_bar_pid(void) {
-    int pipefd[2];
-    char buffer[32] = {0};
-    pid_t pid;
-
-    if (pipe(pipefd) < 0) {
-        error(__func__, "Error creating pipe: %s\n", strerror(errno));
-        return -1;
-    }
-
-    switch (fork()) {
-    case -1:
-        error(__func__, "Error forking: %s\n", strerror(errno));
-        close(pipefd[0]);
-        close(pipefd[1]);
-        return -1;
-    case 0:
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
-        execlp("pidof", "pidof", "-s", STATUSBAR, NULL);
-        error(__func__, "Error executing pidof.\n");
-        exit(EXIT_FAILURE);
-    default:
-        close(pipefd[1]);
-        break;
-    }
-
-    if (read(pipefd[0], buffer, sizeof (buffer) - 1) <= 0) {
-        close(pipefd[0]);
-        return -1;
-    }
-    close(pipefd[0]);
-
-    pid = atoi(buffer);
-    return pid;
 }
 
 int
