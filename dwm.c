@@ -70,7 +70,7 @@ typedef unsigned char uchar;
 #define TAG_DISPLAY_SIZE 32
 #define ALT_TAB_GRAB_TRIES 10
 #define STATUS_BUFFER_SIZE 256
-#define STATUS_MAX_BLOCKS 32
+#define STATUS_MAX_BLOCKS 20
 
 #if 0
 #define DWM_DEBUG(...) do { \
