@@ -57,7 +57,6 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
 
-/* macros */
 #define BUTTONMASK (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         \
     (mask & ~(numlock_mask|LockMask) \
@@ -79,7 +78,6 @@ typedef unsigned char uchar;
 #define DWM_DEBUG(...)
 #endif
 
-/* enums */
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
 enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent };
 enum { NetSupported, NetWMName, NetWMIcon, NetWMState, NetWMCheck,
@@ -158,8 +156,8 @@ struct Monitor {
     int num;
     int top_bar_y;
     int bottom_bar_y;
-    int mon_x, mon_y, mon_w, mon_h;  /* screen size */
-    int win_x, win_y, win_w, win_h;  /* window area */
+    int mon_x, mon_y, mon_w, mon_h;
+    int win_x, win_y, win_w, win_h;
     uint selected_tags;
     uint tagset[2];
     bool show_top_bar;
@@ -391,10 +389,8 @@ struct Pertag {
     float master_facts[LENGTH(tags) + 1];
     uint selected_layouts[LENGTH(tags) + 1];
 
-    /* matrix of tags and layouts indexes */
     const Layout *layouts[LENGTH(tags) + 1][2];
 
-    /* display bar for the current tag */
     bool top_bars[LENGTH(tags) + 1];
     bool bottom_bars[LENGTH(tags) + 1];
 };
@@ -811,7 +807,6 @@ user_mouse_move(const Arg *) {
     if (!(client = live_monitor->selected_client))
         return;
 
-    /* no support moving fullscreen windows by mouse */
     if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
@@ -906,7 +901,6 @@ user_mouse_resize(const Arg *) {
     if (!(client = live_monitor->selected_client))
         return;
 
-    /* no support resizing fullscreen windows by mouse */
     if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
@@ -1024,7 +1018,6 @@ user_set_layout(const Arg *arg) {
     return;
 }
 
-/* arg > 1.0 will set master_fact absolutely */
 void
 user_set_master_fact(const Arg *arg) {
     float factor;
@@ -1038,6 +1031,7 @@ user_set_master_fact(const Arg *arg) {
     if (arg->f < 1.0f)
         factor = arg->f + live_monitor->master_fact;
     else
+        /* arg > 1.0 will set master_fact absolutely */
         factor = arg->f - 1.0f;
 
     if (factor < 0.05f || factor > 0.95f)
@@ -1328,8 +1322,6 @@ user_view_tag(const Arg *arg) {
     return;
 }
 
-/* Selects for the view of the focused window. The list of tags */
-/* to be displayed is matched to the focused window tag list. */
 void
 user_window_view(const Arg *) {
     Window window;
@@ -1380,7 +1372,6 @@ client_apply_rules(Client *client) {
     const char *instance;
     XClassHint class_hint = { NULL, NULL };
 
-    /* rule matching */
     client->is_floating = false;
     client->tags = 0;
     XGetClassHint(display, client->window, &class_hint);
