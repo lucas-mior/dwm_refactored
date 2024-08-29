@@ -110,6 +110,11 @@ typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
     char name[256];
+    Client *next;
+    Client *stack_next;
+    Client *all_next;
+    Monitor *monitor;
+    Picture icon;
     float min_aspect, max_aspect;
 
     int x, y, w, h;
@@ -122,19 +127,13 @@ struct Client {
     int old_border_pixels;
     uint tags;
 
+    uint icon_width, icon_height;
+
     bool hintsvalid;
     bool is_fixed, is_floating, is_urgent;
+    Window window;
     bool never_focus, old_state;
     bool is_fullscreen, is_fake_fullscreen;
-
-    uint icon_width, icon_height;
-    Picture icon;
-
-    Client *next;
-    Client *stack_next;
-    Client *all_next;
-    Monitor *monitor;
-    Window window;
 };
 
 typedef struct {
@@ -153,7 +152,14 @@ typedef struct Pertag Pertag;
 struct Monitor {
     char layout_symbol[16];
     const Layout *layout[2];
-    uint lay_i;
+
+    Client *clients;
+    Client *selected_client;
+    Client *stack;
+    Monitor *next;
+    Pertag *pertag;
+
+    uint tagset[2];
 
     float master_fact;
     int number_masters;
@@ -162,20 +168,14 @@ struct Monitor {
     int bottom_bar_y;
     int mon_x, mon_y, mon_w, mon_h;
     int win_x, win_y, win_w, win_h;
+
     uint selected_tags;
-    uint tagset[2];
+    uint lay_i;
 
-    Client *clients;
-    Client *selected_client;
-    Client *stack;
-    Monitor *next;
-
-    Window top_bar_window;
-    Window bottom_bar_window;
     bool show_top_bar;
     bool show_bottom_bar;
-
-    Pertag *pertag;
+    Window top_bar_window;
+    Window bottom_bar_window;
 };
 
 typedef struct {
@@ -398,14 +398,12 @@ static Client *all_clients = NULL;
 #include "config.h"
 
 struct Pertag {
-    uint tag;
-    uint old_tag;
+    const Layout *layouts[LENGTH(tags) + 1][2];
     int number_masters[LENGTH(tags) + 1];
     float master_facts[LENGTH(tags) + 1];
     uint selected_layouts[LENGTH(tags) + 1];
-
-    const Layout *layouts[LENGTH(tags) + 1][2];
-
+    uint tag;
+    uint old_tag;
     bool top_bars[LENGTH(tags) + 1];
     bool bottom_bars[LENGTH(tags) + 1];
 };
