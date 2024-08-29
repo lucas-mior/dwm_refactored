@@ -62,17 +62,15 @@ typedef unsigned char uchar;
 #define CLEANMASK(mask)         \
     (mask & ~(numlock_mask|LockMask) \
     & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
-#define LENGTH(X) (int)(sizeof(X) / sizeof(*X))
 #define MOUSEMASK (BUTTONMASK|PointerMotionMask)
+#define X_INTERN_ATOM(X) XInternAtom(display, X, False)
+#define LENGTH(X) (int)(sizeof(X) / sizeof(*X))
 #define TAGMASK   ((1 << (LENGTH(tags))) - 1)
 #define TEXT_PIXELS(X)  (drw_fontset_getwidth(drw, (X)) + text_padding)
 #define PAUSE_MILIS_AS_NANOS(X) ((X)*1000*1000)
 
-#define OPAQUE 0xffU
 #define TAG_DISPLAY_SIZE 32
-#define GRAB_TRIES 10
-
-#define X_INTERN_ATOM(X) XInternAtom(display, X, False)
+#define ALT_TAB_GRAB_TRIES 10
 
 #if 0
 #define DWM_DEBUG(...) do { \
@@ -466,7 +464,7 @@ user_alt_tab(const Arg *) {
     client_focus(live_monitor->selected_client);
     user_focus_next(&(Arg){ .i = alt_tab_direction });
 
-    for (int i = 0; i < GRAB_TRIES; i += 1) {
+    for (int i = 0; i < ALT_TAB_GRAB_TRIES; i += 1) {
         struct timespec pause;
         pause.tv_sec = 0;
         pause.tv_nsec = PAUSE_MILIS_AS_NANOS(5);
