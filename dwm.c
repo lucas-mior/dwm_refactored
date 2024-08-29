@@ -309,7 +309,7 @@ static int update_geometry(void);
 static long get_window_state(Window);
 static void draw_bars(void);
 static void draw_status_text(char *, int, BlockSignal *, int); 
-static void status_get_signal_number(BlockSignal *, int, int);
+static void status_get_signal_number(BlockSignal *, int);
 static void grab_keys(void);
 static void scan_windows_once(void);
 static void setup_once(void);
@@ -3084,17 +3084,13 @@ handler_button_press(XEvent *event) {
             click = ClickBarLayoutSymbol;
         } else if (button_x > monitor->win_w - top_status_pixels) {
             click = ClickBarStatus;
-            status_get_signal_number(top_blocks_signal,
-                                     monitor->win_w - top_status_pixels,
-                                     button_x);
+            status_get_signal_number(top_blocks_signal, button_x);
         } else {
             click = ClickBarTitle;
         }
     } else if (button_event->window == monitor->bottom_bar_window) {
         click = ClickBottomBar;
-        status_get_signal_number(bottom_blocks_signal,
-                                 monitor->win_w - bottom_status_pixels,
-                                 button_x);
+        status_get_signal_number(bottom_blocks_signal, button_x);
     } else if ((client = window_to_client(button_event->window))) {
         client_focus(client);
         monitor_restack(monitor);
@@ -3178,7 +3174,7 @@ status_count_pixels(char *status) {
 }
 
 void
-status_get_signal_number(BlockSignal *blocks, int x, int button_x) {
+status_get_signal_number(BlockSignal *blocks, int button_x) {
     status_signal = 0;
 
     for (int i = 0; i < STATUS_MAX_BLOCKS; i += 1) {
