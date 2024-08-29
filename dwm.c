@@ -1257,7 +1257,6 @@ user_toggle_view(const Arg *arg) {
 
     tag = monitor->pertag->tag;
 
-    /* apply settings for this view */
     monitor->number_masters = monitor->pertag->number_masters[tag];
     monitor->master_fact = monitor->pertag->master_facts[tag];
     monitor->lay_i = monitor->pertag->selected_layouts[tag];
