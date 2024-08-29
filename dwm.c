@@ -4158,7 +4158,8 @@ main(int argc, char *argv[]) {
         XEvent event;
         XSync(display, False);
 
-        while (dwm_running && !XNextEvent(display, &event)) {
+        while (dwm_running) {
+            XNextEvent(display, &event);
             if (handlers[event.type])
                 handlers[event.type](&event);
         }
