@@ -308,7 +308,7 @@ static int status_count_pixels(char *);
 static int update_geometry(void);
 static long get_window_state(Window);
 static void draw_bars(void);
-static void draw_status_text(char *, int, BlockSignal *, int); 
+static void draw_status_text(char *, BlockSignal *, int); 
 static void status_get_signal_number(BlockSignal *, int);
 static void grab_keys(void);
 static void scan_windows_once(void);
@@ -2441,8 +2441,9 @@ monitor_draw_bar(Monitor *monitor) {
     if (monitor == live_monitor) {
         drw_setscheme(drw, scheme[SchemeNormal]);
 
-        draw_status_text(top_status, top_status_pixels,
-                         top_blocks_signal, monitor->win_w);
+        draw_status_text(top_status, 
+                         top_blocks_signal,
+                         monitor->win_w - top_status_pixels);
         text_pixels = top_status_pixels;
     }
 
@@ -2546,8 +2547,9 @@ monitor_draw_bar(Monitor *monitor) {
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
     if (monitor == live_monitor) {
-        draw_status_text(&bottom_status[2], bottom_status_pixels,
-                         bottom_blocks_signal, monitor->win_w);
+        draw_status_text(&bottom_status[2],
+                         bottom_blocks_signal,
+                         monitor->win_w - bottom_status_pixels);
     }
     drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
@@ -3115,8 +3117,7 @@ handler_button_press(XEvent *event) {
     return;
 }
 
-void draw_status_text(char *status, int status_pixels,
-                      BlockSignal *blocks, int mon_win_w) {
+void draw_status_text(char *status, BlockSignal *blocks, int x0) {
     char *text;
     int pixels = 0;
     int text_pixels = 0;
@@ -3132,13 +3133,13 @@ void draw_status_text(char *status, int status_pixels,
 
             text_pixels = (int)(get_text_pixels(text) - text_padding);
 
-            blocks[i].min_x = mon_win_w - status_pixels + pixels;
+            blocks[i].min_x = x0 + pixels;
             blocks[i].max_x = blocks[i].min_x + text_pixels;
 
             i += 1;
 
             drw_text(drw,
-                     mon_win_w - status_pixels + pixels, 0,
+                     x0 + pixels, 0,
                      (uint)text_pixels, bar_height, 0, text, 0);
             pixels += text_pixels;
 
@@ -3148,7 +3149,7 @@ void draw_status_text(char *status, int status_pixels,
     }
     text_pixels = (int)(get_text_pixels(text) - text_padding + 2);
     drw_text(drw,
-             mon_win_w - status_pixels + pixels, 0,
+             x0 + pixels, 0,
              (uint)text_pixels, bar_height, 0, text, 0);
     return;
 }
