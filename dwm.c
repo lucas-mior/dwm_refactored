@@ -289,6 +289,7 @@ static Monitor *direction_to_monitor(int);
 static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 
+static void focus_next(bool);
 static void view_tag(uint);
 static int get_text_pixels(char *);
 static int get_root_pointer(int *, int *);
@@ -463,7 +464,7 @@ user_alt_tab(const Arg *) {
     client_unfocus(live_monitor->selected_client, false);
     live_monitor = old;
     client_focus(live_monitor->selected_client);
-    user_focus_next(&(Arg){ .i = alt_tab_direction });
+    focus_next(alt_tab_direction);
 
     for (int i = 0; i < ALT_TAB_GRAB_TRIES; i += 1) {
         struct timespec pause;
@@ -499,7 +500,7 @@ user_alt_tab(const Arg *) {
             break;
         case KeyPress:
             if (event.xkey.keycode == tabCycleKey)
-                user_focus_next(&(Arg){ .i = alt_tab_direction });
+                focus_next(alt_tab_direction);
             else if (event.xkey.keycode == key_j)
                 user_focus_direction(&(Arg){ .i = 0 });
             else if (event.xkey.keycode == key_semicolon)
@@ -648,7 +649,7 @@ user_focus_monitor(const Arg *arg) {
 }
 
 void
-user_focus_next(const Arg *arg) {
+focus_next(bool direction) {
     Monitor *monitor;
     Client *client;
 
@@ -662,7 +663,7 @@ user_focus_next(const Arg *arg) {
     if (client == NULL)
         return;
 
-    if (arg->i) {
+    if (direction) {
         if (client->all_next)
             client = client->all_next;
         else
@@ -676,6 +677,12 @@ user_focus_next(const Arg *arg) {
              client = client->all_next);
     }
     client_focus(client);
+    return;
+}
+
+void
+user_focus_next(const Arg *arg) {
+    focus_next(arg->i);
     return;
 }
 
