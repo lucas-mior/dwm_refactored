@@ -1585,6 +1585,48 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     return;
 }
 
+void
+client_unmanage(Client *client, int destroyed) {
+    Monitor *monitor = client->monitor;
+    XWindowChanges window_changes;
+
+    client_detach(client);
+    client_detach_stack(client);
+    client_free_icon(client);
+
+    if (!destroyed) {
+        window_changes.border_width = client->old_border_pixels;
+        XGrabServer(display); /* avoid race conditions */
+        XSetErrorHandler(handler_xerror_dummy);
+
+        XSelectInput(display, client->window, NoEventMask);
+
+        XConfigureWindow(display, client->window,
+                         CWBorderWidth, &window_changes);
+        XUngrabButton(display, AnyButton, AnyModifier, client->window);
+        client_set_client_state(client, WithdrawnState);
+
+        XSync(display, False);
+        XSetErrorHandler(handler_xerror);
+        XUngrabServer(display);
+    }
+
+    free(client);
+    client_focus(NULL);
+
+    XDeleteProperty(display, root, net_atoms[NetClientList]);
+    for (Monitor *mon = monitors; mon; mon = mon->next) {
+        for (Client *c = mon->clients; c; c = c->next) {
+            XChangeProperty(display, root, net_atoms[NetClientList],
+                            XA_WINDOW, 32, PropModeAppend,
+                            (uchar *)&(c->window), 1);
+        }
+    }
+
+    monitor_arrange(monitor);
+    return;
+}
+
 Client *
 client_next_tiled(Client *client) {
     while (true) {
@@ -1912,48 +1954,6 @@ client_unfocus(Client *client, bool set_focus) {
         XSetInputFocus(display, root, RevertToPointerRoot, CurrentTime);
         XDeleteProperty(display, root, net_atoms[NetActiveWindow]);
     }
-    return;
-}
-
-void
-client_unmanage(Client *client, int destroyed) {
-    Monitor *monitor = client->monitor;
-    XWindowChanges window_changes;
-
-    client_detach(client);
-    client_detach_stack(client);
-    client_free_icon(client);
-
-    if (!destroyed) {
-        window_changes.border_width = client->old_border_pixels;
-        XGrabServer(display); /* avoid race conditions */
-        XSetErrorHandler(handler_xerror_dummy);
-
-        XSelectInput(display, client->window, NoEventMask);
-
-        XConfigureWindow(display, client->window,
-                         CWBorderWidth, &window_changes);
-        XUngrabButton(display, AnyButton, AnyModifier, client->window);
-        client_set_client_state(client, WithdrawnState);
-
-        XSync(display, False);
-        XSetErrorHandler(handler_xerror);
-        XUngrabServer(display);
-    }
-
-    free(client);
-    client_focus(NULL);
-
-    XDeleteProperty(display, root, net_atoms[NetClientList]);
-    for (Monitor *mon = monitors; mon; mon = mon->next) {
-        for (Client *c = mon->clients; c; c = c->next) {
-            XChangeProperty(display, root, net_atoms[NetClientList],
-                            XA_WINDOW, 32, PropModeAppend,
-                            (uchar *)&(c->window), 1);
-        }
-    }
-
-    monitor_arrange(monitor);
     return;
 }
 
