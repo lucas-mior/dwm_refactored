@@ -1724,8 +1724,11 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     client->stored_fh = client->h;
     {
         Monitor *monitor = client->monitor;
-        client->x = monitor->mon_x + (monitor->mon_w - client_pixels_width(client))/2;
-        client->y = monitor->mon_y + (monitor->mon_h - client_pixels_height(client))/2;
+        int client_width = client_pixels_width(client);
+        int client_height = client_pixels_height(client);
+
+        client->x = monitor->mon_x + (monitor->mon_w - client_width)/2;
+        client->y = monitor->mon_y + (monitor->mon_h - client_height)/2;
     }
 
     XSelectInput(display, window,
