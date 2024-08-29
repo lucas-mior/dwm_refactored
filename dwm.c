@@ -319,7 +319,7 @@ static int get_text_property(Window, Atom, char *, uint);
 static int update_geometry(void);
 static long get_window_state(Window);
 static void draw_bars(void);
-static void status_count_pixels(StatusBar *);
+static void status_parse_text(StatusBar *);
 static void draw_status_text(StatusBar *, int);
 static void status_get_signal_number(BlockSignal *, int);
 static void grab_keys(void);
@@ -3140,7 +3140,7 @@ void draw_status_text(StatusBar *status_bar, int monitor_width) {
 }
 
 void
-status_count_pixels(StatusBar *status_bar) {
+status_parse_text(StatusBar *status_bar) {
     BlockSignal *blocks = status_bar->blocks_signal;
     int i = 0;
     char *text = status_bar->text;
@@ -4106,8 +4106,8 @@ update_status(void) {
     }
 
     strncpy(status_top.text, text, sizeof(status_top.text) - 1);
-    status_count_pixels(&status_top);
-    status_count_pixels(&status_bottom);
+    status_parse_text(&status_top);
+    status_parse_text(&status_bottom);
     return;
 }
 
