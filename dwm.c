@@ -2043,7 +2043,8 @@ client_pixels_height(Client *client) {
     return height;
 }
 
-static bool client_is_visible(Client *client) {
+bool
+client_is_visible(Client *client) {
     Monitor *monitor = client->monitor;
     uint monitor_tags = monitor->tagset[monitor->selected_tags];
     return client->tags & monitor_tags;
