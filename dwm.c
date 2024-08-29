@@ -309,25 +309,25 @@ static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 static Client *window_to_client(Window);
 
-static void toggle_bar(int);
-static void focus_direction(int);
-static void focus_next(bool);
-static void view_tag(uint);
-static int get_text_pixels(char *);
 static int get_root_pointer(int *, int *);
+static int get_text_pixels(char *);
 static int get_text_property(Window, Atom, char *, uint);
 static int update_geometry(void);
 static long get_window_state(Window);
+static void configure_bars_windows(void);
 static void draw_bars(void);
-static void status_parse_text(StatusBar *);
 static void draw_status_text(StatusBar *, int);
-static void status_get_signal_number(BlockSignal *, int);
+static void focus_direction(int);
+static void focus_next(bool);
 static void grab_keys(void);
 static void scan_windows_once(void);
 static void setup_once(void);
-static void configure_bars_windows(void);
+static void status_get_signal_number(BlockSignal *, int);
+static void status_parse_text(StatusBar *);
+static void toggle_bar(int);
 static void update_numlock_mask(void);
 static void update_status(void);
+static void view_tag(uint);
 
 static const char broken[] = "broken";
 
