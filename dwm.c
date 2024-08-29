@@ -1883,7 +1883,6 @@ client_send_monitor(Client *client, Monitor *monitor) {
     client_detach_stack(client);
 
     client->monitor = monitor;
-    /* assign tags of target monitor */
     client->tags = monitor->tagset[monitor->selected_tags];
 
     client_attach(client);
