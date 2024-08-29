@@ -583,68 +583,6 @@ user_aspect_resize(const Arg *arg) {
 }
 
 void
-focus_direction(int direction) {
-    Client *selected = live_monitor->selected_client;
-    Client *client = NULL;
-    Client *client_aux;
-    Client *next;
-    uint best_score = UINT_MAX;
-
-    if (!selected)
-        return;
-
-    next = selected->next;
-    if (!next)
-        next = selected->monitor->clients;
-    for (client_aux = next; client_aux != selected; client_aux = next) {
-        int client_score;
-        int dist;
-
-        next = client_aux->next;
-        if (!next)
-            next = selected->monitor->clients;
-
-        if (!client_is_visible(client_aux) || client_aux->is_floating)
-            continue;
-
-        switch (direction) {
-        case 0: // left (has preference -1)
-            dist = selected->x - client_aux->x - client_aux->w;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
-            client_score += abs(selected->y - client_aux->y) - 1;
-            break;
-        case 1: // right
-            dist = client_aux->x - selected->x - selected->w;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
-            client_score += abs(client_aux->y - selected->y);
-            break;
-        case 2: // up (has preference -1)
-            dist = selected->y - client_aux->y - client_aux->h;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
-            client_score += abs(selected->x - client_aux->x) - 1;
-            break;
-        default:
-        case 3: // down
-            dist = client_aux->y - selected->y - selected->h;
-            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
-            client_score += abs(client_aux->x - selected->x);
-            break;
-        }
-
-        if ((uint)client_score < best_score) {
-            best_score = (uint)client_score;
-            client = client_aux;
-        }
-    }
-
-    if (client && client != selected) {
-        client_focus(client);
-        monitor_restack(client->monitor);
-    }
-    return;
-}
-
-void
 user_focus_monitor(const Arg *arg) {
     Monitor *monitor;
 
@@ -1227,6 +1165,68 @@ user_promote_to_master(const Arg *) {
         return;
 
     client_pop(client);
+    return;
+}
+
+void
+focus_direction(int direction) {
+    Client *selected = live_monitor->selected_client;
+    Client *client = NULL;
+    Client *client_aux;
+    Client *next;
+    uint best_score = UINT_MAX;
+
+    if (!selected)
+        return;
+
+    next = selected->next;
+    if (!next)
+        next = selected->monitor->clients;
+    for (client_aux = next; client_aux != selected; client_aux = next) {
+        int client_score;
+        int dist;
+
+        next = client_aux->next;
+        if (!next)
+            next = selected->monitor->clients;
+
+        if (!client_is_visible(client_aux) || client_aux->is_floating)
+            continue;
+
+        switch (direction) {
+        case 0: // left (has preference -1)
+            dist = selected->x - client_aux->x - client_aux->w;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
+            client_score += abs(selected->y - client_aux->y) - 1;
+            break;
+        case 1: // right
+            dist = client_aux->x - selected->x - selected->w;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_w));
+            client_score += abs(client_aux->y - selected->y);
+            break;
+        case 2: // up (has preference -1)
+            dist = selected->y - client_aux->y - client_aux->h;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
+            client_score += abs(selected->x - client_aux->x) - 1;
+            break;
+        default:
+        case 3: // down
+            dist = client_aux->y - selected->y - selected->h;
+            client_score = MIN(abs(dist), abs(dist + selected->monitor->win_h));
+            client_score += abs(client_aux->x - selected->x);
+            break;
+        }
+
+        if ((uint)client_score < best_score) {
+            best_score = (uint)client_score;
+            client = client_aux;
+        }
+    }
+
+    if (client && client != selected) {
+        client_focus(client);
+        monitor_restack(client->monitor);
+    }
     return;
 }
 
