@@ -270,6 +270,7 @@ static void client_update_wm_hints(Client *);
 static int client_pixels_width(Client *);
 static int client_pixels_height(Client *);
 static bool client_is_visible(Client *);
+static void client_new(Window, XWindowAttributes *);
 
 static void monitor_arrange(Monitor *);
 static void monitor_arrange_monitor(Monitor *);
@@ -298,7 +299,6 @@ static int get_text_property(Window, Atom, char *, uint);
 static int status_count_pixels(char *);
 static int update_geometry(void);
 static long get_window_state(Window);
-static void client_new(Window, XWindowAttributes *);
 static void draw_bars(void);
 static void draw_status_text(char *, int, int);
 static void get_signal_number(char *, int, int);
