@@ -3158,7 +3158,7 @@ void
 status_get_signal_number(char *status, int x, int max_x) {
     status_signal = 0;
 
-    for (char *text = status; *status && x <= max_x; status += 1) {
+    for (char *text = status; *status; status += 1) {
         if ((uchar)(*status) < ' ') {
             char byte = *status;
             *status = '\0';
