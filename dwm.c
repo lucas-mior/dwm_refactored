@@ -3080,16 +3080,18 @@ handler_button_press(XEvent *event) {
         } else if (button_x < x + (int)(get_text_pixels(monitor->layout_symbol))) {
             click = ClickBarLayoutSymbol;
         } else if (button_x > monitor->win_w - top_status_pixels) {
-            int x0 = monitor->win_w - top_status_pixels;
             click = ClickBarStatus;
-            status_get_signal_number(top_blocks_signal, x0, button_x);
+            status_get_signal_number(top_blocks_signal,
+                                     monitor->win_w - top_status_pixels,
+                                     button_x);
         } else {
             click = ClickBarTitle;
         }
     } else if (button_event->window == monitor->bottom_bar_window) {
-        int x0 = monitor->win_w - bottom_status_pixels;
         click = ClickBottomBar;
-        status_get_signal_number(top_blocks_signal, x0, button_x);
+        status_get_signal_number(top_blocks_signal,
+                                 monitor->win_w - bottom_status_pixels,
+                                 button_x);
     } else if ((client = window_to_client(button_event->window))) {
         client_focus(client);
         monitor_restack(monitor);
