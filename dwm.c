@@ -2052,7 +2052,8 @@ client_show_hide(Client *client) {
     } else {
         /* hide clients bottom up */
         client_show_hide(client->stack_next);
-        XMoveWindow(display, client->window, -2*client_pixels_width(client), client->y);
+        XMoveWindow(display, client->window,
+                    -2*client_pixels_width(client), client->y);
     }
     return;
 }
@@ -3238,10 +3239,13 @@ handler_configure_request(XEvent *event) {
 
             if (client->is_floating) {
                 Monitor *m = monitor;
+                int client_width = client_pixels_width(client);
+                int client_height = client_pixels_height(client);
+
                 if ((client->x + client->w) > (m->mon_x + m->mon_w))
-                    client->x = m->mon_x + (m->mon_w / 2 - client_pixels_width(client) / 2);
+                    client->x = m->mon_x + (m->mon_w / 2 - client_width / 2);
                 if ((client->y + client->h) > (monitor->mon_y + monitor->mon_h))
-                    client->y = m->mon_y + (m->mon_h / 2 - client_pixels_height(client) / 2);
+                    client->y = m->mon_y + (m->mon_h / 2 - client_height / 2);
             }
 
             mask_xy = conf_request_event->value_mask & (CWX|CWY);
