@@ -2292,12 +2292,10 @@ monitor_draw_bar(Monitor *monitor) {
         int boxw = drw->fonts->h / 6 + 2;
 
         if (monitor->selected_client) {
-            int scheme_index;
             if (monitor == live_monitor)
-                scheme_index = SchemeSelected;
+                drw_setscheme(drw, scheme[SchemeSelected]);
             else
-                scheme_index = SchemeNormal;
-            drw_setscheme(drw, scheme[scheme_index]);
+                drw_setscheme(drw, scheme[SchemeNormal]);
 
             drw_text(drw,
                      x, 0, (uint)w, bar_height,
