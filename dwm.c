@@ -1246,7 +1246,7 @@ user_toggle_view(const Arg *arg) {
         monitor->pertag->tag = 0;
     }
 
-    /* test if the user did not select the same user_tag */
+    /* test if the user did not select the same tag */
     if (!(new_tags & 1 << (monitor->pertag->tag - 1))) {
         uint i = 0;
         monitor->pertag->old_tag = monitor->pertag->tag;
@@ -1330,7 +1330,7 @@ user_view_tag(const Arg *arg) {
 }
 
 /* Selects for the view of the focused window. The list of tags */
-/* to be displayed is matched to the focused window user_tag list. */
+/* to be displayed is matched to the focused window tag list. */
 void
 user_window_view(const Arg *) {
     Window window;
