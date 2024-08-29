@@ -3147,7 +3147,11 @@ void draw_status_text(char *status, BlockSignal *blocks, int x0) {
             text = status + 1;
         }
     }
+    blocks[i].signal = byte;
     text_pixels = (int)(get_text_pixels(text) - text_padding + 2);
+    blocks[i].min_x = x0 + pixels;
+    blocks[i].max_x = blocks[i].min_x + text_pixels;
+    i += 1;
     drw_text(drw,
              x0 + pixels, 0,
              (uint)text_pixels, bar_height, 0, text, 0);
