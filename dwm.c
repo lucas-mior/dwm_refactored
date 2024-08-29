@@ -940,9 +940,9 @@ user_mouse_resize(const Arg *) {
             monitor_floating = !(current_monitor->layout[current_monitor->lay_i]->function);
             if (!client->is_floating && !monitor_floating) {
                 bool over_x = client->monitor->win_x + new_w >= current_monitor->win_x;
-                bool under_x =  client->monitor->win_x + new_w <= current_monitor->win_x + current_monitor->win_w;
+                bool under_x = client->monitor->win_x + new_w <= current_monitor->win_x + current_monitor->win_w;
                 bool over_y = client->monitor->win_y + new_h >= current_monitor->win_y;
-                bool under_y =  client->monitor->win_y + new_h <= current_monitor->win_y + current_monitor->win_h;
+                bool under_y = client->monitor->win_y + new_h <= current_monitor->win_y + current_monitor->win_h;
                 bool over_snap_x = abs(new_w - client->w) > SNAP_PIXELS;
                 bool over_snap_y = abs(new_h - client->h) > SNAP_PIXELS;
                 if (over_x && under_x && over_y && under_y
