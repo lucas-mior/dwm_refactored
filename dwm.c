@@ -1342,26 +1342,7 @@ user_view_tag(const Arg *arg) {
 
 void
 user_window_view(const Arg *) {
-    Window window;
-    Window root_return;
-    Window parent_return;
-    Window *children_return;
-    uint nchildren_return;
-    int unused;
-    Client *client;
-
-    if (!XGetInputFocus(display, &window, &unused))
-        return;
-
-    while (XQueryTree(display, window,
-                      &root_return, &parent_return, &children_return,
-                      &nchildren_return) && parent_return != root_return) {
-        window = parent_return;
-    }
-
-    if (!(client = window_to_client(window)))
-        return;
-
+    Client *client = live_monitor->selected_client;
     view_tag(client->tags);
     return;
 }
