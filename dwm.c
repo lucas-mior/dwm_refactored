@@ -163,8 +163,6 @@ struct Monitor {
     int win_x, win_y, win_w, win_h;
     uint selected_tags;
     uint tagset[2];
-    bool show_top_bar;
-    bool show_bottom_bar;
 
     Client *clients;
     Client *selected_client;
@@ -173,6 +171,8 @@ struct Monitor {
 
     Window top_bar_window;
     Window bottom_bar_window;
+    bool show_top_bar;
+    bool show_bottom_bar;
 
     Pertag *pertag;
 };
