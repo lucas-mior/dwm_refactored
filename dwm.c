@@ -3732,7 +3732,9 @@ scan_windows(void) {
             client_new(child, &window_attributes);
         }
     }
-    for (uint i = 0; i < nchildren_return; i += 1) { /* now the transients */
+
+    /* now the transients */
+    for (uint i = 0; i < nchildren_return; i += 1) {
         Window child = children_return[i];
 
         if (!XGetWindowAttributes(display, child, &window_attributes))
