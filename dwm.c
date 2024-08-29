@@ -3047,7 +3047,7 @@ handler_button_press(XEvent *event) {
         if (i < LENGTH(tags)) {
             click = ClickBarTags;
             arg.ui = 1 << i;
-        } else if (button_x < x + (int)(get_text_pixels(monitor->layout_symbol))) {
+        } else if (button_x < x + get_text_pixels(monitor->layout_symbol)) {
             click = ClickBarLayoutSymbol;
         } else if (button_x > monitor->win_w - status_top.pixels) {
             click = ClickBarStatus;
