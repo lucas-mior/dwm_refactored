@@ -3777,12 +3777,15 @@ setup_once(void) {
 
     /* supporting window for NetWMCheck */
     wm_check_window = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
-    XChangeProperty(display, wm_check_window, net_atoms[NetWMCheck], XA_WINDOW, 32,
-        PropModeReplace, (uchar *)&wm_check_window, 1);
-    XChangeProperty(display, wm_check_window, net_atoms[NetWMName], UTF8STRING, 8,
-        PropModeReplace, (uchar *)"dwm", 3);
-    XChangeProperty(display, root, net_atoms[NetWMCheck], XA_WINDOW, 32,
-        PropModeReplace, (uchar *)&wm_check_window, 1);
+    XChangeProperty(display, wm_check_window,
+                    net_atoms[NetWMCheck], XA_WINDOW, 32,
+                    PropModeReplace, (uchar *)&wm_check_window, 1);
+    XChangeProperty(display, wm_check_window,
+                    net_atoms[NetWMName], UTF8STRING, 8,
+                    PropModeReplace, (uchar *)"dwm", 3);
+    XChangeProperty(display, root,
+                    net_atoms[NetWMCheck], XA_WINDOW, 32,
+                    PropModeReplace, (uchar *)&wm_check_window, 1);
 
     /* EWMH support per view */
     XChangeProperty(display, root, net_atoms[NetSupported], XA_ATOM, 32,
