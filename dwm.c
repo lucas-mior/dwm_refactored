@@ -1670,10 +1670,13 @@ client_new(Window window, XWindowAttributes *window_attributes) {
 
     {
         Monitor *monitor = client->monitor;
-        if (client->x + client_pixels_width(client) > monitor->win_x + monitor->win_w)
-            client->x = monitor->win_x + monitor->win_w - client_pixels_width(client);
-        if (client->y + client_pixels_height(client) > monitor->win_y + monitor->win_h)
-            client->y = monitor->win_y + monitor->win_h - client_pixels_height(client);
+        int client_width = client_pixels_width(client);
+        int client_height = client_pixels_height(client);
+
+        if (client->x + client_width > monitor->win_x + monitor->win_w)
+            client->x = monitor->win_x + monitor->win_w - client_width;
+        if (client->y + client_height > monitor->win_y + monitor->win_h)
+            client->y = monitor->win_y + monitor->win_h - client_height;
     }
     client->x = MAX(client->x, client->monitor->win_x);
     client->y = MAX(client->y, client->monitor->win_y);
