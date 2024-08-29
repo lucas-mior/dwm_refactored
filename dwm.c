@@ -3105,18 +3105,17 @@ handler_button_press(XEvent *event) {
     return;
 }
 
-void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
+void draw_status_text(char *status, int status_pixels, int mon_win_w) {
     char *text;
-    char *s = status_text;
     int x = 0;
     int text_pixels = 0;
 
-    for (text = status_text; *s; s += 1) {
+    for (text = status; *status; status += 1) {
         char temp;
 
-        if ((uchar)(*s) < ' ') {
-            temp = *s;
-            *s = '\0';
+        if ((uchar)(*status) < ' ') {
+            temp = *status;
+            *status = '\0';
 
             text_pixels = (int)(get_text_pixels(text) - text_padding);
             drw_text(drw,
@@ -3124,8 +3123,8 @@ void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
                      (uint)text_pixels, bar_height, 0, text, 0);
             x += text_pixels;
 
-            *s = temp;
-            text = s + 1;
+            *status = temp;
+            text = status + 1;
         }
     }
     text_pixels = (int)(get_text_pixels(text) - text_padding + 2);
