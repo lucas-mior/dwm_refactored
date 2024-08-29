@@ -106,24 +106,6 @@ typedef struct {
     const Arg arg;
 } Button;
 
-typedef struct BlockSignal {
-    int min_x;
-    int max_x;
-    int signal;
-    char *text;
-} BlockSignal;
-
-typedef struct StatusBar {
-    char text[STATUS_BUFFER_SIZE];
-    int pixels;
-    int number_blocks;
-    BlockSignal blocks_signal[STATUS_MAX_BLOCKS];
-} StatusBar;
-
-static StatusBar status_top = {0};
-static StatusBar status_bottom = {0};
-static int status_signal;
-
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
@@ -207,6 +189,24 @@ typedef struct {
     int is_fake_fullscreen;
     int monitor;
 } Rule;
+
+typedef struct BlockSignal {
+    int min_x;
+    int max_x;
+    int signal;
+    int text_i;
+} BlockSignal;
+
+typedef struct StatusBar {
+    char text[STATUS_BUFFER_SIZE];
+    int pixels;
+    int number_blocks;
+    BlockSignal blocks_signal[STATUS_MAX_BLOCKS];
+} StatusBar;
+
+static StatusBar status_top = {0};
+static StatusBar status_bottom = {0};
+static int status_signal;
 
 static void error(const char *, char *, ...);
 static void user_alt_tab(const Arg *);
@@ -3132,7 +3132,7 @@ void draw_status_text(StatusBar *status_bar, int monitor_width) {
         if (text_pixels) {
             drw_text(drw,
                      x0 + pixels, 0, (uint)text_pixels, bar_height,
-                     0, block->text, 0);
+                     0, &(status_bar->text[block->text_i]), 0);
             pixels += text_pixels;
         }
     }
@@ -3160,7 +3160,7 @@ status_parse_text(StatusBar *status_bar) {
 
             blocks[i].min_x = total_pixels;
             blocks[i].max_x = blocks[i].min_x + text_pixels;
-            blocks[i].text = text;
+            blocks[i].text_i = (int) (text - status_bar->text);
 
             total_pixels += text_pixels;
             i += 1;
@@ -3174,7 +3174,7 @@ status_parse_text(StatusBar *status_bar) {
 
     blocks[i].min_x = total_pixels;
     blocks[i].max_x = blocks[i].min_x + text_pixels;
-    blocks[i].text = text;
+    blocks[i].text_i = (int) (text - status_bar->text);
 
     total_pixels += text_pixels;
     status_bar->number_blocks = i + 1;
