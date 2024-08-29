@@ -2130,10 +2130,10 @@ client_unmanage(Client *client, int destroyed) {
 
     XDeleteProperty(display, root, net_atoms[NetClientList]);
     for (Monitor *mon = monitors; mon; mon = mon->next) {
-        for (Client *client = mon->clients; client; client = client->next) {
+        for (Client *c = mon->clients; c; c = c->next) {
             XChangeProperty(display, root, net_atoms[NetClientList],
                             XA_WINDOW, 32, PropModeAppend,
-                            (uchar *)&(client->window), 1);
+                            (uchar *)&(c->window), 1);
         }
     }
 
