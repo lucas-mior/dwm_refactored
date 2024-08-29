@@ -283,11 +283,11 @@ static void monitor_restack(Monitor *);
 static void monitor_update_bar_position(Monitor *);
 static void monitor_focus(Monitor *, bool);
 
-static Client *window_to_client(Window);
 static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int);
 static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
+static Client *window_to_client(Window);
 
 static void focus_next(bool);
 static void view_tag(uint);
@@ -2830,25 +2830,6 @@ create_monitor(void) {
     return monitor;
 }
 
-Monitor *
-direction_to_monitor(int direction) {
-    Monitor *monitor = NULL;
-
-    if (direction > 0) {
-        if (!(monitor = live_monitor->next))
-            monitor = monitors;
-    } else if (live_monitor == monitors) {
-        for (monitor = monitors;
-             monitor->next;
-             monitor = monitor->next);
-    } else {
-        for (monitor = monitors;
-             monitor->next != live_monitor;
-             monitor = monitor->next);
-    }
-    return monitor;
-}
-
 void draw_status_text(char *status_text, int status_pixels, int mon_win_w) {
     char *text;
     char *s = status_text;
@@ -3667,6 +3648,60 @@ rectangle_to_monitor(int x, int y, int w, int h) {
     return monitor;
 }
 
+Monitor *
+direction_to_monitor(int direction) {
+    Monitor *monitor = NULL;
+
+    if (direction > 0) {
+        if (!(monitor = live_monitor->next))
+            monitor = monitors;
+    } else if (live_monitor == monitors) {
+        for (monitor = monitors;
+             monitor->next;
+             monitor = monitor->next);
+    } else {
+        for (monitor = monitors;
+             monitor->next != live_monitor;
+             monitor = monitor->next);
+    }
+    return monitor;
+}
+
+Client *
+window_to_client(Window window) {
+    for (Monitor *mon = monitors; mon; mon = mon->next) {
+        for (Client *client = mon->clients; client; client = client->next) {
+            if (client->window == window)
+                return client;
+        }
+    }
+    return NULL;
+}
+
+Monitor *
+window_to_monitor(Window window) {
+    Client *client;
+
+    if (window == root) {
+        int x;
+        int y;
+        if (get_root_pointer(&x, &y)) {
+            Monitor *monitor = rectangle_to_monitor(x, y, 1, 1);
+            return monitor;
+        }
+    }
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+        if (window == monitor->top_bar_window
+            || window == monitor->bottom_bar_window) {
+            return monitor;
+        }
+    }
+    if ((client = window_to_client(window)))
+        return client->monitor;
+
+    return live_monitor;
+}
+
 void
 scan_windows(void) {
     Window root_return;
@@ -4061,41 +4096,6 @@ update_status(void) {
     bottom_status_pixels = status_count_pixels(bottom_status);
     monitor_draw_bar(live_monitor);
     return;
-}
-
-Client *
-window_to_client(Window window) {
-    for (Monitor *mon = monitors; mon; mon = mon->next) {
-        for (Client *client = mon->clients; client; client = client->next) {
-            if (client->window == window)
-                return client;
-        }
-    }
-    return NULL;
-}
-
-Monitor *
-window_to_monitor(Window window) {
-    Client *client;
-
-    if (window == root) {
-        int x;
-        int y;
-        if (get_root_pointer(&x, &y)) {
-            Monitor *monitor = rectangle_to_monitor(x, y, 1, 1);
-            return monitor;
-        }
-    }
-    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        if (window == monitor->top_bar_window
-            || window == monitor->bottom_bar_window) {
-            return monitor;
-        }
-    }
-    if ((client = window_to_client(window)))
-        return client->monitor;
-
-    return live_monitor;
 }
 
 int
