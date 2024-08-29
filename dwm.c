@@ -283,7 +283,7 @@ static void monitor_layout_monocle(Monitor *);
 static void monitor_layout_tile(Monitor *);
 static void monitor_restack(Monitor *);
 static void monitor_update_bar_position(Monitor *);
-static void monitor_focus(Monitor *);
+static void monitor_focus(Monitor *, bool);
 
 static Client *window_to_client(Window);
 static Monitor *create_monitor(void);
@@ -455,7 +455,7 @@ user_alt_tab(const Arg *) {
         return;
 
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
-        monitor_focus(monitor);
+        monitor_focus(monitor, false);
 
         user_view_tag(&(Arg){ .ui = (uint)~0 });
         user_set_layout(&(Arg){.v = &layouts[3]});
@@ -645,7 +645,7 @@ user_focus_monitor(const Arg *arg) {
     if ((monitor = direction_to_monitor(arg->i)) == live_monitor)
         return;
 
-    monitor_focus(monitor);
+    monitor_focus(monitor, false);
     return;
 }
 
@@ -2323,8 +2323,8 @@ monitor_arrange_monitor(Monitor *monitor) {
 }
 
 void
-monitor_focus(Monitor *monitor) {
-    client_unfocus(live_monitor->selected_client, false);
+monitor_focus(Monitor *monitor, bool set_focus) {
+    client_unfocus(live_monitor->selected_client, set_focus);
     live_monitor = monitor;
     client_focus(NULL);
     return;
@@ -4105,7 +4105,7 @@ main(int argc, char *argv[]) {
     scan_windows();
 
     for (Monitor *m = monitors; m; m = m->next) {
-        monitor_focus(m);
+        monitor_focus(m, false);
 
         user_view_tag(&(Arg){.ui = 1 << 5});
         user_set_layout(&(Arg){.v = &layouts[2]});
