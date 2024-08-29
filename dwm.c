@@ -832,13 +832,15 @@ user_mouse_move(const Arg *) {
             bool is_floating = client->is_floating;
             int new_x = ocx + (event.xmotion.x - x);
             int new_y = ocy + (event.xmotion.y - y);
+            int client_width = client_pixels_width(client);
+            int client_height = client_pixels_height(client);
             int over_x[2] = {
                 abs(monitor->win_x - new_x),
-                abs(monitor->win_x + monitor->win_w - (new_x + client_pixels_width(client))),
+                abs(monitor->win_x + monitor->win_w - (new_x + client_width)),
             };
             int over_y[2] = {
                 abs(monitor->win_y - new_y),
-                abs(monitor->win_y + monitor->win_h - (new_y + client_pixels_height(client))),
+                abs(monitor->win_y + monitor->win_h - (new_y + client_height)),
             };
 
             if ((event.xmotion.time - last_time) <= (1000 / 60))
@@ -848,12 +850,12 @@ user_mouse_move(const Arg *) {
             if (over_x[0] < SNAP_PIXELS)
                 new_x = monitor->win_x;
             else if (over_x[1] < SNAP_PIXELS)
-                new_x = monitor->win_x + monitor->win_w - client_pixels_width(client);
+                new_x = monitor->win_x + monitor->win_w - client_width;
 
             if (over_y[0] < SNAP_PIXELS)
                 new_y = monitor->win_y;
             else if (over_y[1] < SNAP_PIXELS)
-                new_y = monitor->win_y + monitor->win_h - client_pixels_height(client);
+                new_y = monitor->win_y + monitor->win_h - client_height;
 
             if (!is_floating && monitor->layout[monitor->lay_i]->function) {
                 bool moving_x = abs(new_x - client->x) > SNAP_PIXELS;
@@ -1121,6 +1123,7 @@ void
 user_toggle_floating(const Arg *) {
     Client *client = live_monitor->selected_client;
     Monitor *monitor;
+    int client_width, client_height;
 
     if (client == NULL)
         return;
@@ -1143,8 +1146,10 @@ user_toggle_floating(const Arg *) {
     }
 
     monitor = client->monitor;
-    client->x = monitor->mon_x + (monitor->mon_w - client_pixels_width(client)) / 2;
-    client->y = monitor->mon_y + (monitor->mon_h - client_pixels_height(client)) / 2;
+    client_width = client_pixels_width(client);
+    client_height = client_pixels_height(client);
+    client->x = monitor->mon_x + (monitor->mon_w - client_width) / 2;
+    client->y = monitor->mon_y + (monitor->mon_h - client_height) / 2;
 
     monitor_arrange(live_monitor);
     return;
