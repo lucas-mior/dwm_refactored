@@ -113,6 +113,17 @@ typedef struct BlockSignal {
     char *text;
 } BlockSignal;
 
+typedef struct StatusBar {
+    char text[STATUS_BUFFER_SIZE];
+    int pixels;
+    int number_blocks;
+    BlockSignal blocks_signal[STATUS_MAX_BLOCKS];
+} StatusBar;
+
+static StatusBar status_top;
+static StatusBar status_bottom;
+static int status_signal;
+
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
@@ -308,8 +319,8 @@ static int get_text_property(Window, Atom, char *, uint);
 static int update_geometry(void);
 static long get_window_state(Window);
 static void draw_bars(void);
-static int status_count_pixels(char *, BlockSignal *, int *);
-static void draw_status_text(BlockSignal *, int, int); 
+static void status_count_pixels(StatusBar *);
+static void draw_status_text(StatusBar *, int);
 static void status_get_signal_number(BlockSignal *, int);
 static void grab_keys(void);
 static void scan_windows_once(void);
@@ -319,15 +330,6 @@ static void update_numlock_mask(void);
 static void update_status(void);
 
 static const char broken[] = "broken";
-static char top_status[STATUS_BUFFER_SIZE];
-static char bottom_status[STATUS_BUFFER_SIZE];
-static int top_status_pixels;
-static int bottom_status_pixels;
-static int status_signal;
-static BlockSignal top_blocks_signal[STATUS_MAX_BLOCKS] = {0};
-static BlockSignal bottom_blocks_signal[STATUS_MAX_BLOCKS] = {0};
-static int top_number_blocks = 0;
-static int bottom_number_blocks = 0;
 
 static int screen;
 static int screen_width;
@@ -2444,8 +2446,8 @@ monitor_draw_bar(Monitor *monitor) {
     if (monitor == live_monitor) {
         drw_setscheme(drw, scheme[SchemeNormal]);
 
-        draw_status_text(top_blocks_signal, monitor->win_w - top_status_pixels, top_number_blocks);
-        text_pixels = top_status_pixels;
+        draw_status_text(&status_top, monitor->win_w);
+        text_pixels = status_top.pixels;
     }
 
     for (int i = 0; i < LENGTH(tags); i += 1) {
@@ -2548,7 +2550,7 @@ monitor_draw_bar(Monitor *monitor) {
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
     if (monitor == live_monitor) {
-        draw_status_text(bottom_blocks_signal, monitor->win_w - bottom_status_pixels, bottom_number_blocks);
+        draw_status_text(&status_bottom, monitor->win_w);
     }
     drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
@@ -3083,15 +3085,15 @@ handler_button_press(XEvent *event) {
             arg.ui = 1 << i;
         } else if (button_x < x + (int)(get_text_pixels(monitor->layout_symbol))) {
             click = ClickBarLayoutSymbol;
-        } else if (button_x > monitor->win_w - top_status_pixels) {
+        } else if (button_x > monitor->win_w - status_top.pixels) {
             click = ClickBarStatus;
-            status_get_signal_number(top_blocks_signal, button_x);
+            status_get_signal_number(status_top.blocks_signal, button_x);
         } else {
             click = ClickBarTitle;
         }
     } else if (button_event->window == monitor->bottom_bar_window) {
         click = ClickBottomBar;
-        status_get_signal_number(bottom_blocks_signal, button_x);
+        status_get_signal_number(status_bottom.blocks_signal, button_x);
     } else if ((client = window_to_client(button_event->window))) {
         client_focus(client);
         monitor_restack(monitor);
@@ -3116,11 +3118,12 @@ handler_button_press(XEvent *event) {
     return;
 }
 
-void draw_status_text(BlockSignal *blocks, int x0, int number_blocks) {
+void draw_status_text(StatusBar *status_bar, int monitor_width) {
     int pixels = 0;
+    int x0 = monitor_width - status_bar->pixels;
 
-    for (int i = 0; i < number_blocks; i += 1) {
-        BlockSignal *block = &blocks[i];
+    for (int i = 0; i < status_bar->number_blocks; i += 1) {
+        BlockSignal *block = &status_bar->blocks_signal[i];
         int text_pixels = block->max_x - block->min_x;
 
         block->max_x += x0;
@@ -3136,10 +3139,12 @@ void draw_status_text(BlockSignal *blocks, int x0, int number_blocks) {
     return;
 }
 
-int
-status_count_pixels(char *status, BlockSignal *blocks, int *number_blocks) {
+void
+status_count_pixels(StatusBar *status_bar) {
+    BlockSignal *blocks = status_bar->blocks_signal;
     int i = 0;
-    char *text;
+    char *text = status_bar->text;
+    char *status = status_bar->text;
     int total_pixels = 0;
     int text_pixels;
     char byte = *status;
@@ -3172,8 +3177,9 @@ status_count_pixels(char *status, BlockSignal *blocks, int *number_blocks) {
     blocks[i].text = text;
 
     total_pixels += text_pixels;
-    *number_blocks = i + 1;
-    return total_pixels;
+    status_bar->number_blocks = i + 1;
+    status_bar->pixels = total_pixels;
+    return;
 }
 
 void
@@ -4082,9 +4088,9 @@ update_status(void) {
     char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
-        strcpy(top_status, "dwm-"VERSION);
-        top_status_pixels = (int)(get_text_pixels(top_status) - text_padding + 2);
-        bottom_status[0] = '\0';
+        strcpy(status_top.text, "dwm-"VERSION);
+        status_top.pixels = (int)(get_text_pixels(status_top.text) - text_padding + 2);
+        status_bottom.text[0] = '\0';
         monitor_draw_bar(live_monitor);
         return;
     }
@@ -4093,14 +4099,14 @@ update_status(void) {
     if (separator) {
         *separator = '\0';
         separator += 2;
-        strncpy(bottom_status, separator, sizeof(bottom_status) - 1);
+        strncpy(status_bottom.text, separator, sizeof(status_bottom.text) - 1);
     } else {
-        bottom_status[0] = '\0';
+        status_bottom.text[0] = '\0';
     }
 
-    strncpy(top_status, text, sizeof(top_status) - 1);
-    top_status_pixels = status_count_pixels(top_status, top_blocks_signal, &top_number_blocks);
-    bottom_status_pixels = status_count_pixels(bottom_status, bottom_blocks_signal, &bottom_number_blocks);
+    strncpy(status_top.text, text, sizeof(status_top.text) - 1);
+    status_count_pixels(&status_top);
+    status_count_pixels(&status_bottom);
     monitor_draw_bar(live_monitor);
     return;
 }
