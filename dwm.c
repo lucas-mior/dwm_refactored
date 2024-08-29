@@ -394,7 +394,7 @@ struct Pertag {
     /* matrix of tags and layouts indexes */
     const Layout *layouts[LENGTH(tags) + 1][2];
 
-    /* display bar for the current user_tag */
+    /* display bar for the current tag */
     bool top_bars[LENGTH(tags) + 1];
     bool bottom_bars[LENGTH(tags) + 1];
 };
