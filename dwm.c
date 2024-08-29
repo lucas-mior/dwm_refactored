@@ -3139,10 +3139,6 @@ void draw_status_text(char *status, int status_pixels,
             blocks[i].min_x = mon_win_w - status_pixels + pixels;
             blocks[i].max_x = blocks[i].min_x + text_pixels;
 
-            if (blocks == top_blocks_signal) {
-                error(__func__, "block %d, signal %d = %s\n", i, blocks[i].signal, text);
-            }
-
             i += 1;
 
             drw_text(drw,
@@ -3186,9 +3182,10 @@ status_get_signal_number(BlockSignal *blocks, int x, int button_x) {
     status_signal = 0;
 
     for (int i = 0; i < STATUS_MAX_BLOCKS; i += 1) {
-        if (blocks[i].min_x > x && blocks[i].max_x < button_x)
+        if (blocks[i].max_x >= button_x) {
             status_signal = blocks[i].signal;
-        if (blocks[i].max_x >= button_x)
+        }
+        if (blocks[i].min_x > button_x)
             break;
     }
     return;
