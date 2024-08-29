@@ -2546,7 +2546,7 @@ monitor_draw_bar(Monitor *monitor) {
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
     if (monitor == live_monitor) {
-        draw_status_text(bottom_status, bottom_status_pixels,
+        draw_status_text(&bottom_status[2], bottom_status_pixels,
                          bottom_blocks_signal, monitor->win_w);
     }
     drw_map(drw, monitor->bottom_bar_window,
@@ -3125,10 +3125,12 @@ void draw_status_text(char *status, int status_pixels,
     int pixels = 0;
     int text_pixels = 0;
     int i = 0;
-    char byte;
+    char byte = *status;
+    status += 1;
 
     for (text = status; *status; status += 1) {
         if ((uchar)(*status) < ' ') {
+            blocks[i].signal = byte;
             byte = *status;
             *status = '\0';
 
@@ -3136,7 +3138,11 @@ void draw_status_text(char *status, int status_pixels,
 
             blocks[i].min_x = mon_win_w - status_pixels + pixels;
             blocks[i].max_x = blocks[i].min_x + text_pixels;
-            blocks[i].signal = byte;
+
+            if (blocks == top_blocks_signal) {
+                error(__func__, "block %d, signal %d = %s\n", i, blocks[i].signal, text);
+            }
+
             i += 1;
 
             drw_text(drw,
