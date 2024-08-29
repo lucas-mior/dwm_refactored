@@ -988,9 +988,9 @@ user_quit_dwm(const Arg *arg) {
 
 void
 user_set_layout(const Arg *arg) {
-    const Layout *layout = arg->v;
     Monitor *monitor = live_monitor;
     Pertag *pertag = monitor->pertag;
+    const Layout *layout;
 
     if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i]) {
         pertag->selected_layouts[pertag->tag] ^= 1;
@@ -998,6 +998,7 @@ user_set_layout(const Arg *arg) {
     }
 
     if (arg && arg->v) {
+        layout = arg->v;
         monitor->layout[monitor->lay_i]
             = pertag->layouts[pertag->tag][monitor->lay_i] = layout;
     }
