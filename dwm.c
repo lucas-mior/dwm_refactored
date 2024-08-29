@@ -521,11 +521,9 @@ user_alt_tab(const Arg *) {
         case ButtonPress: {
             XButtonPressedEvent *button_event = &(event.xbutton);
             monitor = window_to_monitor(button_event->window);
-            if (monitor && (monitor != live_monitor)) {
-                client_unfocus(live_monitor->selected_client, true);
-                live_monitor = monitor;
-                client_focus(NULL);
-            }
+            if (monitor && (monitor != live_monitor))
+                monitor_focus(monitor, true);
+
             if ((client = window_to_client(button_event->window)))
                 client_focus(client);
             XAllowEvents(display, AsyncBoth, CurrentTime);
@@ -658,9 +656,7 @@ user_focus_next(const Arg *arg) {
     client = monitor->selected_client;
     while (client == NULL && monitor->next) {
         monitor = monitor->next;
-        client_unfocus(live_monitor->selected_client, true);
-        live_monitor = monitor;
-        client_focus(NULL);
+        monitor_focus(monitor, true);
         client = monitor->selected_client;
     }
     if (client == NULL)
@@ -3069,11 +3065,8 @@ handler_button_press(XEvent *event) {
 
     /* focus monitor if necessary */
     monitor = window_to_monitor(button_event->window);
-    if (monitor && monitor != live_monitor) {
-        client_unfocus(live_monitor->selected_client, true);
-        live_monitor = monitor;
-        client_focus(NULL);
-    }
+    if (monitor && monitor != live_monitor)
+        monitor_focus(monitor, true);
 
     monitor = live_monitor;
     if (button_event->window == monitor->top_bar_window) {
@@ -3413,11 +3406,9 @@ handler_motion_notify(XEvent *event) {
         return;
 
     m = rectangle_to_monitor(motion_event->x_root, motion_event->y_root, 1, 1);
-    if (m != monitor_save && monitor_save) {
-        client_unfocus(live_monitor->selected_client, true);
-        live_monitor = m;
-        client_focus(NULL);
-    }
+    if (m != monitor_save && monitor_save)
+        monitor_focus(m, true);
+
     monitor_save = m;
     return;
 }
