@@ -110,6 +110,7 @@ typedef struct BlockSignal {
     int min_x;
     int max_x;
     int signal;
+    char *text;
 } BlockSignal;
 
 typedef struct Monitor Monitor;
@@ -304,11 +305,11 @@ static void view_tag(uint);
 static int get_text_pixels(char *);
 static int get_root_pointer(int *, int *);
 static int get_text_property(Window, Atom, char *, uint);
-static int status_count_pixels(char *);
 static int update_geometry(void);
 static long get_window_state(Window);
 static void draw_bars(void);
-static void draw_status_text(char *, BlockSignal *, int); 
+static int status_count_pixels(char *, BlockSignal *);
+static void draw_status_text(BlockSignal *, int); 
 static void status_get_signal_number(BlockSignal *, int);
 static void grab_keys(void);
 static void scan_windows_once(void);
@@ -325,6 +326,7 @@ static int bottom_status_pixels;
 static int status_signal;
 static BlockSignal top_blocks_signal[STATUS_MAX_BLOCKS] = {0};
 static BlockSignal bottom_blocks_signal[STATUS_MAX_BLOCKS] = {0};
+static int top_number_blocks = 0;
 
 static int screen;
 static int screen_width;
@@ -2441,9 +2443,7 @@ monitor_draw_bar(Monitor *monitor) {
     if (monitor == live_monitor) {
         drw_setscheme(drw, scheme[SchemeNormal]);
 
-        draw_status_text(top_status, 
-                         top_blocks_signal,
-                         monitor->win_w - top_status_pixels);
+        draw_status_text(top_blocks_signal, monitor->win_w - top_status_pixels);
         text_pixels = top_status_pixels;
     }
 
@@ -2547,9 +2547,7 @@ monitor_draw_bar(Monitor *monitor) {
     drw_setscheme(drw, scheme[SchemeNormal]);
     drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
     if (monitor == live_monitor) {
-        draw_status_text(bottom_status,
-                         bottom_blocks_signal,
-                         monitor->win_w - bottom_status_pixels);
+        draw_status_text(bottom_blocks_signal, monitor->win_w - bottom_status_pixels);
     }
     drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
@@ -3117,13 +3115,34 @@ handler_button_press(XEvent *event) {
     return;
 }
 
-void draw_status_text(char *status, BlockSignal *blocks, int x0) {
-    char *text;
+void draw_status_text(BlockSignal *blocks, int x0) {
     int pixels = 0;
-    int text_pixels = 0;
+
+    for (int i = 0; i < top_number_blocks; i += 1) {
+        BlockSignal block = blocks[i];
+        int text_pixels = block.max_x - block.min_x;
+        error(__func__, "block %d, signal %d = %s\n",
+                        i, block.signal, block.text);
+
+        if (text_pixels) {
+            drw_text(drw,
+                     x0 + pixels, 0, (uint)text_pixels, bar_height,
+                     0, block.text, 0);
+            pixels += text_pixels;
+        }
+    }
+    return;
+}
+
+int
+status_count_pixels(char *status, BlockSignal *blocks) {
     int i = 0;
+    char *text;
+    int total_pixels = 0;
+    int text_pixels;
     char byte = *status;
     status += 1;
+    top_number_blocks = 0;
 
     for (text = status; *status; status += 1) {
         if ((uchar)(*status) < ' ') {
@@ -3131,19 +3150,15 @@ void draw_status_text(char *status, BlockSignal *blocks, int x0) {
             byte = *status;
             *status = '\0';
 
-            text_pixels = (int)(get_text_pixels(text) - text_padding);
+            text_pixels = get_text_pixels(text) - text_padding;
 
-            blocks[i].min_x = x0 + pixels;
+            blocks[i].min_x = total_pixels;
             blocks[i].max_x = blocks[i].min_x + text_pixels;
+            blocks[i].text = text;
 
+            total_pixels += text_pixels;
             i += 1;
 
-            drw_text(drw,
-                     x0 + pixels, 0,
-                     (uint)text_pixels, bar_height, 0, text, 0);
-            pixels += text_pixels;
-
-            *status = byte;
             text = status + 1;
         }
     }
@@ -3151,33 +3166,13 @@ void draw_status_text(char *status, BlockSignal *blocks, int x0) {
 
     text_pixels = (int)(get_text_pixels(text) - text_padding + 2);
 
-    blocks[i].min_x = x0 + pixels;
+    blocks[i].min_x = total_pixels;
     blocks[i].max_x = blocks[i].min_x + text_pixels;
+    blocks[i].text = text;
 
-    drw_text(drw,
-             x0 + pixels, 0,
-             (uint)text_pixels, bar_height, 0, text, 0);
-    return;
-}
-
-int
-status_count_pixels(char *status) {
-    char *text;
-    int pixels = 0;
-
-    for (text = status; *status; status += 1) {
-        char byte;
-
-        if ((uchar)(*status) < ' ') {
-            byte = *status;
-            *status = '\0';
-            pixels += get_text_pixels(text) - text_padding;
-            *status = byte;
-            text = status + 1;
-        }
-    }
-    pixels += get_text_pixels(text) - text_padding + 2;
-    return pixels;
+    total_pixels += text_pixels;
+    top_number_blocks = i + 1;
+    return total_pixels;
 }
 
 void
@@ -4103,8 +4098,8 @@ update_status(void) {
     }
 
     strncpy(top_status, text, sizeof(top_status) - 1);
-    top_status_pixels = status_count_pixels(top_status);
-    bottom_status_pixels = status_count_pixels(bottom_status);
+    top_status_pixels = status_count_pixels(top_status, top_blocks_signal);
+    bottom_status_pixels = status_count_pixels(bottom_status, bottom_blocks_signal);
     monitor_draw_bar(live_monitor);
     return;
 }
