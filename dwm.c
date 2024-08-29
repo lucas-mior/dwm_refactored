@@ -468,7 +468,7 @@ user_alt_tab(const Arg *) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         monitor_focus(monitor, false);
         view_tag((uint)~0);
-        user_set_layout(&(Arg){.v = &layouts[3]});
+        set_layout(&layouts[3]);
     }
     monitor_focus(old_monitor, false);
     client_focus(live_monitor->selected_client);
@@ -4126,7 +4126,7 @@ main(int argc, char *argv[]) {
         monitor_focus(m, false);
 
         view_tag(1 << 5);
-        user_set_layout(&(Arg){.v = &layouts[2]});
+        set_layout(&layouts[2]);
 
         toggle_bar(BarTop);
         toggle_bar(BarBottom);
