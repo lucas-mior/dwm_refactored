@@ -4089,7 +4089,7 @@ update_status(void) {
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         strcpy(status_top.text, "dwm-"VERSION);
-        status_top.pixels = (int)(get_text_pixels(status_top.text) - text_padding + 2);
+        status_top.pixels = get_text_pixels(status_top.text) - text_padding + 2;
         status_bottom.text[0] = '\0';
         monitor_draw_bar(live_monitor);
         return;
