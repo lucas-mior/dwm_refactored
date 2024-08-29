@@ -457,7 +457,7 @@ user_alt_tab(const Arg *) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
         monitor_focus(monitor, false);
 
-        user_view_tag(&(Arg){ .ui = (uint)~0 });
+        view_tag((uint)~0);
         user_set_layout(&(Arg){.v = &layouts[3]});
     }
     client_unfocus(live_monitor->selected_client, false);
@@ -736,7 +736,7 @@ user_focus_urgent(const Arg *) {
             while (i < LENGTH(tags) && !((1 << i) & client->tags))
                 i += 1;
             if (i < LENGTH(tags)) {
-                user_view_tag(&(Arg){.ui = 1 << i});
+                view_tag(1 << i);
                 client_focus(client);
             }
         }
@@ -1308,7 +1308,6 @@ user_window_view(const Arg *) {
     uint nchildren_return;
     int unused;
     Client *client;
-    Arg view_arg;
 
     if (!XGetInputFocus(display, &window, &unused))
         return;
@@ -1322,8 +1321,7 @@ user_window_view(const Arg *) {
     if (!(client = window_to_client(window)))
         return;
 
-    view_arg.ui = client->tags;
-    user_view_tag(&view_arg);
+    view_tag(client->tags);
     return;
 }
 
@@ -1378,10 +1376,8 @@ client_apply_rules(Client *client) {
             if (monitor_aux)
                 client->monitor = monitor_aux;
 
-            if (rule->switchtotag) {
-                Arg a = { .ui = rule->tags };
-                user_view_tag(&a);
-            }
+            if (rule->switchtotag)
+                view_tag(rule->tags);
         }
     }
     if (class_hint.res_class)
@@ -4138,13 +4134,13 @@ main(int argc, char *argv[]) {
     for (Monitor *m = monitors; m; m = m->next) {
         monitor_focus(m, false);
 
-        user_view_tag(&(Arg){.ui = 1 << 5});
+        view_tag(1 << 5);
         user_set_layout(&(Arg){.v = &layouts[2]});
 
         user_toggle_top_bar(0);
         user_toggle_bottom_bar(0);
 
-        user_view_tag(&(Arg){.ui = 1 << 1});
+        view_tag(1 << 1);
     }
 
     {
