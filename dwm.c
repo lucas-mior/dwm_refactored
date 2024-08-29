@@ -3141,6 +3141,7 @@ status_count_pixels(char *status) {
 
     for (text = status; *status; status += 1) {
         char byte;
+
         if ((uchar)(*status) < ' ') {
             byte = *status;
             *status = '\0';
@@ -3158,12 +3159,12 @@ status_get_signal_number(char *status, int x, int max_x) {
     status_signal = 0;
 
     for (char *text = status; *status; status += 1) {
+        char byte;
+
         if ((uchar)(*status) < ' ') {
-            char byte = *status;
+            byte = *status;
             *status = '\0';
-
             x += get_text_pixels(text) - text_padding;
-
             *status = byte;
             text = status + 1;
 
