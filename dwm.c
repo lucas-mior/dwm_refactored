@@ -1126,10 +1126,7 @@ user_tag_monitor(const Arg *arg) {
     }
 
     client_send_monitor(selected, monitor);
-    usleep(50);
-    client_focus(NULL);
-    usleep(50);
-    user_focus_monitor(arg);
+    monitor_focus(monitor, false);
     user_toggle_floating(NULL);
     user_toggle_floating(NULL);
     return;
