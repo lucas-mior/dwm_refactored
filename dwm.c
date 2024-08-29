@@ -3150,9 +3150,6 @@ status_count_pixels(char *status, BlockSignal *blocks, int *number_blocks) {
 
             text_pixels = get_text_pixels(text) - text_padding;
 
-            error(__func__, "block[%d](signal %d) = %s\n",
-                  i, blocks[i].signal, text);
-
             blocks[i].min_x = total_pixels;
             blocks[i].max_x = blocks[i].min_x + text_pixels;
             blocks[i].text = text;
@@ -3172,7 +3169,7 @@ status_count_pixels(char *status, BlockSignal *blocks, int *number_blocks) {
     blocks[i].text = text;
 
     total_pixels += text_pixels;
-    *number_blocks = i + 1;
+    *number_blocks = i;
     return total_pixels;
 }
 
