@@ -447,6 +447,7 @@ void
 user_alt_tab(const Arg *) {
     static bool alt_tab_direction = false;
     Monitor *old_monitor = live_monitor;
+    Client *client;
     bool grabbed = false;
     int grab_status = 1000;
 
@@ -481,9 +482,9 @@ user_alt_tab(const Arg *) {
         nanosleep(&pause, NULL);
     }
 
+    client = live_monitor->selected_client;
     while (grabbed) {
         XEvent event;
-        Client *client;
         Monitor *monitor;
 
         XNextEvent(display, &event);
@@ -505,6 +506,7 @@ user_alt_tab(const Arg *) {
                 focus_direction(2);
             else if (event.xkey.keycode == key_k)
                 focus_direction(3);
+            client = live_monitor->selected_client;
             break;
         case KeyRelease:
             if (event.xkey.keycode == tabModKey) {
@@ -512,7 +514,7 @@ user_alt_tab(const Arg *) {
                 XUngrabButton(display, AnyButton, AnyModifier, None);
                 grabbed = false;
                 alt_tab_direction = !alt_tab_direction;
-                user_window_view(NULL);
+                view_tag(client->tags);
             }
             break;
         case ButtonPress: {
@@ -531,7 +533,7 @@ user_alt_tab(const Arg *) {
             XUngrabButton(display, AnyButton, AnyModifier, None);
             grabbed = false;
             alt_tab_direction = !alt_tab_direction;
-            user_window_view(NULL);
+            view_tag(client->tags);
             break;
         default:
             break;
