@@ -108,7 +108,7 @@ typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
     char name[256];
-    float min_a, max_a;
+    float min_aspect, max_aspect;
 
     int x, y, w, h;
     int stored_fx, stored_fy, stored_fw, stored_fh;
@@ -1453,11 +1453,11 @@ client_apply_size_hints(Client *client,
         }
 
         /* adjust for aspect limits */
-        if (client->min_a > 0 && client->max_a > 0) {
-            if (client->max_a < (float)*w / (float)*h)
-                *w = *h*((int)(client->max_a + 0.5f));
-            else if (client->min_a < (float)*h / (float)*w)
-                *h = *w*((int)(client->min_a + 0.5f));
+        if (client->min_aspect > 0 && client->max_aspect > 0) {
+            if (client->max_aspect < (float)*w / (float)*h)
+                *w = *h*((int)(client->max_aspect + 0.5f));
+            else if (client->min_aspect < (float)*h / (float)*w)
+                *h = *w*((int)(client->min_aspect + 0.5f));
         }
 
         if (base_is_min) { /* increment calculation requires this */
@@ -2189,12 +2189,12 @@ client_update_size_hints(Client *client) {
         client->min_w = client->min_h = 0;
     }
     if (size_hints.flags & PAspect) {
-        client->min_a = (float)size_hints.min_aspect.y
+        client->min_aspect = (float)size_hints.min_aspect.y
                         / (float)size_hints.min_aspect.x;
-        client->max_a = (float)size_hints.max_aspect.x
+        client->max_aspect = (float)size_hints.max_aspect.x
                         / (float)size_hints.max_aspect.y;
     } else {
-        client->max_a = client->min_a = 0.0;
+        client->max_aspect = client->min_aspect = 0.0;
     }
 
     has_maxes = client->max_w && client->max_h;
