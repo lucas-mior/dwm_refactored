@@ -287,6 +287,7 @@ static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 static Client *window_to_client(Window);
 
+static void toggle_bar(bool);
 static void focus_direction(int);
 static void focus_next(bool);
 static void view_tag(uint);
@@ -1128,11 +1129,11 @@ user_tag_monitor(const Arg *arg) {
 }
 
 void
-user_toggle_bar(const Arg *arg) {
+toggle_bar(bool top) {
     Monitor *monitor = live_monitor;
     Pertag *pertag = monitor->pertag;
 
-    if (arg->i) {
+    if (top) {
         monitor->show_top_bar = !monitor->show_top_bar;
         pertag->top_bars[pertag->tag] = monitor->show_top_bar;
     } else {
@@ -1146,6 +1147,12 @@ user_toggle_bar(const Arg *arg) {
                       (uint)monitor->win_w, bar_height);
 
     monitor_arrange(monitor);
+    return;
+}
+
+void
+user_toggle_bar(const Arg *arg) {
+    toggle_bar(arg->i);
     return;
 }
 
@@ -1259,9 +1266,9 @@ user_toggle_view(const Arg *arg) {
         = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-        user_toggle_bar(&(Arg){ .i = 1 });
+        toggle_bar(1);
     if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-        user_toggle_bar(&(Arg){ .i = 0 });
+        toggle_bar(0);
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -1307,9 +1314,9 @@ view_tag(uint arg_tags) {
         = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-        user_toggle_bar(&(Arg){ .i = 1 });
+        toggle_bar(1);
     if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-        user_toggle_bar(&(Arg){ .i = 0 });
+        toggle_bar(0);
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -4123,8 +4130,8 @@ main(int argc, char *argv[]) {
         view_tag(1 << 5);
         user_set_layout(&(Arg){.v = &layouts[2]});
 
-        user_toggle_bar(&(Arg){ .i = 1 });
-        user_toggle_bar(&(Arg){ .i = 0 });
+        toggle_bar(1);
+        toggle_bar(0);
 
         view_tag(1 << 1);
     }
