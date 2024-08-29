@@ -1140,19 +1140,19 @@ toggle_bar(int which) {
     if (which == BarTop) {
         monitor->show_top_bar = !monitor->show_top_bar;
         pertag->top_bars[pertag->tag] = monitor->show_top_bar;
-    } else {
-        monitor->show_bottom_bar = !monitor->show_bottom_bar;
-        pertag->bottom_bars[pertag->tag] = monitor->show_bottom_bar;
-    }
-    monitor_update_bar_position(monitor);
 
-    if (which == BarTop) {
+        monitor_update_bar_position(monitor);
         bar_window = monitor->top_bar_window;
         bar_y = monitor->top_bar_y;
     } else {
+        monitor->show_bottom_bar = !monitor->show_bottom_bar;
+        pertag->bottom_bars[pertag->tag] = monitor->show_bottom_bar;
+
+        monitor_update_bar_position(monitor);
         bar_window = monitor->bottom_bar_window;
         bar_y = monitor->bottom_bar_y;
     }
+
     XMoveResizeWindow(display, bar_window,
                       monitor->win_x, bar_y,
                       (uint)monitor->win_w, bar_height);
