@@ -1162,7 +1162,6 @@ user_toggle_floating(const Arg *) {
     if (client == NULL)
         return;
 
-    /* no support for fullscreen windows */
     if (client->is_fullscreen && !client->is_fake_fullscreen)
         return;
 
