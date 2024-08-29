@@ -3137,18 +3137,17 @@ handler_button_press(XEvent *event) {
 
 void
 get_signal_number(char *status, int x, int max_x) {
-    char *s = status;
     status_signal = 0;
 
-    for (char *text = status; *s && x <= max_x; s += 1) {
-        if ((uchar)(*s) < ' ') {
-            char byte = *s;
-            *s = '\0';
+    for (char *text = status; *status && x <= max_x; status += 1) {
+        if ((uchar)(*status) < ' ') {
+            char byte = *status;
+            *status = '\0';
 
             x += get_text_pixels(text) - text_padding;
 
-            *s = byte;
-            text = s + 1;
+            *status = byte;
+            text = status + 1;
 
             if (x < max_x) {
                 status_signal = byte;
@@ -4048,21 +4047,21 @@ update_numlock_mask(void) {
 }
 
 int
-status_count_pixels(char *text) {
-    char *s;
-    char *text2;
+status_count_pixels(char *status) {
+    char *text;
     int pixels = 0;
-    for (text2 = s = text; *s; s += 1) {
+
+    for (text = status; *status; status += 1) {
         char byte;
-        if ((uchar)(*s) < ' ') {
-            byte = *s;
-            *s = '\0';
-            pixels += get_text_pixels(text2) - text_padding;
-            *s = byte;
-            text2 = s + 1;
+        if ((uchar)(*status) < ' ') {
+            byte = *status;
+            *status = '\0';
+            pixels += get_text_pixels(text) - text_padding;
+            *status = byte;
+            text = status + 1;
         }
     }
-    pixels += get_text_pixels(text2) - text_padding + 2;
+    pixels += get_text_pixels(text) - text_padding + 2;
     return pixels;
 }
 
