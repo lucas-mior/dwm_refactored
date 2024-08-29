@@ -448,7 +448,7 @@ void error(const char *function, char *format, ...) {
 void
 user_alt_tab(const Arg *) {
     static bool alt_tab_direction = false;
-    Monitor *old = live_monitor;
+    Monitor *old_monitor = live_monitor;
     bool grabbed = false;
     int grab_status = 1000;
 
@@ -460,7 +460,7 @@ user_alt_tab(const Arg *) {
         view_tag((uint)~0);
         user_set_layout(&(Arg){.v = &layouts[3]});
     }
-    monitor_focus(old, false);
+    monitor_focus(old_monitor, false);
     client_focus(live_monitor->selected_client);
     focus_next(alt_tab_direction);
 
