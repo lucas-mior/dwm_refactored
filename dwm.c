@@ -3089,7 +3089,7 @@ handler_button_press(XEvent *event) {
         }
     } else if (button_event->window == monitor->bottom_bar_window) {
         click = ClickBottomBar;
-        status_get_signal_number(top_blocks_signal,
+        status_get_signal_number(bottom_blocks_signal,
                                  monitor->win_w - bottom_status_pixels,
                                  button_x);
     } else if ((client = window_to_client(button_event->window))) {
