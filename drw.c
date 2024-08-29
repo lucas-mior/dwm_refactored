@@ -330,7 +330,7 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lp
 	int charexists = 0, overflow = 0;
 	/* keep track of a couple codepoints for which we have no match. */
 	enum { nomatches_len = 64 };
-	static struct { long codepoint[nomatches_len]; unsigned int idx; } nomatches;
+	static struct { long codepoint[nomatches_len]; unsigned int idx; int padding;} nomatches;
 	static unsigned int ellipsis_width = 0;
 
 	if (!drw || (render && (!drw->scheme || !w)) || !text || !drw->fonts)

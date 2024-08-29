@@ -185,9 +185,9 @@ typedef struct {
 
     uint tags;
     uint switchtotag;
-    int is_floating;
-    int is_fake_fullscreen;
     int monitor;
+    bool is_floating;
+    bool is_fake_fullscreen;
 } Rule;
 
 typedef struct BlockSignal {
@@ -211,9 +211,7 @@ static int status_signal;
 static void error(const char *, char *, ...);
 static void user_alt_tab(const Arg *);
 static void user_aspect_resize(const Arg *);
-static void user_focus_direction(const Arg *);
 static void user_focus_monitor(const Arg *);
-static void user_focus_next(const Arg *);
 static void user_focus_stack(const Arg *);
 static void user_focus_urgent(const Arg *);
 static void user_increment_number_masters(const Arg *);
@@ -648,12 +646,6 @@ focus_direction(int direction) {
 }
 
 void
-user_focus_direction(const Arg *arg) {
-    focus_direction(arg->i);
-    return;
-}
-
-void
 user_focus_monitor(const Arg *arg) {
     Monitor *monitor;
 
@@ -695,12 +687,6 @@ focus_next(bool direction) {
              client = client->all_next);
     }
     client_focus(client);
-    return;
-}
-
-void
-user_focus_next(const Arg *arg) {
-    focus_next(arg->i);
     return;
 }
 
