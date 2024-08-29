@@ -322,7 +322,7 @@ static int screen_width;
 static int screen_height;
 
 static uint bar_height;
-static uint text_padding;
+static int text_padding;
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static uint numlock_mask = 0;
 
@@ -2450,24 +2450,26 @@ monitor_draw_bar(Monitor *monitor) {
             drw_setscheme(drw, scheme[SchemeNormal]);
 
         drw_text(drw, x, 0, (uint)w,
-                 bar_height, text_padding/2,
+                 bar_height, (uint)text_padding/2,
                  tags_display, (int)urgent & 1 << i);
         x += w;
         if (client_with_icon) {
-            drw_text(drw, x, 0, client_with_icon->icon_width + text_padding/2,
+            drw_text(drw,
+                     x, 0,
+                     client_with_icon->icon_width + (uint)text_padding/2,
                      bar_height, 0, " ", urgent & 1 << i);
             drw_pic(drw,
                     x, (bar_height - client_with_icon->icon_height) / 2,
                     client_with_icon->icon_width, client_with_icon->icon_height,
                     client_with_icon->icon);
-            x += client_with_icon->icon_width + text_padding/2;
-            tag_width[i] += client_with_icon->icon_width + text_padding/2;
+            x += client_with_icon->icon_width + (uint)text_padding/2;
+            tag_width[i] += client_with_icon->icon_width + (uint)text_padding/2;
         }
     }
     w = (int)get_text_pixels(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
     x = drw_text(drw,
-                 x, 0, (uint)w, bar_height, text_padding / 2,
+                 x, 0, (uint)w, bar_height, (uint)text_padding/2,
                  monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - text_pixels - x) > (int)bar_height) {
@@ -2484,7 +2486,7 @@ monitor_draw_bar(Monitor *monitor) {
 
             drw_text(drw,
                      x, 0, (uint)w, bar_height,
-                     text_padding / 2, monitor->selected_client->name, 0);
+                     (uint)text_padding/2, monitor->selected_client->name, 0);
             if (monitor->selected_client->is_floating)
                 drw_rect(drw, x + boxs, boxs,
                          (uint)boxw, (uint)boxw,
@@ -2887,7 +2889,7 @@ draw_bars(void) {
 
 int
 get_text_pixels(char *text) {
-    int width = drw_fontset_getwidth(drw, text) + text_padding;
+    int width = (int)(drw_fontset_getwidth(drw, text) + (uint)text_padding);
     return width;
 }
 
