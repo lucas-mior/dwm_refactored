@@ -3120,13 +3120,13 @@ void draw_status_text(BlockSignal *blocks, int x0, int number_blocks) {
     int pixels = 0;
 
     for (int i = 0; i < number_blocks; i += 1) {
-        BlockSignal block = blocks[i];
-        int text_pixels = block.max_x - block.min_x;
+        BlockSignal *block = &blocks[i];
+        int text_pixels = block->max_x - block->min_x;
 
         if (text_pixels) {
             drw_text(drw,
                      x0 + pixels, 0, (uint)text_pixels, bar_height,
-                     0, block.text, 0);
+                     0, block->text, 0);
             pixels += text_pixels;
         }
     }
