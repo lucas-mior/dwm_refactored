@@ -367,7 +367,7 @@ static Atom wm_atoms[WMLast];
 static Atom net_atoms[NetLast];
 static Display *display;
 static Visual *visual;
-static Colormap cmap;
+static Colormap color_map;
 static Window root;
 static Window wm_check_window;
 static int depth;
@@ -3794,7 +3794,7 @@ setup_once(void) {
             && render_format->direct.alphaMask) {
             visual = visual_info.visual;
             depth = visual_info.depth;
-            cmap = XCreateColormap(display, root, visual, AllocNone);
+            color_map = XCreateColormap(display, root, visual, AllocNone);
             break;
         }
     }
@@ -3804,12 +3804,12 @@ setup_once(void) {
     if (!visual) {
         visual = DefaultVisual(display, screen);
         depth = DefaultDepth(display, screen);
-        cmap = DefaultColormap(display, screen);
+        color_map = DefaultColormap(display, screen);
     }
 
     drw = drw_create(display, screen, root,
                      (uint)screen_width, (uint)screen_height,
-                     visual, (uint)depth, cmap);
+                     visual, (uint)depth, color_map);
     if (!drw_fontset_create(drw, fonts, LENGTH(fonts))) {
         error(__func__, "Error loading fonts for dwm.\n");
         exit(EXIT_FAILURE);
@@ -3889,7 +3889,7 @@ update_bars(void) {
         .override_redirect = True,
         .background_pixel = 0,
         .border_pixel = 0,
-        .colormap = cmap,
+        .colormap = color_map,
         .event_mask = ButtonPressMask|ExposureMask
     };
     XClassHint class_hint = {"dwm", "dwm"};
