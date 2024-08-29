@@ -31,7 +31,7 @@ CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700L -DVERSION=\"${VE
 CFLAGS   = -std=c99 -Weverything -Wfatal-errors ${INCS} ${CPPFLAGS}
 CFLAGS += -Wno-unsafe-buffer-usage -Wno-format-nonliteral
 CFLAGS += -Wno-deprecated-declarations -Wno-c23-extensions
-CFLAGS += -Wno-disabled-macro-expansion
+CFLAGS += -Wno-disabled-macro-expansion -Wno-unused-function -Wno-padded
 CFLAGS += -O2 -flto
 # CFLAGS += -Wno-sign-compare -Wno-sign-conversion
 LDFLAGS  = ${LIBS}
