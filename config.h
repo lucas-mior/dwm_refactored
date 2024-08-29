@@ -89,8 +89,8 @@ static const Layout layouts[] = {
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY|ShiftMask,             XK_b,      user_toggle_bar,               {1} },
-	{ MODKEY|ControlMask,           XK_b,      user_toggle_bar,               {0} },
+	{ MODKEY|ShiftMask,             XK_b,      user_toggle_bar,               {BarTop} },
+	{ MODKEY|ControlMask,           XK_b,      user_toggle_bar,               {BarBottom} },
 	{ MODKEY,                       XK_k,      user_focus_stack,              {.i = +1 } },
 	{ MODKEY,                       XK_l,      user_focus_stack,              {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_u,      user_focus_urgent,             {0} },

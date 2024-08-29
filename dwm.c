@@ -70,6 +70,11 @@ typedef unsigned char uchar;
 #define TAG_DISPLAY_SIZE 32
 #define ALT_TAB_GRAB_TRIES 10
 
+enum {
+    BarBottom,
+    BarTop,
+};
+
 #if 0
 #define DWM_DEBUG(...) do { \
     error(__func__, __VA_ARGS__); \
@@ -287,7 +292,7 @@ static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 static Client *window_to_client(Window);
 
-static void toggle_bar(bool);
+static void toggle_bar(int);
 static void focus_direction(int);
 static void focus_next(bool);
 static void view_tag(uint);
@@ -1129,11 +1134,11 @@ user_tag_monitor(const Arg *arg) {
 }
 
 void
-toggle_bar(bool top) {
+toggle_bar(int which) {
     Monitor *monitor = live_monitor;
     Pertag *pertag = monitor->pertag;
 
-    if (top) {
+    if (which == BarTop) {
         monitor->show_top_bar = !monitor->show_top_bar;
         pertag->top_bars[pertag->tag] = monitor->show_top_bar;
     } else {
@@ -1266,9 +1271,9 @@ user_toggle_view(const Arg *arg) {
         = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-        toggle_bar(1);
+        toggle_bar(BarTop);
     if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-        toggle_bar(0);
+        toggle_bar(BarBottom);
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -1314,9 +1319,9 @@ view_tag(uint arg_tags) {
         = monitor->pertag->layouts[tag][monitor->lay_i^1];
 
     if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
-        toggle_bar(1);
+        toggle_bar(BarTop);
     if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
-        toggle_bar(0);
+        toggle_bar(BarBottom);
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -4130,8 +4135,8 @@ main(int argc, char *argv[]) {
         view_tag(1 << 5);
         user_set_layout(&(Arg){.v = &layouts[2]});
 
-        toggle_bar(1);
-        toggle_bar(0);
+        toggle_bar(BarTop);
+        toggle_bar(BarBottom);
 
         view_tag(1 << 1);
     }
