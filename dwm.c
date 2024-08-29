@@ -307,6 +307,7 @@ static Monitor *rectangle_to_monitor(int, int, int, int);
 static Monitor *window_to_monitor(Window);
 static Client *window_to_client(Window);
 
+static void set_layout(const Layout *);
 static int get_root_pointer(int *, int *);
 static int get_text_pixels(char *);
 static int get_text_property(Window, Atom, char *, uint);
@@ -994,18 +995,16 @@ user_quit_dwm(const Arg *arg) {
 }
 
 void
-user_set_layout(const Arg *arg) {
+set_layout(const Layout *layout) {
     Monitor *monitor = live_monitor;
     Pertag *pertag = monitor->pertag;
-    const Layout *layout;
 
-    if (!arg || !arg->v || arg->v != monitor->layout[monitor->lay_i]) {
+    if (!layout || layout != monitor->layout[monitor->lay_i]) {
         pertag->selected_layouts[pertag->tag] ^= 1;
         monitor->lay_i = pertag->selected_layouts[monitor->pertag->tag];
     }
 
-    if (arg && arg->v) {
-        layout = arg->v;
+    if (layout) {
         monitor->layout[monitor->lay_i] = layout;
         pertag->layouts[pertag->tag][monitor->lay_i] = layout;
     }
@@ -1018,6 +1017,12 @@ user_set_layout(const Arg *arg) {
         monitor_arrange(monitor);
     else
         monitor_draw_bar(monitor);
+    return;
+}
+
+void
+user_set_layout(const Arg *arg) {
+    set_layout(arg->v);
     return;
 }
 

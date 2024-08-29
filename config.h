@@ -135,8 +135,6 @@ static const Button buttons[] = {
 	{ ClickBarTags,         0,           Button3, user_toggle_view,       {0} },
 	{ ClickBarTags,         MODKEY,      Button1, user_tag,               {0} },
 	{ ClickBarTags,         MODKEY,      Button3, user_toggle_tag,        {0} },
-	{ ClickBarLayoutSymbol, 0,           Button1, user_set_layout,        {0} },
-	{ ClickBarLayoutSymbol, 0,           Button3, user_set_layout,        {.v = &layouts[2]} },
 	{ ClickBarTitle,        0,           Button2, user_promote_to_master, {0} },
 	{ ClickClientWin,       MODKEY,      Button1, user_mouse_move,        {0} },
 	{ ClickClientWin,       MODKEY,      Button2, user_toggle_floating,   {0} },
