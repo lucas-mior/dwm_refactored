@@ -69,6 +69,7 @@ typedef unsigned char uchar;
 
 #define TAG_DISPLAY_SIZE 32
 #define ALT_TAB_GRAB_TRIES 10
+#define STATUS_BUFFER_SIZE 256
 
 enum {
     BarBottom,
@@ -313,7 +314,6 @@ static void update_numlock_mask(void);
 static void update_status(void);
 
 static const char broken[] = "broken";
-#define STATUS_BUFFER_SIZE 256
 static char top_status[STATUS_BUFFER_SIZE];
 static char bottom_status[STATUS_BUFFER_SIZE];
 static int top_status_pixels;
