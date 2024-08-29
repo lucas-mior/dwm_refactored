@@ -302,7 +302,7 @@ static int update_geometry(void);
 static long get_window_state(Window);
 static void draw_bars(void);
 static void draw_status_text(char *, int, int);
-static void get_signal_number(char *, int, int);
+static void status_get_signal_number(char *, int, int);
 static void grab_keys(void);
 static void scan_windows_once(void);
 static void setup_once(void);
@@ -3103,14 +3103,14 @@ handler_button_press(XEvent *event) {
         } else if (button_x > monitor->win_w - top_status_pixels) {
             int x0 = monitor->win_w - top_status_pixels;
             click = ClickBarStatus;
-            get_signal_number(top_status, x0, button_x);
+            status_get_signal_number(top_status, x0, button_x);
         } else {
             click = ClickBarTitle;
         }
     } else if (button_event->window == monitor->bottom_bar_window) {
         int x0 = monitor->win_w - bottom_status_pixels;
         click = ClickBottomBar;
-        get_signal_number(bottom_status, x0, button_x);
+        status_get_signal_number(bottom_status, x0, button_x);
     } else if ((client = window_to_client(button_event->window))) {
         client_focus(client);
         monitor_restack(monitor);
@@ -3136,7 +3136,7 @@ handler_button_press(XEvent *event) {
 }
 
 void
-get_signal_number(char *status, int x, int max_x) {
+status_get_signal_number(char *status, int x, int max_x) {
     status_signal = 0;
 
     for (char *text = status; *status && x <= max_x; status += 1) {
