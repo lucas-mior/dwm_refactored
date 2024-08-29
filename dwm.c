@@ -2190,9 +2190,9 @@ client_update_size_hints(Client *client) {
     }
     if (size_hints.flags & PAspect) {
         client->min_aspect = (float)size_hints.min_aspect.y
-                        / (float)size_hints.min_aspect.x;
+                             / (float)size_hints.min_aspect.x;
         client->max_aspect = (float)size_hints.max_aspect.x
-                        / (float)size_hints.max_aspect.y;
+                             / (float)size_hints.max_aspect.y;
     } else {
         client->max_aspect = client->min_aspect = 0.0;
     }
