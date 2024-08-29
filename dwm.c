@@ -303,7 +303,7 @@ static void draw_bars(void);
 static void draw_status_text(char *, int, int);
 static void get_signal_number(char *, int, int);
 static void grab_keys(void);
-static void scan_windows(void);
+static void scan_windows_once(void);
 static void setup_once(void);
 static void update_bars(void);
 static void update_numlock_mask(void);
@@ -3703,7 +3703,7 @@ window_to_monitor(Window window) {
 }
 
 void
-scan_windows(void) {
+scan_windows_once(void) {
     Window root_return;
     Window parent_return;
     Window *children_return = NULL;
@@ -4140,7 +4140,7 @@ main(int argc, char *argv[]) {
     }
 #endif /* __OpenBSD__ */
 
-    scan_windows();
+    scan_windows_once();
 
     for (Monitor *m = monitors; m; m = m->next) {
         monitor_focus(m, false);
