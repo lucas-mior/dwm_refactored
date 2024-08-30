@@ -2209,6 +2209,7 @@ monitor_draw_bars(Monitor *monitor) {
     int w;
     int text_pixels = 0;
     int urgent = 0;
+    uint padding = (uint)text_padding/2;
     char tags_display[TAG_DISPLAY_SIZE] = {0};
     char *masters_names[LENGTH(tags)] = {0};
     Client *clients_with_icon[LENGTH(tags)] = {0};
@@ -2275,26 +2276,26 @@ monitor_draw_bars(Monitor *monitor) {
             drw_setscheme(drw, scheme[SchemeNormal]);
 
         drw_text(drw, draw_x, 0, (uint)w,
-                 bar_height, (uint)text_padding/2,
+                 bar_height, padding,
                  tags_display, (int)urgent & 1 << i);
         draw_x += w;
         if (client_with_icon) {
             drw_text(drw,
                      draw_x, 0,
-                     client_with_icon->icon_width + (uint)text_padding/2,
+                     client_with_icon->icon_width + padding,
                      bar_height, 0, " ", urgent & 1 << i);
             drw_pic(drw,
                     draw_x, (bar_height - client_with_icon->icon_height) / 2,
                     client_with_icon->icon_width, client_with_icon->icon_height,
                     client_with_icon->icon);
-            draw_x += client_with_icon->icon_width + (uint)text_padding/2;
-            tags_widths[i] += client_with_icon->icon_width + (uint)text_padding/2;
+            draw_x += client_with_icon->icon_width + padding;
+            tags_widths[i] += client_with_icon->icon_width + padding;
         }
     }
     w = (int)get_text_pixels(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
     draw_x = drw_text(drw,
-                      draw_x, 0, (uint)w, bar_height, (uint)text_padding/2,
+                      draw_x, 0, (uint)w, bar_height, padding,
                       monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - text_pixels - draw_x) > (int)bar_height) {
@@ -2309,7 +2310,7 @@ monitor_draw_bars(Monitor *monitor) {
 
             drw_text(drw,
                      draw_x, 0, (uint)w, bar_height,
-                     (uint)text_padding/2, monitor->selected_client->name, 0);
+                     padding, monitor->selected_client->name, 0);
             if (monitor->selected_client->is_floating) {
                 drw_rect(drw, draw_x + boxs, boxs,
                          (uint)boxw, (uint)boxw,
