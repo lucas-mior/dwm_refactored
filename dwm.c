@@ -2907,7 +2907,6 @@ status_parse_text(StatusBar *status_bar) {
     int total_pixels = 0;
     int text_pixels;
     char byte = *status;
-    status += 1;
 
     for (text = status; *status; status += 1) {
         if ((uchar)(*status) < ' ') {
@@ -4065,9 +4064,9 @@ status_update(void) {
     if (separator) {
         *separator = '\0';
         separator += 2;
-        memcpy(status_bottom.text, separator, sizeof (status_bottom.text) - 1);
+        memcpy(status_bottom.text, separator, sizeof(status_bottom.text) - 1);
     } else {
-        status_bottom.text[0] = '\0';
+        memset(status_bottom.text, 0, sizeof(status_bottom.text));
     }
 
     strncpy(status_top.text, text, sizeof(status_top.text) - 1);
