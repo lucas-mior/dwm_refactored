@@ -294,7 +294,7 @@ static void client_update_wm_hints(Client *);
 static void monitor_arrange(Monitor *);
 static void monitor_arrange_monitor(Monitor *);
 static void monitor_cleanup_monitor(Monitor *);
-static void monitor_draw_bar(Monitor *);
+static void monitor_draw_bars(Monitor *);
 static void monitor_layout_columns(Monitor *);
 static void monitor_layout_grid(Monitor *);
 static void monitor_layout_monocle(Monitor *);
@@ -2203,7 +2203,7 @@ monitor_cleanup_monitor(Monitor *monitor) {
 }
 
 void
-monitor_draw_bar(Monitor *monitor) {
+monitor_draw_bars(Monitor *monitor) {
     int x;
     int w;
     int text_pixels = 0;
@@ -2540,7 +2540,7 @@ void
 monitor_restack(Monitor *m) {
     XEvent event;
 
-    monitor_draw_bar(m);
+    monitor_draw_bars(m);
     if (!m->selected_client)
         return;
 
@@ -3163,7 +3163,7 @@ handler_expose(XEvent *event) {
     if (expose_event->count != 0)
         return;
     if ((monitor = window_to_monitor(expose_event->window)))
-        monitor_draw_bar(monitor);
+        monitor_draw_bars(monitor);
     return;
 }
 
@@ -3239,7 +3239,7 @@ handler_property_notify(XEvent *event) {
     if ((property_event->window == root)
         && (property_event->atom == XA_WM_NAME)) {
         status_update();
-        monitor_draw_bar(live_monitor);
+        monitor_draw_bars(live_monitor);
         return;
     }
     if (property_event->state == PropertyDelete)
@@ -3274,11 +3274,11 @@ handler_property_notify(XEvent *event) {
         || property_event->atom == net_atoms[NetWMName]) {
         client_update_title(client);
         if (client == client->monitor->selected_client)
-            monitor_draw_bar(client->monitor);
+            monitor_draw_bars(client->monitor);
     } else if (property_event->atom == net_atoms[NetWMIcon]) {
         client_update_icon(client);
         if (client == client->monitor->selected_client)
-            monitor_draw_bar(client->monitor);
+            monitor_draw_bars(client->monitor);
     }
     if (property_event->atom == net_atoms[NetWMWindowType])
         client_update_window_type(client);
@@ -3657,7 +3657,7 @@ set_layout(const Layout *layout) {
     if (monitor->selected_client)
         monitor_arrange(monitor);
     else
-        monitor_draw_bar(monitor);
+        monitor_draw_bars(monitor);
     return;
 }
 
@@ -3696,7 +3696,7 @@ focus_next(bool direction) {
 void
 draw_bars(void) {
     for (Monitor *monitor = monitors; monitor; monitor = monitor->next)
-        monitor_draw_bar(monitor);
+        monitor_draw_bars(monitor);
     return;
 }
 
@@ -3847,7 +3847,7 @@ setup_once(void) {
     /* init bars */
     configure_bars_windows();
     status_update();
-    monitor_draw_bar(live_monitor);
+    monitor_draw_bars(live_monitor);
 
     /* supporting window for NetWMCheck */
     wm_check_window = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
