@@ -4060,6 +4060,7 @@ status_update(void) {
     char *separator;
 
     if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
+        error(__func__, "Error getting XA_WM_NAME property.\n");
         strcpy(status_top.text, "dwm-"VERSION);
         status_top.pixels = get_text_pixels(status_top.text) - text_padding + 2;
         status_bottom.text[0] = '\0';
