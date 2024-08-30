@@ -2293,8 +2293,8 @@ monitor_draw_bars(Monitor *monitor) {
     w = (int)get_text_pixels(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
     draw_x = drw_text(drw,
-                 draw_x, 0, (uint)w, bar_height, (uint)text_padding/2,
-                 monitor->layout_symbol, 0);
+                      draw_x, 0, (uint)w, bar_height, (uint)text_padding/2,
+                      monitor->layout_symbol, 0);
 
     if ((w = monitor->win_w - text_pixels - draw_x) > (int)bar_height) {
         int boxs = drw->fonts->h / 9;
