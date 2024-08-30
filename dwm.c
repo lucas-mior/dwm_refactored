@@ -825,8 +825,8 @@ user_mouse_resize(const Arg *) {
 
     XWarpPointer(display, None, client->window,
                  0, 0, 0, 0,
-                 client->w + client->border_pixels - 1,
-                 client->h + client->border_pixels - 1);
+                 client->w + client->border_pixels,
+                 client->h + client->border_pixels);
     do {
         XMaskEvent(display,
                    MOUSEMASK|ExposureMask|SubstructureRedirectMask, &event);
