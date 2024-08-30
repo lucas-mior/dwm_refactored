@@ -2928,16 +2928,17 @@ status_parse_text(StatusBar *status_bar) {
 
             text = status + 1;
         }
+    }{
+        blocks[i].signal = byte;
+
+        text_pixels = get_text_pixels(text) - text_padding + 2;
+
+        blocks[i].min_x = total_pixels;
+        blocks[i].max_x = blocks[i].min_x + text_pixels;
+        blocks[i].text_i = (int) (text - status_bar->text);
+
+        total_pixels += text_pixels;
     }
-    blocks[i].signal = byte;
-
-    text_pixels = (int)(get_text_pixels(text) - text_padding + 2);
-
-    blocks[i].min_x = total_pixels;
-    blocks[i].max_x = blocks[i].min_x + text_pixels;
-    blocks[i].text_i = (int) (text - status_bar->text);
-
-    total_pixels += text_pixels;
     status_bar->number_blocks = i + 1;
     status_bar->pixels = total_pixels;
     return;
