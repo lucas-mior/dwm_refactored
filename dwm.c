@@ -2208,8 +2208,8 @@ monitor_draw_bar(Monitor *monitor) {
     int w;
     int text_pixels = 0;
     int urgent = 0;
-    char tags_display[TAG_DISPLAY_SIZE];
-    char *masters_names[LENGTH(tags)];
+    char tags_display[TAG_DISPLAY_SIZE] = {0};
+    char *masters_names[LENGTH(tags)] = {0};
     Client *clients_with_icon[LENGTH(tags)] = {0};
 
     if (!monitor->show_top_bar)
@@ -2230,11 +2230,6 @@ monitor_draw_bar(Monitor *monitor) {
 
         draw_status_text(&status_top, monitor->win_w);
         text_pixels = status_top.pixels;
-    }
-
-    for (int i = 0; i < LENGTH(tags); i += 1) {
-        masters_names[i] = NULL;
-        clients_with_icon[i] = NULL;
     }
 
     for (Client *client = monitor->clients; client; client = client->next) {
