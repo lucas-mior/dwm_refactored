@@ -2216,6 +2216,14 @@ monitor_draw_bars(Monitor *monitor) {
     if (!monitor->show_top_bar)
         return;
 
+    /* bottom bar */
+    drw_setscheme(drw, scheme[SchemeNormal]);
+    drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
+    if (monitor == live_monitor)
+        draw_status_text(&status_bottom, monitor->win_w);
+    drw_map(drw, monitor->bottom_bar_window,
+            0, 0, (uint)monitor->win_w, bar_height);
+
     /* top bar: draw status first so it can be overdrawn by tags later */
     /* only drawn status on selected monitor */
     if (monitor == live_monitor) {
@@ -2313,14 +2321,6 @@ monitor_draw_bars(Monitor *monitor) {
         }
     }
     drw_map(drw, monitor->top_bar_window,
-            0, 0, (uint)monitor->win_w, bar_height);
-
-    /* bottom bar */
-    drw_setscheme(drw, scheme[SchemeNormal]);
-    drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
-    if (monitor == live_monitor)
-        draw_status_text(&status_bottom, monitor->win_w);
-    drw_map(drw, monitor->bottom_bar_window,
             0, 0, (uint)monitor->win_w, bar_height);
 
     return;
