@@ -411,7 +411,7 @@ struct Pertag {
     bool bottom_bars[LENGTH(tags) + 1];
 };
 
-static int tag_width[LENGTH(tags)];
+static int tags_widths[LENGTH(tags)];
 
 /* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
@@ -2266,7 +2266,7 @@ monitor_draw_bars(Monitor *monitor) {
             snprintf(tags_display, sizeof(tags_display),
                      tag_empty_format, tags[i]);
         }
-        tag_width[i] = w = (int)get_text_pixels(tags_display);
+        tags_widths[i] = w = (int)get_text_pixels(tags_display);
 
         if (monitor->tagset[monitor->selected_tags] & 1 << i)
             drw_setscheme(drw, scheme[SchemeSelected]);
@@ -2287,7 +2287,7 @@ monitor_draw_bars(Monitor *monitor) {
                     client_with_icon->icon_width, client_with_icon->icon_height,
                     client_with_icon->icon);
             draw_x += client_with_icon->icon_width + (uint)text_padding/2;
-            tag_width[i] += client_with_icon->icon_width + (uint)text_padding/2;
+            tags_widths[i] += client_with_icon->icon_width + (uint)text_padding/2;
         }
     }
     w = (int)get_text_pixels(monitor->layout_symbol);
@@ -2839,7 +2839,7 @@ handler_button_press(XEvent *event) {
         int x = 0;
 
         do {
-            x += tag_width[i];
+            x += tags_widths[i];
         } while (button_x >= x && ++i < LENGTH(tags));
 
         if (i < LENGTH(tags)) {
