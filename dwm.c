@@ -3813,8 +3813,8 @@ setup_once(void) {
         error(__func__, "Error loading fonts for dwm.\n");
         exit(EXIT_FAILURE);
     }
-    text_padding = drw->fonts->h / 2;
-    bar_height = drw->fonts->h + 2;
+    text_padding = (int) ((double) drw->fonts->h / 2.2);
+    bar_height = drw->fonts->h;
     update_geometry();
 
     /* init atoms */
