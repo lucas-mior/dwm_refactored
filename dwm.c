@@ -216,7 +216,7 @@ static void user_aspect_resize(const Arg *);
 static void user_focus_monitor(const Arg *);
 static void user_focus_stack(const Arg *);
 static void user_focus_urgent(const Arg *);
-static void user_increment_number_masters(const Arg *);
+static void user_more_masters(const Arg *);
 static void user_kill_client(const Arg *);
 static void user_mouse_move(const Arg *);
 static void user_mouse_resize(const Arg *);
@@ -661,7 +661,7 @@ user_focus_urgent(const Arg *) {
 }
 
 void
-user_increment_number_masters(const Arg *arg) {
+user_more_masters(const Arg *arg) {
     Monitor *monitor = live_monitor;
     Pertag *pertag = monitor->pertag;
     int number_slaves = -1;
