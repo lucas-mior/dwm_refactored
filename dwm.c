@@ -1344,6 +1344,7 @@ client_configure(Client *client) {
     configure_event.border_width = client->border_pixels;
     configure_event.above = None;
     configure_event.override_redirect = False;
+
     XSendEvent(display, client->window,
                False, StructureNotifyMask, (XEvent *)&configure_event);
     return;
