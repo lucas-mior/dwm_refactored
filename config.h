@@ -84,8 +84,6 @@ static const Layout layouts[] = {
 	{ MODKEY|ShiftMask,             KEY,      user_tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      user_toggle_tag,     {.ui = 1 << TAG} },
 
-#define STATUSBAR "dwmblocks2"
-
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY|ShiftMask,             XK_b,      user_toggle_bar,               {BarTop} },

@@ -71,6 +71,8 @@ typedef unsigned char uchar;
 #define ALT_TAB_GRAB_TRIES 10
 #define STATUS_BUFFER_SIZE 256
 #define STATUS_MAX_BLOCKS 20
+#define STATUS_PROGRAM "dwmblocks2"
+
 
 #if 0
 #define DWM_DEBUG(...) do { \
@@ -956,7 +958,7 @@ user_signal_status_bar(const Arg *arg) {
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
-        execlp("pidof", "pidof", "-s", STATUSBAR, NULL);
+        execlp("pidof", "pidof", "-s", STATUS_PROGRAM, NULL);
         error(__func__, "Error executing pidof.\n");
         exit(EXIT_FAILURE);
     default:
