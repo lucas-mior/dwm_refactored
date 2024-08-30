@@ -2883,7 +2883,11 @@ handler_button_press(XEvent *event) {
 
 void draw_status_text(StatusBar *status_bar, int monitor_width) {
     int pixels = 0;
-    int x0 = monitor_width - status_bar->pixels;
+    int x0;
+    if (status_bar == &status_top)
+        x0 = monitor_width - status_bar->pixels;
+    else
+        x0 = (monitor_width - status_bar->pixels)/2;
 
     for (int i = 0; i < status_bar->number_blocks; i += 1) {
         BlockSignal *block = &status_bar->blocks_signal[i];
