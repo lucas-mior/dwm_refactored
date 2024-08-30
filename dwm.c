@@ -1108,7 +1108,7 @@ user_toggle_tag(const Arg *arg) {
 void
 user_toggle_view(const Arg *arg) {
     Monitor *monitor = live_monitor;
-    Pertag *pertag = pertag;
+    Pertag *pertag = live_monitor->pertag;
     uint new_tags;
     uint tag;
 
