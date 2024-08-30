@@ -2320,14 +2320,12 @@ monitor_draw_bar(Monitor *monitor) {
             0, 0, (uint)monitor->win_w, bar_height);
 
     /* bottom bar */
-    if (monitor->show_bottom_bar) {
-        drw_setscheme(drw, scheme[SchemeNormal]);
-        drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
-        if (monitor == live_monitor)
-            draw_status_text(&status_bottom, monitor->win_w);
-        drw_map(drw, monitor->bottom_bar_window,
-                0, 0, (uint)monitor->win_w, bar_height);
-    }
+    drw_setscheme(drw, scheme[SchemeNormal]);
+    drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
+    if (monitor == live_monitor)
+        draw_status_text(&status_bottom, monitor->win_w);
+    drw_map(drw, monitor->bottom_bar_window,
+            0, 0, (uint)monitor->win_w, bar_height);
     return;
 }
 
