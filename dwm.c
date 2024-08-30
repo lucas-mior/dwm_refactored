@@ -3572,9 +3572,10 @@ focus_direction(int direction) {
 
 void
 view_tag(uint arg_tags) {
+    Monitor *monitor = live_monitor;
+    Pertag *pertag = live_monitor->pertag;
     uint tmptag;
     uint tag;
-    Monitor *monitor = live_monitor;
 
     if ((arg_tags & TAGMASK) == monitor->tagset[monitor->selected_tags])
         return;
@@ -3583,34 +3584,32 @@ view_tag(uint arg_tags) {
 
     if (arg_tags & TAGMASK) {
         monitor->tagset[monitor->selected_tags] = arg_tags & TAGMASK;
-        monitor->pertag->old_tag = monitor->pertag->tag;
+        pertag->old_tag = pertag->tag;
 
         if (arg_tags == (uint)~0) {
-            monitor->pertag->tag = 0;
+            pertag->tag = 0;
         } else {
             uint i = 0;
             while (!(arg_tags & 1 << i))
                 i += 1;
-            monitor->pertag->tag = i + 1;
+            pertag->tag = i + 1;
         }
     } else {
-        tmptag = monitor->pertag->old_tag;
-        monitor->pertag->old_tag = monitor->pertag->tag;
-        monitor->pertag->tag = tmptag;
+        tmptag = pertag->old_tag;
+        pertag->old_tag = pertag->tag;
+        pertag->tag = tmptag;
     }
 
-    tag = monitor->pertag->tag;
-    monitor->number_masters = monitor->pertag->number_masters[tag];
-    monitor->master_fact = monitor->pertag->master_facts[tag];
-    monitor->lay_i = monitor->pertag->selected_layouts[tag];
-    monitor->layout[monitor->lay_i]
-        = monitor->pertag->layouts[tag][monitor->lay_i];
-    monitor->layout[monitor->lay_i^1]
-        = monitor->pertag->layouts[tag][monitor->lay_i^1];
+    tag = pertag->tag;
+    monitor->number_masters = pertag->number_masters[tag];
+    monitor->master_fact = pertag->master_facts[tag];
+    monitor->lay_i = pertag->selected_layouts[tag];
+    monitor->layout[monitor->lay_i] = pertag->layouts[tag][monitor->lay_i];
+    monitor->layout[monitor->lay_i^1] = pertag->layouts[tag][monitor->lay_i^1];
 
-    if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
+    if (monitor->show_top_bar != pertag->top_bars[tag])
         toggle_bar(BarTop);
-    if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
+    if (monitor->show_bottom_bar != pertag->bottom_bars[tag])
         toggle_bar(BarBottom);
 
     client_focus(NULL);
