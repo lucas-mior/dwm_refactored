@@ -2692,9 +2692,9 @@ get_window_state(Window window) {
 
 int
 get_text_property(Window window, Atom atom, char *text, uint size) {
+    XTextProperty text_property;
     char **list_return = NULL;
     int count_return;
-    XTextProperty text_property;
     int success;
 
     if (!text || size == 0)
