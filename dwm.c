@@ -3574,7 +3574,6 @@ void
 view_tag(uint arg_tags) {
     Monitor *monitor = live_monitor;
     Pertag *pertag = live_monitor->pertag;
-    uint tmptag;
     uint tag;
 
     if ((arg_tags & TAGMASK) == monitor->tagset[monitor->selected_tags])
@@ -3595,9 +3594,9 @@ view_tag(uint arg_tags) {
             pertag->tag = i + 1;
         }
     } else {
-        tmptag = pertag->old_tag;
+        uint temp = pertag->old_tag;
         pertag->old_tag = pertag->tag;
-        pertag->tag = tmptag;
+        pertag->tag = temp;
     }
 
     tag = pertag->tag;
