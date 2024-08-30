@@ -2703,8 +2703,7 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
         return 0;
 
     if (text_property.encoding == XA_STRING) {
-        ulong n = MIN(text_property.nitems, size - 1);
-        memcpy(text, (char *)text_property.value, n);
+        strncpy(text, (char *)text_property.value, size - 1);
         text[size - 1] = '\0';
         XFree(text_property.value);
         return 1;
@@ -4072,7 +4071,7 @@ status_update(void) {
     if (separator) {
         *separator = '\0';
         separator += 1;
-        memcpy(status_bottom.text, separator, sizeof(status_bottom.text) - 1);
+        strncpy(status_bottom.text, separator, sizeof(status_bottom.text) - 1);
     } else {
         memset(status_bottom.text, 0, sizeof(status_bottom.text));
     }
