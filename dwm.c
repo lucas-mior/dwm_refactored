@@ -559,7 +559,6 @@ user_aspect_resize(const Arg *arg) {
     Client *client = live_monitor->selected_client;
     float ratio;
     int w, h;
-    int new_width, new_height;
     bool monitor_floating = !monitor->layout[monitor->lay_i]->function;
 
     if (!arg)
@@ -574,11 +573,10 @@ user_aspect_resize(const Arg *arg) {
     h = arg->i;
     w = (int)(ratio*(float)h);
 
-    new_width = client->w + w;
-    new_height = client->h + h;
-
     XRaiseWindow(display, client->window);
-    client_resize(client, client->x, client->y, new_width, new_height, true);
+    client_resize(client,
+                  client->x, client->y, client->w + w, client->h + h,
+                  true);
     return;
 }
 
