@@ -51,6 +51,7 @@
 #include "drw.h"
 #include "util.h"
 
+static int counter = 0;
 typedef uint8_t uint8;
 typedef uint32_t uint32;
 typedef unsigned int uint;
@@ -2911,7 +2912,7 @@ status_parse_text(StatusBar *status_bar) {
     int text_pixels;
     char byte = *status;
 
-    for (text = status; *status; status += 1) {
+    while (*status) {
         if ((uchar)(*status) < ' ') {
             blocks[i].signal = byte;
             byte = *status;
@@ -2928,7 +2929,9 @@ status_parse_text(StatusBar *status_bar) {
 
             text = status + 1;
         }
+        status += 1;
     }{
+        status[0] = status[1] = status[2] = '\0';
         blocks[i].signal = byte;
 
         text_pixels = get_text_pixels(text) - text_padding + 2;
