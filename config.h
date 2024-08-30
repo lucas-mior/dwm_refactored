@@ -12,7 +12,7 @@ static const unsigned int superKey = 133;
 static const int SNAP_PIXELS       = 32;
 static const bool show_top_bar      = 1;   /* 0 means no top bar */
 static const bool show_bottom_bar   = 1;   /* 0 means no bottom bar */
-static const char status_separator = -1;  /* separator between statuses */
+static const int status_separator = -1;  /* separator between statuses */
 #define ICONSIZE 22   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
