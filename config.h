@@ -15,7 +15,7 @@ static const bool show_bottom_bar   = 1;   /* 0 means no bottom bar */
 #define ICONSIZE 22   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
-    "IosevkaSans:size=16",
+    "IosevkaCustom2Sans:size=16",
     "LiberationSans:size=16",
     "Noto Color Emoji:size=12:antialias=true:autohint=true",
     "LiterationMono Nerd Font:size=12:style=Regular",
