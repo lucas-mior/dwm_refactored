@@ -851,7 +851,8 @@ user_mouse_resize(const Arg *) {
             new_w = MAX(event.xmotion.x, 1);
             new_h = MAX(event.xmotion.y, 1);
 
-            monitor_floating = !(live_monitor->layout[live_monitor->lay_i]->function);
+            monitor_floating
+                = !(live_monitor->layout[live_monitor->lay_i]->function);
             if (!client->is_floating && !monitor_floating) {
                 bool over_snap_x = abs(new_w - client->w) > SNAP_PIXELS;
                 bool over_snap_y = abs(new_h - client->h) > SNAP_PIXELS;
@@ -3837,7 +3838,8 @@ setup_once(void) {
     net_atoms[NetWMCheck] = X_INTERN_ATOM("_NET_SUPPORTING_WM_CHECK");
     net_atoms[NetWMFullscreen] = X_INTERN_ATOM("_NET_WM_STATE_FULLSCREEN");
     net_atoms[NetWMWindowType] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE");
-    net_atoms[NetWMWindowTypeDialog] = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE_DIALOG");
+    net_atoms[NetWMWindowTypeDialog]
+        = X_INTERN_ATOM("_NET_WM_WINDOW_TYPE_DIALOG");
     net_atoms[NetClientList] = X_INTERN_ATOM("_NET_CLIENT_LIST");
     net_atoms[NetClientInfo] = X_INTERN_ATOM("_NET_CLIENT_INFO");
 
