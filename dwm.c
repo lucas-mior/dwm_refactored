@@ -89,14 +89,15 @@ typedef unsigned char uchar;
 #define DWM_DEBUG(...)
 #endif
 
-enum { BarBottom, BarTop };
+enum { NET_SUPPORTED, NET_WM_NAME, NET_WM_ICON, NET_WM_STATE,
+       NET_SUPPORTING_WM_CHECK, NET_WM_STATE_FULLSCREEN, NET_ACTIVE_WINDOW,
+       NET_WM_WINDOW_TYPE, NET_WM_WINDOW_TYPE_DIALOG, NET_CLIENT_LIST,
+       NET_CLIENT_INFO, NET_LAST };
+enum { WM_PROTOCOLS, WM_DELETE_WINDOW, WM_STATE, WM_TAKE_FOCUS, WM_LAST };
 
+enum { BarBottom, BarTop };
 enum { CursorNormal, CursorResize, CursorMove, CursorLast };
 enum { SchemeNormal, SchemeInverse, SchemeSelected, SchemeUrgent };
-enum { NET_SUPPORTED, NET_WM_NAME, NET_WM_ICON, NET_WM_STATE, NET_SUPPORTING_WM_CHECK,
-       NET_WM_STATE_FULLSCREEN, NET_ACTIVE_WINDOW, NET_WM_WINDOW_TYPE,
-       NET_WM_WINDOW_TYPE_DIALOG, NET_CLIENT_LIST, NET_CLIENT_INFO, NetLast };
-enum { WM_PROTOCOLS, WM_DELETE_WINDOW, WM_STATE, WM_TAKE_FOCUS, WMLast };
 enum { ClickBarTags, ClickBarLayoutSymbol, ClickBarStatus, ClickBarTitle,
        ClickBottomBar, ClickClientWin, ClickRootWin, ClickLast };
 
@@ -386,8 +387,8 @@ static void (*handlers[LASTEvent]) (XEvent *) = {
     [VisibilityNotify] = handler_others,
 };
 
-static Atom wm_atoms[WMLast];
-static Atom net_atoms[NetLast];
+static Atom wm_atoms[WM_LAST];
+static Atom net_atoms[NET_LAST];
 static Display *display;
 static Visual *visual;
 static Colormap color_map;
@@ -3878,7 +3879,7 @@ setup_once(void) {
 
     /* EWMH support per view */
     XChangeProperty(display, root, net_atoms[NET_SUPPORTED], XA_ATOM, 32,
-        PropModeReplace, (uchar *)net_atoms, NetLast);
+        PropModeReplace, (uchar *)net_atoms, NET_LAST);
     XDeleteProperty(display, root, net_atoms[NET_CLIENT_LIST]);
     XDeleteProperty(display, root, net_atoms[NET_CLIENT_INFO]);
 
