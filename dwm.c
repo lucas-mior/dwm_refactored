@@ -2268,7 +2268,7 @@ monitor_draw_bars(Monitor *monitor) {
             snprintf(tags_display, sizeof(tags_display),
                      tag_empty_format, tags[i]);
         }
-        tags_widths[i] = w = (int)get_text_pixels(tags_display);
+        tags_widths[i] = w = get_text_pixels(tags_display);
 
         if (monitor->tagset[monitor->selected_tags] & 1 << i)
             drw_setscheme(drw, scheme[SchemeSelected]);
@@ -2292,7 +2292,7 @@ monitor_draw_bars(Monitor *monitor) {
             tags_widths[i] += client_with_icon->icon_width + padding;
         }
     }
-    w = (int)get_text_pixels(monitor->layout_symbol);
+    w = get_text_pixels(monitor->layout_symbol);
     drw_setscheme(drw, scheme[SchemeNormal]);
     draw_x = drw_text(drw,
                       draw_x, 0, (uint)w, bar_height, padding,
