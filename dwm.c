@@ -1108,6 +1108,7 @@ user_toggle_tag(const Arg *arg) {
 void
 user_toggle_view(const Arg *arg) {
     Monitor *monitor = live_monitor;
+    Pertag *pertag = pertag;
     uint new_tags;
     uint tag;
 
@@ -1118,32 +1119,30 @@ user_toggle_view(const Arg *arg) {
     monitor->tagset[monitor->selected_tags] = new_tags;
 
     if (new_tags == (uint)~0) {
-        monitor->pertag->old_tag = monitor->pertag->tag;
-        monitor->pertag->tag = 0;
+        pertag->old_tag = pertag->tag;
+        pertag->tag = 0;
     }
 
     /* test if the user did not select the same tag */
-    if (!(new_tags & 1 << (monitor->pertag->tag - 1))) {
+    if (!(new_tags & 1 << (pertag->tag - 1))) {
         uint i = 0;
-        monitor->pertag->old_tag = monitor->pertag->tag;
+        pertag->old_tag = pertag->tag;
         while (!(new_tags & 1 << i))
             i += 1;
-        monitor->pertag->tag = i + 1;
+        pertag->tag = i + 1;
     }
 
-    tag = monitor->pertag->tag;
+    tag = pertag->tag;
 
-    monitor->number_masters = monitor->pertag->number_masters[tag];
-    monitor->master_fact = monitor->pertag->master_facts[tag];
-    monitor->lay_i = monitor->pertag->selected_layouts[tag];
-    monitor->layout[monitor->lay_i]
-        = monitor->pertag->layouts[tag][monitor->lay_i];
-    monitor->layout[monitor->lay_i^1]
-        = monitor->pertag->layouts[tag][monitor->lay_i^1];
+    monitor->number_masters = pertag->number_masters[tag];
+    monitor->master_fact = pertag->master_facts[tag];
+    monitor->lay_i = pertag->selected_layouts[tag];
+    monitor->layout[monitor->lay_i] = pertag->layouts[tag][monitor->lay_i];
+    monitor->layout[monitor->lay_i^1] = pertag->layouts[tag][monitor->lay_i^1];
 
-    if (monitor->show_top_bar != monitor->pertag->top_bars[tag])
+    if (monitor->show_top_bar != pertag->top_bars[tag])
         toggle_bar(BarTop);
-    if (monitor->show_bottom_bar != monitor->pertag->bottom_bars[tag])
+    if (monitor->show_bottom_bar != pertag->bottom_bars[tag])
         toggle_bar(BarBottom);
 
     client_focus(NULL);
