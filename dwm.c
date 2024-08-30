@@ -2706,7 +2706,8 @@ get_text_property(Window window, Atom atom, char *text, uint size) {
         return 0;
 
     if (text_property.encoding == XA_STRING) {
-        strncpy(text, (char *)text_property.value, size - 1);
+        ulong n = MIN(text_property.nitems, size - 1);
+        memcpy(text, (char *)text_property.value, n);
         text[size - 1] = '\0';
         XFree(text_property.value);
         return 1;
