@@ -2280,16 +2280,19 @@ monitor_draw_bars(Monitor *monitor) {
                  tags_display, (int)urgent & 1 << i);
         draw_x += w;
         if (client_with_icon) {
+            Picture icon = client_with_icon->icon;
+            uint icon_width = client_with_icon->icon_width;
+            uint icon_height = client_with_icon->icon_height;
+
             drw_text(drw,
-                     draw_x, 0,
-                     client_with_icon->icon_width + padding,
-                     bar_height, 0, " ", urgent & 1 << i);
+                     draw_x, 0, icon_width + padding, bar_height, 0,
+                     " ", urgent & 1 << i);
             drw_pic(drw,
-                    draw_x, (bar_height - client_with_icon->icon_height) / 2,
-                    client_with_icon->icon_width, client_with_icon->icon_height,
-                    client_with_icon->icon);
-            draw_x += client_with_icon->icon_width + padding;
-            tags_widths[i] += client_with_icon->icon_width + padding;
+                    draw_x, (bar_height - icon_height) / 2,
+                    icon_width, icon_height,
+                    icon);
+            draw_x += icon_width + padding;
+            tags_widths[i] += icon_width + padding;
         }
     }
     w = get_text_pixels(monitor->layout_symbol);
