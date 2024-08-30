@@ -2929,7 +2929,6 @@ status_parse_text(StatusBar *status_bar) {
         }
         status += 1;
     }{
-        status[0] = status[1] = status[2] = '\0';
         blocks[i].signal = byte;
 
         text_pixels = get_text_pixels(text) - text_padding + 2;

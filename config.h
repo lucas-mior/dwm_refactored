@@ -16,7 +16,7 @@ static const bool show_bottom_bar   = 1;   /* 0 means no bottom bar */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
     "LiberationSans:size=16",
-    "Noto Color Emoji:size=11:antialias=true:autohint=true",
+    "Noto Color Emoji:size=12:antialias=true:autohint=true",
     "LiterationMono Nerd Font:size=12:style=Regular",
 };
 static const char *colors[][3]      = {
