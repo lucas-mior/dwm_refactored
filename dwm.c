@@ -306,15 +306,16 @@ static void monitor_focus(Monitor *, bool);
 static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int);
 static Monitor *rectangle_to_monitor(int, int, int, int);
+
 static Monitor *window_to_monitor(Window);
 static Client *window_to_client(Window);
+static int window_text_property(Window, Atom, char *, uint);
+static long window_state(Window);
 
 static void set_layout(const Layout *);
 static int get_root_pointer(int *, int *);
 static int get_text_pixels(char *);
-static int get_text_property(Window, Atom, char *, uint);
 static int update_geometry(void);
-static long get_window_state(Window);
 static void configure_bars_windows(void);
 static void draw_bars(void);
 static void draw_status_text(StatusBar *, int);
@@ -2029,9 +2030,9 @@ client_update_size_hints(Client *client) {
 
 void
 client_update_title(Client *client) {
-    if (!get_text_property(client->window, net_atoms[NetWMName],
+    if (!window_text_property(client->window, net_atoms[NetWMName],
                            client->name, sizeof(client->name))) {
-        get_text_property(client->window, XA_WM_NAME,
+        window_text_property(client->window, XA_WM_NAME,
                           client->name, sizeof(client->name));
     }
     if (client->name[0] == '\0')
@@ -2663,7 +2664,7 @@ get_root_pointer(int *x, int *y) {
 }
 
 long
-get_window_state(Window window) {
+window_state(Window window) {
     int actual_format_return;
     long result = -1;
     uchar *prop_return = NULL;
@@ -2687,7 +2688,7 @@ get_window_state(Window window) {
 }
 
 int
-get_text_property(Window window, Atom atom, char *text, uint size) {
+window_text_property(Window window, Atom atom, char *text, uint size) {
     XTextProperty text_property;
     char **list_return = NULL;
     int count_return;
@@ -3727,7 +3728,7 @@ scan_windows_once(void) {
             continue;
 
         if (window_attributes.map_state == IsViewable
-            || get_window_state(child) == IconicState) {
+            || window_state(child) == IconicState) {
             client_new(child, &window_attributes);
         }
     }
@@ -3742,7 +3743,7 @@ scan_windows_once(void) {
             continue;
 
         if (window_attributes.map_state == IsViewable
-            || get_window_state(child) == IconicState) {
+            || window_state(child) == IconicState) {
             client_new(child, &window_attributes);
         }
     }
@@ -4057,7 +4058,7 @@ status_update(void) {
     char text[STATUS_BUFFER_SIZE*3];
     char *separator;
 
-    if (!get_text_property(root, XA_WM_NAME, text, sizeof(text))) {
+    if (!window_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         error(__func__, "Error getting XA_WM_NAME property.\n");
         strcpy(status_top.text, "dwm-"VERSION);
         status_top.pixels = get_text_pixels(status_top.text) - text_padding + 2;
