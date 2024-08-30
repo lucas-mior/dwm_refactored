@@ -2279,6 +2279,7 @@ monitor_draw_bars(Monitor *monitor) {
                  bar_height, padding,
                  tags_display, (int)urgent & 1 << i);
         draw_x += w;
+
         if (client_with_icon) {
             Picture icon = client_with_icon->icon;
             uint icon_width = client_with_icon->icon_width;
