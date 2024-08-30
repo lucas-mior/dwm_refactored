@@ -20,11 +20,11 @@ static const char *fonts[]          = {
     "LiterationMono Nerd Font:size=12:style=Regular",
 };
 static const char *colors[][3]      = {
-    /*               fg         bg         border  */
-    [SchemeNormal] = { "#ffffff", "#000000",   "#000000" },
+    /*                    fg          bg         border  */
+    [SchemeNormal]   = { "#ffffff", "#000000", "#000000" },
     [SchemeInverse]  = { "#000000", "#004400", "#000000" },
-    [SchemeSelected]  = { "#ffffff", "#004400", "green"   },
-    [SchemeUrgent]  = { "red",     "red",     "red"     },
+    [SchemeSelected] = { "#ffffff", "#004400", "green"   },
+    [SchemeUrgent]   = { "red",     "red",     "red"     },
 };
 #define OPAQUE 0xffU
 static const unsigned int alphas[][3] = {
