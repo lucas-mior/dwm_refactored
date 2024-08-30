@@ -51,7 +51,6 @@
 #include "drw.h"
 #include "util.h"
 
-static int counter = 0;
 typedef uint8_t uint8;
 typedef uint32_t uint32;
 typedef unsigned int uint;
