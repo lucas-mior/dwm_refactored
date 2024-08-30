@@ -72,7 +72,7 @@ typedef unsigned char uchar;
 #define STATUS_BUFFER_SIZE 256
 #define STATUS_MAX_BLOCKS 20
 #define STATUS_PROGRAM "dwmblocks2"
-
+#define DWM_BAR_SEPARATOR ((char) 0x01)
 
 #if 0
 #define DWM_DEBUG(...) do { \
@@ -4066,7 +4066,7 @@ status_update(void) {
         return;
     }
 
-    separator = strchr(text, status_separator);
+    separator = strchr(text, DWM_BAR_SEPARATOR);
     if (separator) {
         *separator = '\0';
         separator += 1;
