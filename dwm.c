@@ -1057,7 +1057,8 @@ void
 user_spawn(const Arg *arg) {
    struct sigaction signal_action;
 
-   if (fork() == 0) {
+   switch (fork()) {
+   case 0:
        if (display)
            close(ConnectionNumber(display));
        setsid();
@@ -1068,8 +1069,13 @@ user_spawn(const Arg *arg) {
        sigaction(SIGCHLD, &signal_action, NULL);
 
        execvp(((char *const *)arg->v)[0], (char *const *)arg->v);
-       error("user_spawn",
-             "dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
+       error(__func__, "dwm: execvp '%s' failed:", ((char *const *)arg->v)[0]);
+       exit(EXIT_FAILURE);
+   case -1:
+       error(__func__, "Error forking: %s\n", strerror(errno));
+       break;
+   default:
+       break;
    }
    return;
 }
