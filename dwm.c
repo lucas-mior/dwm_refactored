@@ -3601,6 +3601,7 @@ view_tag(uint arg_tags) {
     }
 
     tag = pertag->tag;
+
     monitor->number_masters = pertag->number_masters[tag];
     monitor->master_fact = pertag->master_facts[tag];
     monitor->lay_i = pertag->selected_layouts[tag];
