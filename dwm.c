@@ -310,6 +310,7 @@ static void monitor_layout_tile(Monitor *);
 static void monitor_restack(Monitor *);
 static void monitor_update_bar_position(Monitor *);
 static void monitor_focus(Monitor *, bool);
+static void monitor_restore_pertag(Monitor *, Pertag *);
 
 static Monitor *create_monitor(void);
 static Monitor *direction_to_monitor(int);
@@ -1110,7 +1111,6 @@ user_toggle_view(const Arg *arg) {
     Monitor *monitor = live_monitor;
     Pertag *pertag = live_monitor->pertag;
     uint new_tags;
-    uint tag;
 
     new_tags = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
     if (!new_tags)
@@ -1132,18 +1132,7 @@ user_toggle_view(const Arg *arg) {
         pertag->tag = i + 1;
     }
 
-    tag = pertag->tag;
-
-    monitor->number_masters = pertag->number_masters[tag];
-    monitor->master_fact = pertag->master_facts[tag];
-    monitor->lay_i = pertag->selected_layouts[tag];
-    monitor->layout[monitor->lay_i] = pertag->layouts[tag][monitor->lay_i];
-    monitor->layout[monitor->lay_i^1] = pertag->layouts[tag][monitor->lay_i^1];
-
-    if (monitor->show_top_bar != pertag->top_bars[tag])
-        toggle_bar(BarTop);
-    if (monitor->show_bottom_bar != pertag->bottom_bars[tag])
-        toggle_bar(BarBottom);
+    monitor_restore_pertag(monitor, pertag);
 
     client_focus(NULL);
     monitor_arrange(monitor);
@@ -3574,7 +3563,6 @@ void
 view_tag(uint arg_tags) {
     Monitor *monitor = live_monitor;
     Pertag *pertag = live_monitor->pertag;
-    uint tag;
 
     if ((arg_tags & TAGMASK) == monitor->tagset[monitor->selected_tags])
         return;
@@ -3599,7 +3587,16 @@ view_tag(uint arg_tags) {
         pertag->tag = temp;
     }
 
-    tag = pertag->tag;
+    monitor_restore_pertag(monitor, pertag);
+
+    client_focus(NULL);
+    monitor_arrange(monitor);
+    return;
+}
+
+void
+monitor_restore_pertag(Monitor *monitor, Pertag *pertag) {
+    uint tag = pertag->tag;
 
     monitor->number_masters = pertag->number_masters[tag];
     monitor->master_fact = pertag->master_facts[tag];
@@ -3611,9 +3608,6 @@ view_tag(uint arg_tags) {
         toggle_bar(BarTop);
     if (monitor->show_bottom_bar != pertag->bottom_bars[tag])
         toggle_bar(BarBottom);
-
-    client_focus(NULL);
-    monitor_arrange(monitor);
     return;
 }
 
