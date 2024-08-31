@@ -2224,7 +2224,7 @@ monitor_draw_bars(Monitor *monitor) {
 
     /* bottom bar */
     drw_setscheme(drw, scheme[SchemeNormal]);
-    drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, 1, 1);
+    drw_rect(drw, 0, 0, (uint)monitor->win_w, bar_height, true, true);
     if (monitor == live_monitor)
         draw_status_text(&status_bottom, monitor->win_w);
     drw_map(drw, monitor->bottom_bar_window,
@@ -2282,7 +2282,7 @@ monitor_draw_bars(Monitor *monitor) {
 
         drw_text(drw, draw_x, 0, (uint)w,
                  bar_height, padding,
-                 tags_display, (int)urgent & 1 << i);
+                 tags_display, urgent & 1 << i);
         draw_x += w;
 
         if (client_with_icon) {
@@ -2305,7 +2305,7 @@ monitor_draw_bars(Monitor *monitor) {
     drw_setscheme(drw, scheme[SchemeNormal]);
     draw_x = drw_text(drw,
                       draw_x, 0, (uint)w, bar_height, padding,
-                      monitor->layout_symbol, 0);
+                      monitor->layout_symbol, false);
 
     if ((w = monitor->win_w - text_pixels - draw_x) > (int)bar_height) {
         int boxs = drw->fonts->h / 9;
@@ -2327,7 +2327,7 @@ monitor_draw_bars(Monitor *monitor) {
             }
         } else {
             drw_setscheme(drw, scheme[SchemeNormal]);
-            drw_rect(drw, draw_x, 0, (uint)w, bar_height, 1, 1);
+            drw_rect(drw, draw_x, 0, (uint)w, bar_height, true, true);
         }
     }
     drw_map(drw, monitor->top_bar_window,
