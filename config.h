@@ -47,19 +47,19 @@ static const Rule rules[] = {
      *    WM_CLASS(STRING) = instance, class
      *    WM_NAME(STRING) = title
      */
-    /* class      instance    title       tags mask     switchtotag  isfloating   isfakefullscreen monitor */
-    { "firefox",  NULL,       NULL,         1 << 0,     1,           -1,          false,           true,},
-    { "LibreWolf",NULL,       NULL,         1 << 0,     1,           -1,          false,           true,},
-    { "Brave",    NULL,       NULL,         1 << 0,     1,           -1,          false,           true,},
-    { "KiCad",    NULL,       NULL,         1 << 3,     1,           -1,          false,           false,},
-    { "OMEdit",   NULL,       NULL,         1 << 3,     1,           -1,          false,           false,},
-    { NULL,       NULL,       " - mpv",     1 << 4,     1,           -1,          false,           false,},
-    { NULL,       NULL,       "ncmpcpp",    1 << 5,     1,           -1,          false,           false,},
-    { NULL,       NULL,       "csv_plotter.py",(uint)~0,0,           -1,          true,            false,},
-    { NULL,       NULL,       "clip.sh",    0,          0,           -1,          true,            false,},
-    { NULL,       NULL,       "clip1.sh",   0,          0,           -1,          true,            false,},
-    { NULL,       NULL,       "arqs.zsh",   0,          0,           -1,          true,            false,},
-    { NULL, NULL, "Plant Identification Progress",   0, 0,           -1,          true,            false,},
+    /* class      instance title       tags mask     switchto floating fakefullscreen monitor */
+    { "firefox",  NULL,    NULL,         1 << 0,     1,       -1,      false,         true,},
+    { "LibreWolf",NULL,    NULL,         1 << 0,     1,       -1,      false,         true,},
+    { "Brave",    NULL,    NULL,         1 << 0,     1,       -1,      false,         true,},
+    { "KiCad",    NULL,    NULL,         1 << 3,     1,       -1,      false,         false,},
+    { "OMEdit",   NULL,    NULL,         1 << 3,     1,       -1,      false,         false,},
+    { NULL,       NULL,    " - mpv",     1 << 4,     1,       -1,      false,         false,},
+    { NULL,       NULL,    "ncmpcpp",    1 << 5,     1,       -1,      false,         false,},
+    { NULL,       NULL,    "csv_plotter.py",(uint)~0,0,       -1,      true,          false,},
+    { NULL,       NULL,    "clip.sh",    0,          0,       -1,      true,          false,},
+    { NULL,       NULL,    "clip1.sh",   0,          0,       -1,      true,          false,},
+    { NULL,       NULL,    "arqs.zsh",   0,          0,       -1,      true,          false,},
+    { NULL, NULL, "Plant Identification Progress",   0, 0,    -1,      true,          false,},
 };
 
 /* layout(s) */
