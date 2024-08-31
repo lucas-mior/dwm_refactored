@@ -27,10 +27,10 @@ static const char *colors[][3]      = {
 };
 #define OPAQUE 0xffU
 static const unsigned int alphas[][3] = {
-    /*               fg      bg    border */
-    [SchemeNormal] = { OPAQUE, 0xbb, 0x00   },
-    [SchemeSelected]  = { OPAQUE, 0xbb, OPAQUE },
-    [SchemeUrgent]  = { OPAQUE, 0xbb, OPAQUE },
+    /*                   fg      bg    border */
+    [SchemeNormal]   = { OPAQUE, 0xbb, 0x00   },
+    [SchemeSelected] = { OPAQUE, 0xbb, OPAQUE },
+    [SchemeUrgent]   = { OPAQUE, 0xbb, OPAQUE },
 };
 
 /* tagging */
