@@ -49,7 +49,6 @@
 #include <X11/Xft/Xft.h>
 
 #include "drw.h"
-#include "util.h"
 
 typedef uint8_t uint8;
 typedef uint32_t uint32;
@@ -72,6 +71,9 @@ typedef unsigned char uchar;
 #define STATUS_MAX_BLOCKS 20
 #define STATUS_PROGRAM "dwmblocks2"
 #define DWM_BAR_SEPARATOR ((char) 0x01)
+
+#define MAX(A, B)               ((A) > (B) ? (A) : (B))
+#define MIN(A, B)               ((A) < (B) ? (A) : (B))
 
 #define NET_INTERN_ATOM(X) do { \
     net_atoms[X] = XInternAtom(display, "_"#X, False); \
@@ -320,6 +322,7 @@ static Client *window_to_client(Window);
 static int window_text_property(Window, Atom, char *, uint);
 static long window_state(Window);
 
+static void *xcalloc(size_t, size_t);
 static void error(const char *, char *, ...);
 static void set_layout(const Layout *);
 static int get_root_pointer(int *, int *);
@@ -425,6 +428,18 @@ static int tags_widths[LENGTH(tags)];
 
 /* compile-time check if all tags fit into an uint bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
+
+void *
+xcalloc(size_t nmemb, size_t size) {
+    void *p;
+
+    if (!(p = calloc(nmemb, size))) {
+        error(__func__, "Failed to allocate memory.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return p;
+}
 
 void error(const char *function, char *format, ...) {
     int message_length;
@@ -1473,7 +1488,7 @@ client_new(Window window, XWindowAttributes *window_attributes) {
     XWindowChanges window_changes;
     int success;
 
-    client = ecalloc(1, sizeof(*client));
+    client = xcalloc(1, sizeof(*client));
     client->window = window;
 
     client->x = client->old_x = window_attributes->x;
@@ -2625,8 +2640,8 @@ monitor_arrange(Monitor *monitor) {
 
 Monitor *
 create_monitor(void) {
-    Monitor *monitor = ecalloc(1, sizeof(*monitor));
-    Pertag *pertag = ecalloc(1, sizeof(*pertag));
+    Monitor *monitor = xcalloc(1, sizeof(*monitor));
+    Pertag *pertag = xcalloc(1, sizeof(*pertag));
 
     monitor->tagset[0] = monitor->tagset[1] = 1;
     monitor->master_fact = master_fact;
@@ -3862,7 +3877,7 @@ setup_once(void) {
     cursor[CursorMove] = drw_cur_create(drw, XC_fleur);
 
     /* init appearance */
-    scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
+    scheme = xcalloc(LENGTH(colors), sizeof(Clr *));
     for (int i = 0; i < LENGTH(colors); i += 1)
         scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
 
@@ -3971,7 +3986,7 @@ update_geometry(void) {
             number_monitors += 1;
 
         /* only consider unique geometries as separate screens */
-        unique = ecalloc((size_t) number_unique, sizeof(*unique));
+        unique = xcalloc((size_t) number_unique, sizeof(*unique));
         while (i < number_unique) {
             if (is_unique_geometry(unique, j, &screen_info[i])) {
                 memcpy(&unique[j], &screen_info[i], sizeof(*unique));

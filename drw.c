@@ -7,7 +7,9 @@
 #include <Imlib2.h>
 
 #include "drw.h"
-#include "util.h"
+
+#define MIN(A, B)               ((A) < (B) ? (A) : (B))
+#define BETWEEN(X, A, B)        ((A) <= (X) && (X) <= (B))
 
 #define UTF_INVALID 0xFFFD
 #define UTF_SIZ     4
@@ -18,6 +20,19 @@ static const long utfmin[UTF_SIZ + 1] = {       0,    0,  0x80,  0x800,  0x10000
 static const long utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
 
 static void die(const char *, ...) __attribute__((noreturn));
+static void *ecalloc(size_t nmemb, size_t size);
+
+void *
+ecalloc(size_t nmemb, size_t size)
+{
+	void *p;
+
+	if (!(p = calloc(nmemb, size))) {
+        fprintf(stderr, "Error allocating memory.\n");
+        exit(EXIT_FAILURE);
+    }
+	return p;
+}
 
 void
 die(const char *fmt, ...)
