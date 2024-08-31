@@ -10,8 +10,6 @@ static const unsigned int key_l = 46;
 static const unsigned int key_k = 45;
 static const unsigned int superKey = 133;
 static const int SNAP_PIXELS       = 32;
-static const bool show_top_bar      = true;
-static const bool show_bottom_bar   = true;
 #define ICONSIZE 22   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {

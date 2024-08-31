@@ -2631,8 +2631,8 @@ create_monitor(void) {
     monitor->tagset[0] = monitor->tagset[1] = 1;
     monitor->master_fact = master_fact;
     monitor->number_masters = 1;
-    monitor->show_top_bar = show_top_bar;
-    monitor->show_bottom_bar = show_bottom_bar;
+    monitor->show_top_bar = true;
+    monitor->show_bottom_bar = true;
 
     monitor->layout[0] = &layouts[0];
     monitor->layout[1] = &layouts[1 % LENGTH(layouts)];
