@@ -3211,8 +3211,8 @@ handler_map_request(XEvent *event) {
     int success;
 
     success = XGetWindowAttributes(display,
-                                  map_request_event->window,
-                                  &window_attributes);
+                                   map_request_event->window,
+                                   &window_attributes);
     if (!success)
         return;
 
