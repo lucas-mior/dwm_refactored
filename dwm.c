@@ -2036,9 +2036,9 @@ client_update_size_hints(Client *client) {
 void
 client_update_title(Client *client) {
     if (!window_text_property(client->window, net_atoms[NET_WM_NAME],
-                           client->name, sizeof(client->name))) {
+                              client->name, sizeof(client->name))) {
         window_text_property(client->window, XA_WM_NAME,
-                          client->name, sizeof(client->name));
+                             client->name, sizeof(client->name));
     }
     if (client->name[0] == '\0')
         strcpy(client->name, broken);
