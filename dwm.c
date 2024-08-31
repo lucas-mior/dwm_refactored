@@ -1818,7 +1818,8 @@ client_update_window_type(Client *client) {
     Atom window_type;
 
     state = client_get_atom_property(client, net_atoms[NET_WM_STATE]);
-    window_type = client_get_atom_property(client, net_atoms[NET_WM_WINDOW_TYPE]);
+    window_type = client_get_atom_property(client,
+                                           net_atoms[NET_WM_WINDOW_TYPE]);
 
     if (state == net_atoms[NET_WM_STATE_FULLSCREEN])
         client_set_fullscreen(client, true);
