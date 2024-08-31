@@ -1985,18 +1985,21 @@ client_update_size_hints(Client *client) {
     } else {
         client->base_w = client->base_h = 0;
     }
+
     if (size_hints.flags & PResizeInc) {
         client->increment_w = size_hints.width_inc;
         client->increment_h = size_hints.height_inc;
     } else {
         client->increment_w = client->increment_h = 0;
     }
+
     if (size_hints.flags & PMaxSize) {
         client->max_w = size_hints.max_width;
         client->max_h = size_hints.max_height;
     } else {
         client->max_w = client->max_h = 0;
     }
+
     if (size_hints.flags & PMinSize) {
         client->min_w = size_hints.min_width;
         client->min_h = size_hints.min_height;
@@ -2006,6 +2009,7 @@ client_update_size_hints(Client *client) {
     } else {
         client->min_w = client->min_h = 0;
     }
+
     if (size_hints.flags & PAspect) {
         float aspect_x = (float)size_hints.min_aspect.x;
         float aspect_y = (float)size_hints.min_aspect.y;
