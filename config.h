@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const unsigned int border_pixels = 3;        /* border pixel of windows */
+static const unsigned int border_pixels = 3;
 static const unsigned int tabModKey = 0x40;
 static const unsigned int tabCycleKey = 0x17;
 static const unsigned int key_j = 44;
@@ -10,8 +10,8 @@ static const unsigned int key_l = 46;
 static const unsigned int key_k = 45;
 static const unsigned int superKey = 133;
 static const int SNAP_PIXELS       = 32;
-static const bool show_top_bar      = 1;   /* 0 means no top bar */
-static const bool show_bottom_bar   = 1;   /* 0 means no bottom bar */
+static const bool show_top_bar      = true;
+static const bool show_bottom_bar   = true;
 #define ICONSIZE 22   /* icon size */
 #define ICONSPACING 5 /* space between icon and title */
 static const char *fonts[]          = {
