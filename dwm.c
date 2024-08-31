@@ -1930,9 +1930,13 @@ client_show_hide(Client *client) {
 
 void
 client_set_client_tag_prop(Client *client) {
-    long data[] = { (long) client->tags, (long) client->monitor->num };
+    long data[] = {
+        (long) client->tags,
+        (long) client->monitor->num
+    };
     XChangeProperty(display, client->window, net_atoms[NET_CLIENT_INFO],
-                    XA_CARDINAL, 32, PropModeReplace, (uchar *)data, 2);
+                    XA_CARDINAL, 32, PropModeReplace,
+                    (uchar *)data, LENGTH(data));
     return;
 }
 
