@@ -79,75 +79,75 @@ static const Layout layouts[] = {
 /* key definitions */
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
-    { MODKEY,                       KEY,      user_view_tag,       {.ui = 1 << TAG} }, \
-    { MODKEY|ControlMask,           KEY,      user_toggle_view,    {.ui = 1 << TAG} }, \
-    { MODKEY|ShiftMask,             KEY,      user_tag,            {.ui = 1 << TAG} }, \
-    { MODKEY|ControlMask|ShiftMask, KEY,      user_toggle_tag,     {.ui = 1 << TAG} },
+{ MODKEY,                       KEY,     user_view_tag,          {.ui = 1 << TAG} }, \
+{ MODKEY|ControlMask,           KEY,     user_toggle_view,       {.ui = 1 << TAG} }, \
+{ MODKEY|ShiftMask,             KEY,     user_tag,               {.ui = 1 << TAG} }, \
+{ MODKEY|ControlMask|ShiftMask, KEY,     user_toggle_tag,        {.ui = 1 << TAG} },
 
 static const Key keys[] = {
-    /* modifier                     key      function                argument */
-    { MODKEY|ShiftMask,             XK_b,    user_toggle_bar,        {BarTop} },
-    { MODKEY|ControlMask,           XK_b,    user_toggle_bar,        {BarBottom} },
-    { MODKEY,                       XK_k,    user_focus_stack,       {.i = +1 } },
-    { MODKEY,                       XK_l,    user_focus_stack,       {.i = -1 } },
-    { MODKEY|ShiftMask,             XK_u,    user_focus_urgent,      {0} },
-    { MODKEY,                       XK_i,    user_more_masters,      {.i = +1 } },
-    { MODKEY,                       XK_u,    user_more_masters,      {.i = -1 } },
-    { MODKEY,                       XK_j,    user_set_master_fact,   {.f = -0.05f} },
-    { MODKEY,                  XK_semicolon, user_set_master_fact,   {.f = +0.05f} },
-    { MODKEY|ControlMask,           XK_j,    user_aspect_resize,     {.i = -25} },
-    { MODKEY|ControlMask,      XK_semicolon, user_aspect_resize,     {.i = +25} },
-    { MODKEY|ShiftMask,           XK_Return, user_promote_to_master, {0} },
-    { MODKEY,                       XK_Tab,  user_view_tag,          {0} },
-    { MODKEY,                       XK_q,    user_kill_client,       {0} },
-    { MODKEY,                       XK_t,    user_set_layout,        {.v = &layouts[0]} },
-    { MODKEY|ShiftMask,             XK_f,    user_set_layout,        {.v = &layouts[1]} },
-    { MODKEY,                       XK_m,    user_set_layout,        {.v = &layouts[2]} },
-    { MODKEY|ShiftMask,             XK_g,    user_set_layout,        {.v = &layouts[3]} },
-    { MODKEY|ShiftMask,             XK_c,    user_set_layout,        {.v = &layouts[4]} },
-    { MODKEY,                      XK_space, user_toggle_floating,   {0} },
-    { MODKEY,                 XK_apostrophe, user_view_tag,          {.ui = (uint) ~0 } },
-    { MODKEY|ShiftMask,       XK_apostrophe, user_tag,               {.ui = (uint) ~0 } },
-    { MODKEY|ControlMask,           XK_k,    user_focus_monitor,     {.i = -1 } },
-    { MODKEY|ControlMask,           XK_l,    user_focus_monitor,     {.i = +1 } },
-    { MODKEY|ShiftMask,             XK_k,    user_tag_monitor,       {.i = -1 } },
-    { MODKEY|ShiftMask,             XK_l,    user_tag_monitor,       {.i = +1 } },
-    TAGKEYS(                        XK_F1,                           0)
-    TAGKEYS(                        XK_F2,                           1)
-    TAGKEYS(                        XK_F3,                           2)
-    TAGKEYS(                        XK_1,                            3)
-    TAGKEYS(                        XK_2,                            4)
-    TAGKEYS(                        XK_3,                            5)
-    { MODKEY|ControlMask|ShiftMask, XK_q,    user_quit_dwm,          {.i = 0} },
-    { MODKEY|ControlMask|ShiftMask, XK_r,    user_quit_dwm,          {.i = 1} },
-    { MODKEY,                       XK_g,    user_window_view,       {0}},
-    { Mod1Mask,                     XK_Tab,  user_alt_tab,           {0} },
-    { 0,                            XK_F11,  user_toggle_fullscreen, {0}},
+/* modifier                     key      function                argument */
+{ MODKEY|ShiftMask,             XK_b,    user_toggle_bar,        {BarTop} },
+{ MODKEY|ControlMask,           XK_b,    user_toggle_bar,        {BarBottom} },
+{ MODKEY,                       XK_k,    user_focus_stack,       {.i = +1 } },
+{ MODKEY,                       XK_l,    user_focus_stack,       {.i = -1 } },
+{ MODKEY|ShiftMask,             XK_u,    user_focus_urgent,      {0} },
+{ MODKEY,                       XK_i,    user_more_masters,      {.i = +1 } },
+{ MODKEY,                       XK_u,    user_more_masters,      {.i = -1 } },
+{ MODKEY,                       XK_j,    user_set_master_fact,   {.f = -0.05f} },
+{ MODKEY,                  XK_semicolon, user_set_master_fact,   {.f = +0.05f} },
+{ MODKEY|ControlMask,           XK_j,    user_aspect_resize,     {.i = -25} },
+{ MODKEY|ControlMask,      XK_semicolon, user_aspect_resize,     {.i = +25} },
+{ MODKEY|ShiftMask,           XK_Return, user_promote_to_master, {0} },
+{ MODKEY,                       XK_Tab,  user_view_tag,          {0} },
+{ MODKEY,                       XK_q,    user_kill_client,       {0} },
+{ MODKEY,                       XK_t,    user_set_layout,        {.v = &layouts[0]} },
+{ MODKEY|ShiftMask,             XK_f,    user_set_layout,        {.v = &layouts[1]} },
+{ MODKEY,                       XK_m,    user_set_layout,        {.v = &layouts[2]} },
+{ MODKEY|ShiftMask,             XK_g,    user_set_layout,        {.v = &layouts[3]} },
+{ MODKEY|ShiftMask,             XK_c,    user_set_layout,        {.v = &layouts[4]} },
+{ MODKEY,                      XK_space, user_toggle_floating,   {0} },
+{ MODKEY,                 XK_apostrophe, user_view_tag,          {.ui = (uint) ~0 } },
+{ MODKEY|ShiftMask,       XK_apostrophe, user_tag,               {.ui = (uint) ~0 } },
+{ MODKEY|ControlMask,           XK_k,    user_focus_monitor,     {.i = -1 } },
+{ MODKEY|ControlMask,           XK_l,    user_focus_monitor,     {.i = +1 } },
+{ MODKEY|ShiftMask,             XK_k,    user_tag_monitor,       {.i = -1 } },
+{ MODKEY|ShiftMask,             XK_l,    user_tag_monitor,       {.i = +1 } },
+TAGKEYS(                        XK_F1,                           0)
+TAGKEYS(                        XK_F2,                           1)
+TAGKEYS(                        XK_F3,                           2)
+TAGKEYS(                        XK_1,                            3)
+TAGKEYS(                        XK_2,                            4)
+TAGKEYS(                        XK_3,                            5)
+{ MODKEY|ControlMask|ShiftMask, XK_q,    user_quit_dwm,          {.i = 0} },
+{ MODKEY|ControlMask|ShiftMask, XK_r,    user_quit_dwm,          {.i = 1} },
+{ MODKEY,                       XK_g,    user_window_view,       {0}},
+{ Mod1Mask,                     XK_Tab,  user_alt_tab,           {0} },
+{ 0,                            XK_F11,  user_toggle_fullscreen, {0}},
 };
 
 static const Button buttons[] = {
-    /* click          event mask   button   function                argument */
-    { ClickBarTags,   0,           Button1, user_view_tag,          {0} },
-    { ClickBarTags,   0,           Button3, user_toggle_view,       {0} },
-    { ClickBarTags,   MODKEY,      Button1, user_tag,               {0} },
-    { ClickBarTags,   MODKEY,      Button3, user_toggle_tag,        {0} },
-    { ClickBarTitle,  0,           Button2, user_promote_to_master, {0} },
-    { ClickClientWin, MODKEY,      Button1, user_mouse_move,        {0} },
-    { ClickClientWin, MODKEY,      Button2, user_toggle_floating,   {0} },
-    { ClickClientWin, MODKEY,      Button3, user_mouse_resize,      {0} },
-    { ClickBarStatus, 0,           Button1, user_signal_status_bar, {.i = 1} },
-    { ClickBarStatus, 0,           Button2, user_signal_status_bar, {.i = 2} },
-    { ClickBarStatus, 0,           Button3, user_signal_status_bar, {.i = 3} },
-    { ClickBarStatus, 0,           Button4, user_signal_status_bar, {.i = 4} },
-    { ClickBarStatus, 0,           Button5, user_signal_status_bar, {.i = 5} },
-    { ClickBarStatus, ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
-    { ClickBarStatus, ControlMask, Button1, user_signal_status_bar, {.i = 7} },
-    { ClickBottomBar, 0,           Button1, user_signal_status_bar, {.i = 1} },
-    { ClickBottomBar, 0,           Button2, user_signal_status_bar, {.i = 2} },
-    { ClickBottomBar, 0,           Button3, user_signal_status_bar, {.i = 3} },
-    { ClickBottomBar, 0,           Button4, user_signal_status_bar, {.i = 4} },
-    { ClickBottomBar, 0,           Button5, user_signal_status_bar, {.i = 5} },
-    { ClickBottomBar, ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
-    { ClickBottomBar, ControlMask, Button1, user_signal_status_bar, {.i = 7} },
+/* click          event mask   button   function                argument */
+{ ClickBarTags,   0,           Button1, user_view_tag,          {0} },
+{ ClickBarTags,   0,           Button3, user_toggle_view,       {0} },
+{ ClickBarTags,   MODKEY,      Button1, user_tag,               {0} },
+{ ClickBarTags,   MODKEY,      Button3, user_toggle_tag,        {0} },
+{ ClickBarTitle,  0,           Button2, user_promote_to_master, {0} },
+{ ClickClientWin, MODKEY,      Button1, user_mouse_move,        {0} },
+{ ClickClientWin, MODKEY,      Button2, user_toggle_floating,   {0} },
+{ ClickClientWin, MODKEY,      Button3, user_mouse_resize,      {0} },
+{ ClickBarStatus, 0,           Button1, user_signal_status_bar, {.i = 1} },
+{ ClickBarStatus, 0,           Button2, user_signal_status_bar, {.i = 2} },
+{ ClickBarStatus, 0,           Button3, user_signal_status_bar, {.i = 3} },
+{ ClickBarStatus, 0,           Button4, user_signal_status_bar, {.i = 4} },
+{ ClickBarStatus, 0,           Button5, user_signal_status_bar, {.i = 5} },
+{ ClickBarStatus, ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
+{ ClickBarStatus, ControlMask, Button1, user_signal_status_bar, {.i = 7} },
+{ ClickBottomBar, 0,           Button1, user_signal_status_bar, {.i = 1} },
+{ ClickBottomBar, 0,           Button2, user_signal_status_bar, {.i = 2} },
+{ ClickBottomBar, 0,           Button3, user_signal_status_bar, {.i = 3} },
+{ ClickBottomBar, 0,           Button4, user_signal_status_bar, {.i = 4} },
+{ ClickBottomBar, 0,           Button5, user_signal_status_bar, {.i = 5} },
+{ ClickBottomBar, ShiftMask,   Button1, user_signal_status_bar, {.i = 6} },
+{ ClickBottomBar, ControlMask, Button1, user_signal_status_bar, {.i = 7} },
 };
 
