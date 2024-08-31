@@ -35,7 +35,6 @@ static const unsigned int alphas[][3] = {
     [SchemeUrgent]   = { OPAQUE, 0xbb, OPAQUE },
 };
 
-/* tagging */
 static const char *tags[] = { "F1", "F2", "F3", "1", "2", "3" };
 
 static const char tag_label_format[] = "%s: %s"; /* format of a tag label */
