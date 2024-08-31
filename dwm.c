@@ -2875,17 +2875,18 @@ handler_button_press(XEvent *event) {
     }
 
     for (uint i = 0; i < LENGTH(buttons); i += 1) {
-        if (click == buttons[i].click
-            && buttons[i].function
-            && (buttons[i].button == button_event->button)
-            && CLEANMASK(buttons[i].mask) == CLEANMASK(button_event->state)) {
-            const Arg *argument;
+        if (click != buttons[i].click)
+            continue;
+        if (buttons[i].button != button_event->button)
+            continue;
+        if (CLEANMASK(buttons[i].mask) != CLEANMASK(button_event->state))
+            continue;
 
+        if (buttons[i].function) {
             if (click == ClickBarTags && buttons[i].arg.i == 0)
-                argument = &arg;
+                buttons[i].function(&arg);
             else
-                argument = &buttons[i].arg;
-            buttons[i].function(argument);
+                buttons[i].function(&buttons[i].arg);
         }
     }
     return;
