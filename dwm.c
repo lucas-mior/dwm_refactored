@@ -4160,8 +4160,8 @@ main(int argc, char *argv[]) {
 
     scan_windows_once();
 
-    for (Monitor *m = monitors; m; m = m->next) {
-        monitor_focus(m, false);
+    for (Monitor *monitor = monitors; monitor; monitor = monitor->next) {
+        monitor_focus(monitor, false);
 
         view_tag(1 << 5);
         set_layout(&layouts[2]);
