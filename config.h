@@ -125,8 +125,6 @@ static const Key keys[] = {
     { 0,                            XK_F11,    user_toggle_fullscreen, {0}},
 };
 
-/* button definitions */
-/* click can be ClickBarTags, ClickBarLayoutSymbol, ClickBarStatus, ClickBarTitle, ClickClientWin, or ClickRootWin */
 static const Button buttons[] = {
     /* click          event mask   button   function                argument */
     { ClickBarTags,   0,           Button1, user_view_tag,          {0} },
