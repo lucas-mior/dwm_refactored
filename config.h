@@ -40,7 +40,7 @@ static const char *tags[] = { "F1", "F2", "F3", "1", "2", "3" };
 
 static const char tag_label_format[] = "%s: %s"; /* format of a tag label */
 static const char tag_empty_format[] = "%s";     /* format of an empty tag */
-static const char tag_label_delim[] = ":-_\n";     /* format of an empty tag */
+static const char tag_label_delim[] = ":-_\n";   /* format of an empty tag */
 
 static const Rule rules[] = {
     /* xprop(1):
