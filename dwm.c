@@ -4092,6 +4092,7 @@ void
 status_update(void) {
     char text[STATUS_BUFFER_SIZE*3];
     char *separator;
+    ulong top_length = sizeof (status_top.text);
 
     if (!window_text_property(root, XA_WM_NAME, text, sizeof(text))) {
         error(__func__, "Error getting XA_WM_NAME property.\n");
@@ -4103,14 +4104,15 @@ status_update(void) {
 
     separator = strchr(text, DWM_BAR_SEPARATOR);
     if (separator) {
+        top_length = (ulong) (separator - text);
         *separator = '\0';
         separator += 1;
-        strncpy(status_bottom.text, separator, sizeof(status_bottom.text) - 1);
+        memcpy(status_bottom.text, separator, sizeof(status_bottom.text));
     } else {
         memset(status_bottom.text, 0, sizeof(status_bottom.text));
     }
 
-    strncpy(status_top.text, text, sizeof(status_top.text) - 1);
+    memcpy(status_top.text, text, top_length);
     status_parse_text(&status_top);
     status_parse_text(&status_bottom);
     return;
