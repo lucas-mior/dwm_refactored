@@ -210,7 +210,7 @@ typedef struct BlockSignal {
 } BlockSignal;
 
 typedef struct StatusBar {
-    char text[STATUS_BUFFER_SIZE];
+    char text[STATUS_BUFFER_SIZE*2];
     int pixels;
     int number_blocks;
     BlockSignal blocks_signal[STATUS_MAX_BLOCKS];
@@ -4090,29 +4090,29 @@ update_numlock_mask(void) {
 
 void
 status_update(void) {
-    char text[STATUS_BUFFER_SIZE*3];
     char *separator;
-    ulong top_length = sizeof (status_top.text);
 
-    if (!window_text_property(root, XA_WM_NAME, text, sizeof(text))) {
+    if (!window_text_property(root, XA_WM_NAME,
+                              status_top.text, sizeof(status_top.text))) {
         error(__func__, "Error getting XA_WM_NAME property.\n");
         strcpy(status_top.text, "dwm-"VERSION);
+        strcpy(status_top.text, "dwm-"VERSION);
         status_top.pixels = get_text_pixels(status_top.text) - text_padding + 2;
-        status_bottom.text[0] = '\0';
+        status_bottom.pixels = status_top.pixels;
         return;
     }
 
-    separator = strchr(text, DWM_BAR_SEPARATOR);
+    separator = strchr(status_top.text, DWM_BAR_SEPARATOR);
     if (separator) {
-        top_length = (ulong) (separator - text);
+        ulong top_length = (ulong) (separator - status_top.text);
+        ulong bottom_length = sizeof (status_bottom.text) - top_length;
         *separator = '\0';
         separator += 1;
-        memcpy(status_bottom.text, separator, sizeof(status_bottom.text));
+        memcpy(status_bottom.text, separator, bottom_length);
     } else {
         memset(status_bottom.text, 0, sizeof(status_bottom.text));
     }
 
-    memcpy(status_top.text, text, top_length);
     status_parse_text(&status_top);
     status_parse_text(&status_bottom);
     return;
