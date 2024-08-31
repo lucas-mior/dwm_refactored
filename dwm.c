@@ -2333,8 +2333,8 @@ monitor_draw_bars(Monitor *monitor) {
 
 void
 monitor_layout_columns(Monitor *monitor) {
-    int i = 0;
     int number_tiled = 0;
+    int i = 0;
     int x = 0;
     int y = 0;
     int mon_w;
