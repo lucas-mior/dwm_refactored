@@ -2007,10 +2007,10 @@ client_update_size_hints(Client *client) {
         client->min_w = client->min_h = 0;
     }
     if (size_hints.flags & PAspect) {
-        client->min_aspect = (float)size_hints.min_aspect.y
-                             / (float)size_hints.min_aspect.x;
-        client->max_aspect = (float)size_hints.max_aspect.x
-                             / (float)size_hints.max_aspect.y;
+        float aspect_x = (float)size_hints.min_aspect.x;
+        float aspect_y = (float)size_hints.min_aspect.y;
+        client->min_aspect = aspect_y / aspect_x;
+        client->max_aspect = aspect_x / aspect_y;
     } else {
         client->max_aspect = client->min_aspect = 0.0;
     }
