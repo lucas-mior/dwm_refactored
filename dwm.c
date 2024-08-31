@@ -1974,7 +1974,7 @@ client_update_size_hints(Client *client) {
     int success;
 
     success = XGetWMNormalHints(display, client->window,
-                               &size_hints, &supplied_return);
+                                &size_hints, &supplied_return);
     if (!success) {
         /* size_hints is uninitialized,
          * ensure that size_hints.flags aren't used */
