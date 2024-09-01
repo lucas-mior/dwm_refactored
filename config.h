@@ -1,8 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
 static const float master_fact  = 0.50;
-static const bool resizehints    = true; /* 1 means respect size hints in tiled resizals */
-static const bool lockfullscreen = false; /* 1 will force focus on the fullscreen window */
+static const bool resizehints    = true;
+static const bool lockfullscreen = false;
 static const unsigned int border_pixels = 3;
 static const unsigned int tabModKey = 0x40;
 static const unsigned int tabCycleKey = 0x17;
