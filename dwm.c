@@ -2341,8 +2341,8 @@ monitor_draw_bars(Monitor *monitor) {
                      draw_x, 0, (uint)w, bar_height,
                      padding, monitor->selected_client->name, 0);
             if (monitor->selected_client->is_floating) {
-                drw_rect(drw, draw_x + boxs, boxs,
-                         (uint)boxw, (uint)boxw,
+                drw_rect(drw,
+                         draw_x + boxs, boxs, (uint)boxw, (uint)boxw,
                          monitor->selected_client->is_fixed, 0);
             }
         } else {
