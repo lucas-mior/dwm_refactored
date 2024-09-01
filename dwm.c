@@ -2300,9 +2300,9 @@ monitor_draw_bars(Monitor *monitor) {
         else
             drw_setscheme(drw, scheme[SchemeNormal]);
 
-        drw_text(drw, draw_x, 0, (uint)w,
-                 bar_height, padding,
-                 tags_display, urgent & 1 << i);
+        drw_text(drw,
+                 draw_x, 0, (uint)w, bar_height,
+                 padding, tags_display, urgent & 1 << i);
         draw_x += w;
 
         if (client_with_icon) {
