@@ -1127,6 +1127,11 @@ user_toggle_view(const Arg *arg) {
     Pertag *pertag = live_monitor->pertag;
     uint new_tags;
 
+    if (arg->ui & TAGMASK & monitor->tagset[monitor->selected_tags]) {
+        view_tag(arg->ui);
+        return;
+    }
+
     new_tags = monitor->tagset[monitor->selected_tags] ^ (arg->ui & TAGMASK);
     if (!new_tags)
         return;
