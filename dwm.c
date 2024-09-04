@@ -412,6 +412,7 @@ static Monitor *live_monitor;
 static Client *all_clients = NULL;
 
 #include "config.h"
+#include "blocks.c"
 
 struct Pertag {
     const Layout *layouts[LENGTH(tags) + 1][2];
@@ -4175,6 +4176,10 @@ main(int argc, char *argv[]) {
         toggle_bar(BarBottom);
 
         view_tag(1 << 1);
+    }
+
+    if (fork() == 0) {
+        dwmblocks();
     }
 
     {
