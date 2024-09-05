@@ -448,7 +448,7 @@ void error(const char *function, char *format, ...) {
     char message[256];
     char header[128];
 
-    header_length = snprintf(header, sizeof (header) - 1, "dwm %s()\n", function);
+    header_length = snprintf(header, sizeof (header), "dwm %s()\n", function);
 
     va_start(args, format);
     message_length = vsnprintf(message, sizeof (message) - 1, format, args);
