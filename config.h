@@ -17,6 +17,7 @@ static const int SNAP_PIXELS       = 32;
 static const char *fonts[]          = {
     "IosevkaCustom2Sans:size=16",
     "LiberationSans:size=16",
+    "OpenMoji Color:size=16",
     "Noto Color Emoji:size=12:antialias=true:autohint=true",
     "LiterationMono Nerd Font:size=12:style=Regular",
 };
