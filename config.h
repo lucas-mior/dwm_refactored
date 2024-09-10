@@ -31,9 +31,9 @@ static const char *colors[][3]      = {
 #define OPAQUE 0xffU
 static const unsigned int alphas[][3] = {
     /*                   fg      bg    border */
-    [SchemeNormal]   = { OPAQUE, 0xbb, 0x00   },
-    [SchemeSelected] = { OPAQUE, 0xbb, OPAQUE },
-    [SchemeUrgent]   = { OPAQUE, 0xbb, OPAQUE },
+    [SchemeNormal]   = { OPAQUE, 0x80, 0x00   },
+    [SchemeSelected] = { OPAQUE, 0x80, OPAQUE },
+    [SchemeUrgent]   = { OPAQUE, 0x80, OPAQUE },
 };
 
 static const char *tags[] = { "F1", "F2", "F3", "1", "2", "3" };

@@ -4171,7 +4171,6 @@ main(int argc, char *argv[]) {
         view_tag(1 << 5);
         set_layout(&layouts[2]);
 
-        toggle_bar(BarTop);
         toggle_bar(BarBottom);
 
         view_tag(1 << 1);
