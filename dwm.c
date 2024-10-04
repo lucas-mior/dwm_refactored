@@ -67,8 +67,8 @@ typedef unsigned char uchar;
 
 #define TAG_DISPLAY_SIZE 32
 #define ALT_TAB_GRAB_TRIES 10
-#define STATUS_BUFFER_SIZE 256
-#define STATUS_MAX_BLOCKS 20
+#define STATUS_BUFFER_SIZE 200
+#define STATUS_MAX_BLOCKS 40
 #define STATUS_PROGRAM "dwmblocks2"
 #define DWM_BAR_SEPARATOR ((char) 0x01)
 
